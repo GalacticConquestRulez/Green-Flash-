@@ -28,11 +28,11 @@ Output is in `dist/`.
    - Node version: **22**
 4. Deploy. Then **Settings → Domains** and add `greenflashads.com` (or whatever you own). Point the domain’s DNS to DigitalOcean as they show you.
 
-You can also import [`.do/app.yaml`](.do/app.yaml) — replace `YOUR_GITHUB_USER/green-flash-advertising` first.
+You can also import [`.do/app.yaml`](.do/app.yaml) directly.
 
 ## Contact form
 
-The form currently saves inquiries in the visitor’s browser (`localStorage`) so the UI works out of the box. To receive real emails, wire the submit handler in `src/components/contact-form.tsx` to Formspree, Basin, a serverless function, or your CRM.
+Submissions post to Formspree (`src/components/contact-form.tsx`). Manage the form and see incoming leads at [formspree.io](https://formspree.io/forms) — check the spam filter settings there and confirm the notification email if leads aren't arriving. To switch providers, swap `FORMSPREE_ENDPOINT` for your new endpoint.
 
 ## Stack
 

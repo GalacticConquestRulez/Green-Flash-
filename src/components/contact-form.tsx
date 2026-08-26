@@ -19,12 +19,14 @@ const TYPES = [
 
 type Status = "idle" | "submitting" | "success";
 
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xqpzrwkg";
+
 export function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [type, setType] = useState<string>("");
   const [error, setError] = useState<string>("");
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     const data = new FormData(e.currentTarget);
@@ -48,22 +50,19 @@ export function ContactForm() {
       return;
     }
     setStatus("submitting");
-    window.setTimeout(() => {
-      try {
-        const existing = JSON.parse(localStorage.getItem("gfa-leads") ?? "[]") as unknown[];
-        existing.push({
-          name,
-          email,
-          type,
-          message,
-          at: new Date().toISOString(),
-        });
-        localStorage.setItem("gfa-leads", JSON.stringify(existing));
-      } catch {
-        /* ignore quota */
-      }
+    data.set("businessType", type);
+    try {
+      const res = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        body: data,
+        headers: { Accept: "application/json" },
+      });
+      if (!res.ok) throw new Error("Formspree request failed");
       setStatus("success");
-    }, 500);
+    } catch {
+      setStatus("idle");
+      setError("Something went wrong sending your request. Please email us directly at hello@greenflashads.com.");
+    }
   }
 
   if (status === "success") {
