@@ -1,0 +1,16 @@
+name: green-flash-advertising
+region: nyc
+static_sites:
+  - name: www
+    github:
+      repo: GalacticConquestRulez/Green-Flash-
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    build_command: npm ci && npm run build
+    output_dir: dist
+    index_document: index.html
+    catchall_document: index.html
+    envs:
+      - key: NODE_VERSION
+        value: "22"
