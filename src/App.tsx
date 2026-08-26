@@ -11,6 +11,7 @@ import {
   Proof,
   Services,
 } from "@/components/sections";
+import { ROUTE_META } from "@/lib/route-meta";
 import { usePageMeta } from "@/lib/use-page-meta";
 import { NotFoundPage } from "@/pages/not-found";
 import { PrivacyPage } from "@/pages/privacy";
@@ -32,12 +33,7 @@ function ScrollToHash() {
 }
 
 function Home() {
-  usePageMeta({
-    title: "Green Flash Advertising | Affordable Google & Meta Ads for Local Businesses",
-    description:
-      "Affordable AI-powered Google and Meta ads for small businesses. Business Growth Package $375/month, no long-term contract. You provide the content — we run the ads.",
-    path: "/",
-  });
+  usePageMeta(ROUTE_META["/"]);
   return (
     <SiteChrome>
       <main id="main" className="pb-20 md:pb-0">

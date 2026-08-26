@@ -1,15 +1,11 @@
 import { Link } from "react-router-dom";
 import { SiteChrome } from "@/components/chrome";
 import { Button } from "@/components/ui/button";
+import { NOT_FOUND_META } from "@/lib/route-meta";
 import { usePageMeta } from "@/lib/use-page-meta";
 
 export function NotFoundPage() {
-  usePageMeta({
-    title: "Page Not Found | Green Flash Advertising",
-    description: "The page you're looking for doesn't exist.",
-    path: "/",
-    noindex: true,
-  });
+  usePageMeta(NOT_FOUND_META);
   return (
     <SiteChrome>
       <main id="main" className="mx-auto flex w-full max-w-3xl flex-col items-start px-4 py-24 sm:px-6">
