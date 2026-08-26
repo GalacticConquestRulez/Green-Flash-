@@ -19,7 +19,7 @@ const TYPES = [
 
 type Status = "idle" | "submitting" | "success";
 
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/xqpzrwkg";
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/mjybnjko";
 
 export function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
