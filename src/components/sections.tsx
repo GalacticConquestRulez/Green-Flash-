@@ -379,8 +379,8 @@ export function FinalCta() {
           </ul>
           <p className="mt-8 text-sm text-muted">
             Or email{" "}
-            <a href="mailto:hello@greenflashads.com" className="text-flash hover:underline">
-              hello@greenflashads.com
+            <a href="mailto:hello@greenflashusa.com" className="text-flash hover:underline">
+              hello@greenflashusa.com
             </a>
           </p>
         </div>

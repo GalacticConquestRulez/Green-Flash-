@@ -45,8 +45,8 @@ export function PrivacyPage() {
             <p className="mt-2">
               Inquiry records are kept as long as needed to respond and for ordinary business
               records. You can ask us to delete a request by emailing{" "}
-              <a className="text-flash hover:underline" href="mailto:hello@greenflashads.com">
-                hello@greenflashads.com
+              <a className="text-flash hover:underline" href="mailto:hello@greenflashusa.com">
+                hello@greenflashusa.com
               </a>
               .
             </p>
@@ -55,8 +55,8 @@ export function PrivacyPage() {
             <h2 className="font-display text-2xl tracking-wide text-foreground">Contact</h2>
             <p className="mt-2">
               Questions about this policy:{" "}
-              <a className="text-flash hover:underline" href="mailto:hello@greenflashads.com">
-                hello@greenflashads.com
+              <a className="text-flash hover:underline" href="mailto:hello@greenflashusa.com">
+                hello@greenflashusa.com
               </a>
               .
             </p>

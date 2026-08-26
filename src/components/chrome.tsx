@@ -142,8 +142,8 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
-              <a href="mailto:hello@greenflashads.com" className="text-muted hover:text-flash">
-                hello@greenflashads.com
+              <a href="mailto:hello@greenflashusa.com" className="text-muted hover:text-flash">
+                hello@greenflashusa.com
               </a>
             </li>
           </ul>
