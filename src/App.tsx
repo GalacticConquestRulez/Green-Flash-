@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { MobileCta, SiteChrome } from "@/components/chrome";
 import { Hero } from "@/components/hero";
 import {
@@ -12,6 +12,7 @@ import {
   Services,
 } from "@/components/sections";
 import { usePageMeta } from "@/lib/use-page-meta";
+import { NotFoundPage } from "@/pages/not-found";
 import { PrivacyPage } from "@/pages/privacy";
 import { TermsPage } from "@/pages/terms";
 
@@ -62,7 +63,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </>
   );

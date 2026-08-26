@@ -12,10 +12,12 @@ export function usePageMeta({
   title,
   description,
   path,
+  noindex = false,
 }: {
   title: string;
   description: string;
   path: string;
+  noindex?: boolean;
 }) {
   useEffect(() => {
     document.title = title;
@@ -26,5 +28,6 @@ export function usePageMeta({
     setMeta('meta[name="twitter:title"]', "content", title);
     setMeta('meta[name="twitter:description"]', "content", description);
     setMeta('link[rel="canonical"]', "href", `${SITE_URL}${path}`);
-  }, [title, description, path]);
+    setMeta('meta[name="robots"]', "content", noindex ? "noindex, follow" : "index, follow");
+  }, [title, description, path, noindex]);
 }

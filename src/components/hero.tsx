@@ -18,6 +18,8 @@ export function Hero() {
           src="/hero-street.jpg"
           alt=""
           className="size-full object-cover opacity-35"
+          fetchPriority="high"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,8,7,0.55)_0%,rgba(7,8,7,0.78)_45%,rgba(7,8,7,1)_100%)]" />
         <div className="absolute -left-24 top-24 size-[18rem] rounded-full bg-flash/10 blur-3xl md:size-[28rem]" />

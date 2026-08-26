@@ -52,6 +52,8 @@ export function Problem() {
           src="/restaurant.jpg"
           alt="Busy neighborhood restaurant at night"
           className="photo h-72 w-full object-cover md:h-[420px]"
+          loading="lazy"
+          decoding="async"
         />
       </div>
       <div>
@@ -332,16 +334,22 @@ export function Proof() {
             src="/owner-cafe.jpg"
             alt="Local cafe owner"
             className="photo h-56 w-full rounded-xl object-cover"
+            loading="lazy"
+            decoding="async"
           />
           <img
             src="/handshake.jpg"
             alt="Home-services contractor meeting a customer"
             className="photo h-56 w-full rounded-xl object-cover"
+            loading="lazy"
+            decoding="async"
           />
           <img
             src="/phone-hands.jpg"
             alt="Reviewing ad performance on a phone"
             className="photo h-56 w-full rounded-xl object-cover"
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <p className="mt-6 text-center text-sm text-muted">
