@@ -53,6 +53,10 @@ for (const { route, meta, out } of targets) {
   let html = template;
   if (meta.noindex) {
     html = replaceAttr(html, /<meta\s+name="robots"[^>]*>/, "content", "noindex, follow");
+    // Drop the canonical entirely rather than let it point elsewhere: a
+    // noindex page canonicalising to a different URL is a contradictory
+    // signal, and Google may honour the canonical over the noindex.
+    html = html.replace(/\s*<link\s+rel="canonical"[^>]*>/, "");
   }
   html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${escapeHtml(meta.title)}</title>`);
   html = replaceAttr(html, /<meta\s+name="description"[^>]*>/, "content", meta.description);
@@ -75,3 +79,24 @@ for (const { route, meta, out } of targets) {
   writeFileSync(outPath, html);
   console.log(`prerendered ${out} -> ${outPath.replace(dist, "dist")} (${(html.length / 1024).toFixed(1)}KB)`);
 }
+
+// Generate the sitemap from the same route list, so it can't drift from what
+// actually got prerendered or go stale on lastmod.
+const PRIORITY = { "/": "1.0" };
+const CHANGEFREQ = { "/": "weekly" };
+const today = new Date().toISOString().slice(0, 10);
+
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${PRERENDER_ROUTES.map(
+  (route) => `  <url>
+    <loc>${SITE_URL}${route === "/" ? "/" : route}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${CHANGEFREQ[route] ?? "yearly"}</changefreq>
+    <priority>${PRIORITY[route] ?? "0.3"}</priority>
+  </url>`,
+).join("\n")}
+</urlset>
+`;
+writeFileSync(join(dist, "sitemap.xml"), sitemap);
+console.log(`generated sitemap.xml (${PRERENDER_ROUTES.length} urls, lastmod ${today})`);
