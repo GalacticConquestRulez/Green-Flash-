@@ -160,7 +160,11 @@ export function SiteFooter() {
 }
 
 export function MobileCta() {
-  const [hidden, setHidden] = useState(false);
+  // Starts hidden so the prerendered HTML doesn't pin a fixed button over the
+  // footer for anyone without JS — the effect below reveals it on mount and
+  // then tracks scroll. Also keeps server and client markup identical for
+  // hydration.
+  const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
     const sync = () => {
