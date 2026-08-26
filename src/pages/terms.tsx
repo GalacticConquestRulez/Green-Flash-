@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
 import { SiteChrome } from "@/components/chrome";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export function TermsPage() {
+  usePageMeta({
+    title: "Terms of Service | Green Flash Advertising",
+    description: "Terms covering the Business Growth Package, ad spend, licensing of your content, and liability for Green Flash Advertising campaigns.",
+    path: "/terms",
+  });
   return (
     <SiteChrome>
       <main id="main" className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6">

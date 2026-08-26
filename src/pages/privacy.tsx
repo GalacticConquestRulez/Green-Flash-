@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
 import { SiteChrome } from "@/components/chrome";
+import { usePageMeta } from "@/lib/use-page-meta";
 
 export function PrivacyPage() {
+  usePageMeta({
+    title: "Privacy Policy | Green Flash Advertising",
+    description: "How Green Flash Advertising collects, uses, and retains information from this site and from client inquiries.",
+    path: "/privacy",
+  });
   return (
     <SiteChrome>
       <main id="main" className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6">
