@@ -57,8 +57,8 @@ export function TermsPage() {
           <section>
             <h2 className="font-display text-2xl tracking-wide text-foreground">Contact</h2>
             <p className="mt-2">
-              <a className="text-flash hover:underline" href="mailto:hello@greenflashusa.com">
-                hello@greenflashusa.com
+              <a className="text-flash hover:underline" href="mailto:greenflashusa@gmail.com">
+                greenflashusa@gmail.com
               </a>
             </p>
           </section>

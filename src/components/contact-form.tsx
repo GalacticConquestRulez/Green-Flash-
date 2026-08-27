@@ -61,7 +61,7 @@ export function ContactForm() {
       setStatus("success");
     } catch {
       setStatus("idle");
-      setError("Something went wrong sending your request. Please email us directly at hello@greenflashusa.com.");
+      setError("Something went wrong sending your request. Please email us directly at greenflashusa@gmail.com.");
     }
   }
 
