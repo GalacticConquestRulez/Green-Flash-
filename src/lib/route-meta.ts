@@ -28,7 +28,7 @@ export const ROUTE_META = {
   "/websites": {
     title: "Website Design & Care Plan | Green Flash Advertising",
     description:
-      "Custom small-business websites built mobile-first for a $375 one-time fee, plus a $125/month care plan covering maintenance, security, and monthly content updates.",
+      "Single landing pages from $375 and full multi-page websites from $975, built mobile-first. Add the $125/month care plan for maintenance, security, and monthly content updates.",
     path: "/websites",
   },
   "/privacy": {

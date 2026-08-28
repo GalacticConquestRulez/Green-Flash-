@@ -374,9 +374,9 @@ const OTHER = [
   {
     icon: Monitor,
     to: "/websites",
-    eyebrow: "$375 build · $125/mo care",
+    eyebrow: "Landing pages from $375",
     title: "Websites",
-    body: "A mobile-first site built around your brand, launched properly, then kept current every month instead of going stale the week after it ships.",
+    body: "One landing page to point your ads at, or a full multi-page site from $975 — launched properly, then kept current every month instead of going stale the week after it ships.",
     cta: "See website packages",
   },
 ];

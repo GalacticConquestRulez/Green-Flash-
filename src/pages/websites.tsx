@@ -16,14 +16,21 @@ import { Button } from "@/components/ui/button";
 import { ROUTE_META } from "@/lib/route-meta";
 import { usePageMeta } from "@/lib/use-page-meta";
 
-const BUILD = [
-  "Custom design built around your brand — not a template",
-  "Mobile-first: it looks right on a phone before anything else",
-  "Contact form wired to your inbox",
-  "SEO fundamentals — titles, descriptions, structured data, sitemap",
+const LANDING = [
+  "One page, designed around a single action",
+  "Mobile-first — it looks right on a phone before anything else",
+  "Contact form or booking link wired to your inbox",
   "Fast by default: optimized images and no bloat",
-  "SSL certificate and secure hosting setup",
+  "SSL certificate and hosting setup",
+  "Title, description, and a social preview card so shared links look right",
+];
+
+const FULL = [
+  "Everything in the landing page",
+  "Multiple pages — home, services, about, contact and whatever else you need",
+  "Full SEO: per-page titles, structured data, and a sitemap",
   "Google Search Console and analytics connected",
+  "Help shaping the copy, not just a box to paste it into",
   "Merch store integration available",
 ];
 
@@ -73,7 +80,7 @@ const STEPS = [
   {
     n: "01",
     title: "Tell us about the business",
-    body: "What you do, who you want walking in, and any photos or copy you already have.",
+    body: "What you do, who you want walking in, and any photos or copy you already have. We'll say whether one page covers it or you need the full site.",
   },
   {
     n: "02",
@@ -112,13 +119,13 @@ export function WebsitesPage() {
                 <span className="mt-1 block text-flash">And stays working.</span>
               </h1>
               <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-chrome sm:text-lg">
-                We build it, launch it, and keep it current every month — so your website is still
-                accurate and fast a year from now, not quietly broken.
+                A single landing page from $375, or a full site from $975 — built, launched, and
+                kept current every month instead of quietly going stale.
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:items-center">
                 <Button asChild>
                   <Link to="/websites#contact">
-                    Get Your Website
+                    Get a Quote
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
@@ -136,28 +143,30 @@ export function WebsitesPage() {
             <div className="mx-auto max-w-2xl text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-flash">Pricing</p>
               <h2 className="mt-3 font-display text-4xl font-semibold tracking-wide text-foreground sm:text-5xl">
-                Build it once. Keep it alive.
+                Start where you need to.
               </h2>
               <p className="mt-4 text-base leading-relaxed text-muted">
-                One fee to build the site. A small monthly to make sure it never goes stale.
+                One page to point your ads at, or the whole site. Either way, the care plan keeps it
+                from going stale.
               </p>
             </div>
 
+            {/* two ways to start; the care plan below applies to both */}
             <div className="mx-auto mt-12 grid max-w-5xl gap-4 md:grid-cols-2">
-              {/* build */}
-              <div className="rounded-2xl bg-card p-6 hairline-flash sm:p-8">
+              <div className="flex flex-col rounded-2xl bg-card p-6 hairline sm:p-8">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
-                  Website build
+                  Landing page
                 </p>
                 <p className="mt-2 font-display text-6xl tracking-wide text-foreground">
                   $375
                   <span className="text-2xl text-muted"> one-time</span>
                 </p>
                 <p className="mt-2 text-sm text-chrome">
-                  Design, build, and launch. Domain and hosting billed at cost in your own accounts.
+                  A single page built to do one job — take the click and turn it into a call, a
+                  booking, or a sale.
                 </p>
                 <ul className="mt-7 space-y-3">
-                  {BUILD.map((item) => (
+                  {LANDING.map((item) => (
                     <li key={item} className="flex items-start gap-2.5 text-sm text-chrome">
                       <Check className="mt-0.5 size-4 shrink-0 text-flash" />
                       {item}
@@ -166,19 +175,46 @@ export function WebsitesPage() {
                 </ul>
               </div>
 
-              {/* care */}
-              <div className="rounded-2xl bg-card p-6 hairline sm:p-8">
+              <div className="relative flex flex-col rounded-2xl bg-card p-6 hairline-flash sm:p-8">
+                <p className="absolute right-6 top-6 rounded-full bg-flash/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-flash sm:right-8 sm:top-8">
+                  Most businesses
+                </p>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
-                  Care plan
+                  Full website
                 </p>
                 <p className="mt-2 font-display text-6xl tracking-wide text-foreground">
-                  $125
-                  <span className="text-2xl text-muted"> / mo</span>
+                  <span className="text-2xl text-muted">from </span>$975
                 </p>
                 <p className="mt-2 text-sm text-chrome">
-                  Maintenance and monthly updates. Month-to-month — cancel anytime.
+                  A multi-page site. Final price depends on how many pages and what they have to do
+                  — quoted before anything starts.
                 </p>
                 <ul className="mt-7 space-y-3">
+                  {FULL.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5 text-sm text-chrome">
+                      <Check className="mt-0.5 size-4 shrink-0 text-flash" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="mx-auto mt-4 max-w-5xl rounded-2xl bg-card p-6 hairline sm:p-8">
+              <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+                <div className="md:max-w-xs">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
+                    Care plan · add to either
+                  </p>
+                  <p className="mt-2 font-display text-6xl tracking-wide text-foreground">
+                    $125
+                    <span className="text-2xl text-muted"> / mo</span>
+                  </p>
+                  <p className="mt-2 text-sm text-chrome">
+                    Maintenance and monthly updates. Month-to-month — cancel anytime.
+                  </p>
+                </div>
+                <ul className="grid flex-1 gap-3 sm:grid-cols-2">
                   {CARE.map((item) => (
                     <li key={item} className="flex items-start gap-2.5 text-sm text-chrome">
                       <Check className="mt-0.5 size-4 shrink-0 text-flash" />
@@ -192,7 +228,7 @@ export function WebsitesPage() {
             <div className="mx-auto mt-8 flex max-w-5xl flex-col gap-3 sm:flex-row">
               <Button asChild className="sm:flex-1">
                 <Link to="/websites#contact">
-                  Get Your Website
+                  Get a Quote
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
@@ -201,7 +237,7 @@ export function WebsitesPage() {
               </Button>
             </div>
             <p className="mt-4 text-center text-sm text-muted">
-              No long-term contracts. Simple as that.
+              Domain and hosting billed at cost in your own accounts. No long-term contracts.
             </p>
           </div>
         </section>
@@ -300,13 +336,13 @@ export function WebsitesPage() {
               </h2>
               <p className="mt-5 max-w-md text-base leading-relaxed text-muted">
                 Tell us what the business does and what the site needs to accomplish. We'll come
-                back with a plan and a timeline.
+                back with a plan, a price, and a timeline.
               </p>
               <ul className="mt-8 space-y-3 text-sm text-chrome">
                 {[
-                  "$375 one-time build",
+                  "Landing page — $375 one-time",
+                  "Full website — from $975, quoted up front",
                   "$125/mo care plan — maintenance and monthly updates",
-                  "No long-term contracts",
                 ].map((t) => (
                   <li key={t} className="flex items-center gap-2.5">
                     <Check className="size-4 text-flash" />
@@ -332,7 +368,7 @@ export function WebsitesPage() {
           </div>
         </section>
       </main>
-      <MobileCta label="Get Your Website" to="/websites#contact" />
+      <MobileCta label="Get a Quote" to="/websites#contact" />
     </SiteChrome>
   );
 }

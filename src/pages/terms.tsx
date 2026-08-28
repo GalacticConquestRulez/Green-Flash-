@@ -18,8 +18,9 @@ export function TermsPage() {
               Green Flash Advertising offers three things: ad management, custom merch, and
               websites. The Business Growth Package is $375 per month for ad management, with
               advertising spend billed separately through your own platform accounts. Merch setup is
-              a $199 one-time fee. A website build is a $375 one-time fee, with an optional $125 per
-              month care plan. Nothing here is a long-term contract; either party may cancel a
+              a $199 one-time fee. A single landing page is a $375 one-time fee; a full multi-page
+              website starts at $975 and is quoted before work begins. Either can add the optional
+              $125 per month care plan. Nothing here is a long-term contract; either party may cancel a
               recurring plan with written notice before the next billing date.
             </p>
           </section>
@@ -54,8 +55,10 @@ export function TermsPage() {
           <section>
             <h2 className="font-display text-2xl tracking-wide text-foreground">Websites</h2>
             <p className="mt-2">
-              The $375 build fee covers design, build, and launch of one site. Domain registration
-              and hosting are billed at cost in your own accounts and are not included. The $125
+              The $375 landing-page fee covers design, build, and launch of a single page. Full
+              multi-page websites start at $975; the final figure depends on page count and
+              functionality and is quoted in writing before work begins. Domain registration and
+              hosting are billed at cost in your own accounts and are not included. The $125
               per month care plan covers maintenance, security updates, monitoring, backups, and
               routine monthly content changes; substantial new pages or features are quoted
               separately. If the care plan is cancelled, the site remains yours and we hand over
@@ -67,7 +70,7 @@ export function TermsPage() {
             <p className="mt-2">
               Media spend is paid by you directly to Google, Meta, or other platforms. GFA’s $375
               monthly ad-management fee is for management only unless a written agreement says
-              otherwise. It is a separate charge from the one-time $375 website build fee.
+              otherwise. It is a separate charge from the one-time $375 landing-page fee.
             </p>
           </section>
           <section>
