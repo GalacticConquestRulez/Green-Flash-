@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * The three services as real pages; the logo is the way home. Contact points
- * at the home page's form, which takes general inquiries — the service pages
- * each carry their own labelled form.
+ * Home plus the three services, as real pages. Contact points at the home
+ * page's form, which takes general inquiries — the service pages each carry
+ * their own labelled form.
  */
 const NAV = [
+  { to: "/", label: "Home", activeOn: "/" },
   { to: "/advertising", label: "Advertising", activeOn: "/advertising" },
   { to: "/merch", label: "Merch", activeOn: "/merch" },
   { to: "/websites", label: "Websites", activeOn: "/websites" },
@@ -19,7 +20,6 @@ const NAV = [
 
 /** Secondary destinations, tucked behind "More" so the bar stays four items. */
 const MORE = [
-  { to: "/", label: "Home", external: false },
   { to: "https://links.greenflashusa.com", label: "Links Hub", external: true },
   { to: "/privacy", label: "Privacy", external: false },
   { to: "/terms", label: "Terms", external: false },
@@ -84,7 +84,9 @@ export function SiteHeader() {
           <Wordmark />
         </Link>
 
-        <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
+        {/* Six items plus the logo and CTA overflow a 768px bar at the wider
+            gap, so it tightens between md and lg and opens back up above. */}
+        <nav className="hidden items-center gap-4 md:flex lg:gap-7" aria-label="Primary">
           {NAV.map((item) => {
             const active = item.activeOn !== null && pathname === item.activeOn;
             return (
@@ -158,7 +160,9 @@ export function SiteHeader() {
           </div>
         </nav>
 
-        <div className="hidden md:block">
+        {/* Held back to lg: at tablet width the six nav items already fill the
+            bar, and Contact sits in them, so the button is the redundant one. */}
+        <div className="hidden lg:block">
           <Button asChild size="md">
             <Link to="/#contact">
               Get Started
