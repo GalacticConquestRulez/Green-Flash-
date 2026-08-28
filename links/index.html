@@ -811,6 +811,103 @@
     .card, .arrow, .foot a, .share { transition: none; }
     .card:hover, .card:focus-visible { transform: none; }
   }
+
+  /* ---------- "Visit Our Site" + lightning exit ----------
+     A real link: without JS it simply navigates. With JS the click is held for
+     ~0.7s while a bolt strikes and the screen flashes over to the main site. */
+  .visit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-top: 1.1rem;
+    padding: 0.72rem 1.35rem;
+    border-radius: 999px;
+    border: 1px solid rgba(108, 255, 46, 0.55);
+    background: rgba(7, 8, 7, 0.55);
+    color: var(--text);
+    font: 600 0.95rem/1 var(--body);
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    box-shadow: 0 0 18px rgba(108, 255, 46, 0.14), inset 0 0 12px rgba(108, 255, 46, 0.07);
+    transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+  }
+  .visit svg { width: 1.05rem; height: 1.05rem; color: var(--flash); }
+  .visit small {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .visit:hover,
+  .visit:focus-visible {
+    border-color: var(--flash);
+    box-shadow: 0 0 26px rgba(108, 255, 46, 0.32), inset 0 0 16px rgba(108, 255, 46, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .bolt-exit {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: none;
+    pointer-events: none;
+  }
+  .bolt-exit.strike { display: block; pointer-events: all; }
+  .bolt-exit svg {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    height: 100%;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 0 14px rgba(108, 255, 46, 0.9)) drop-shadow(0 0 40px rgba(108, 255, 46, 0.5));
+  }
+  .bolt-exit path {
+    fill: none;
+    stroke: #eaffe0;
+    stroke-width: 3.2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    stroke-dasharray: 520;
+    stroke-dashoffset: 520;
+  }
+  .strike path { animation: boltDraw 200ms cubic-bezier(0.7, 0, 1, 1) forwards; }
+  .strike path.branch {
+    stroke-width: 1.6;
+    opacity: 0.8;
+    animation-delay: 70ms;
+  }
+  @keyframes boltDraw {
+    to { stroke-dashoffset: 0; }
+  }
+  /* two hard blinks as the bolt lands, then a green-black curtain the
+     navigation happens behind */
+  .bolt-exit .flashfield {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 30%, rgba(200, 255, 170, 0.95), rgba(108, 255, 46, 0.55) 45%, rgba(108, 255, 46, 0.2) 75%);
+    opacity: 0;
+  }
+  .strike .flashfield { animation: exitFlash 320ms 140ms linear forwards; }
+  @keyframes exitFlash {
+    0% { opacity: 0; }
+    12% { opacity: 1; }
+    30% { opacity: 0.15; }
+    45% { opacity: 0.85; }
+    100% { opacity: 0; }
+  }
+  .bolt-exit .curtain {
+    position: absolute;
+    inset: 0;
+    background: var(--ground);
+    opacity: 0;
+  }
+  .strike .curtain { animation: exitCurtain 260ms 380ms ease-in forwards; }
+  @keyframes exitCurtain {
+    to { opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .strike path, .strike .flashfield, .strike .curtain { animation: none; }
+  }
 </style>
 
 <div class="backdrop" aria-hidden="true">
@@ -845,6 +942,13 @@
       businesses grow through affordable, AI-powered Google &amp; Meta advertising,
       custom merch, and high-impact creative.
     </p>
+    <a class="visit" id="visit-site" href="https://greenflashusa.com">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M13.5 2 4.6 13.2h5.6L9 22l9.9-12.4h-6L13.5 2Z" />
+      </svg>
+      Visit Our Site
+      <small>greenflashusa.com</small>
+    </a>
   </header>
 
   <!-- ============================================================
@@ -1080,6 +1184,15 @@
   </footer>
 </main>
 
+<div class="bolt-exit" id="bolt-exit" aria-hidden="true">
+  <svg viewBox="0 0 100 300" preserveAspectRatio="none">
+    <path d="M52 0 L44 66 L60 60 L40 148 L61 140 L36 236 L57 228 L47 300" />
+    <path class="branch" d="M44 66 L28 96 M40 148 L24 176 M57 228 L72 252" />
+  </svg>
+  <div class="flashfield"></div>
+  <div class="curtain"></div>
+</div>
+
 <script>
   /* Background footage is opt-in at runtime: the <video> ships with no src, so
      nothing downloads unless conditions are right. Bail out for reduced-motion,
@@ -1198,6 +1311,26 @@
         label.textContent = "Copy failed";
         setTimeout(function () { label.textContent = "Share this page"; }, 1800);
       });
+    });
+  })();
+</script>
+
+<script>
+  /* Visit Our Site: hold navigation ~0.7s while the bolt strikes. The link
+     works untouched without JS, and reduced-motion goes straight through. */
+  (function () {
+    var link = document.getElementById("visit-site");
+    var fx = document.getElementById("bolt-exit");
+    if (!link || !fx) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var fired = false;
+    link.addEventListener("click", function (e) {
+      if (fired) return;
+      fired = true;
+      e.preventDefault();
+      fx.classList.add("strike");
+      // navigate under the curtain; hard fallback in case animation events die
+      setTimeout(function () { window.location.href = link.href; }, 660);
     });
   })();
 </script>

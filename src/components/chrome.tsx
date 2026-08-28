@@ -19,6 +19,7 @@ const NAV = [
 
 /** Secondary destinations, tucked behind "More" so the bar stays four items. */
 const MORE = [
+  { to: "/", label: "Home", external: false },
   { to: "https://links.greenflashusa.com", label: "Links Hub", external: true },
   { to: "/privacy", label: "Privacy", external: false },
   { to: "/terms", label: "Terms", external: false },
