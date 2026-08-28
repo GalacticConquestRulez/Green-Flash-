@@ -5,6 +5,7 @@ import { Hero } from "@/components/hero";
 import {
   Benefits,
   FinalCta,
+  MoreServices,
   Offer,
   Problem,
   Process,
@@ -13,9 +14,11 @@ import {
 } from "@/components/sections";
 import { ROUTE_META } from "@/lib/route-meta";
 import { usePageMeta } from "@/lib/use-page-meta";
+import { MerchPage } from "@/pages/merch";
 import { NotFoundPage } from "@/pages/not-found";
 import { PrivacyPage } from "@/pages/privacy";
 import { TermsPage } from "@/pages/terms";
+import { WebsitesPage } from "@/pages/websites";
 
 function ScrollToHash() {
   const { pathname, hash } = useLocation();
@@ -44,6 +47,7 @@ function Home() {
         <Offer />
         <Benefits />
         <Proof />
+        <MoreServices />
         <FinalCta />
       </main>
       <MobileCta />
@@ -57,6 +61,8 @@ export default function App() {
       <ScrollToHash />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/merch" element={<MerchPage />} />
+        <Route path="/websites" element={<WebsitesPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="*" element={<NotFoundPage />} />

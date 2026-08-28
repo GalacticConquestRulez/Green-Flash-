@@ -5,11 +5,16 @@ import { Wordmark } from "@/components/mark";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+/**
+ * Real pages, not in-page anchors. Advertising lives on the home page, so it
+ * keeps a hash; merch and websites are their own routes and get prerendered
+ * and indexed separately.
+ */
 const NAV = [
-  { hash: "services", label: "Services" },
-  { hash: "how-it-works", label: "How It Works" },
-  { hash: "pricing", label: "Pricing" },
-  { hash: "contact", label: "Contact" },
+  { to: "/#services", label: "Advertising" },
+  { to: "/merch", label: "Merch" },
+  { to: "/websites", label: "Websites" },
+  { to: "/#contact", label: "Contact" },
 ] as const;
 
 export function SiteHeader() {
@@ -49,8 +54,8 @@ export function SiteHeader() {
         <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
           {NAV.map((item) => (
             <Link
-              key={item.hash}
-              to={`/#${item.hash}`}
+              key={item.to}
+              to={item.to}
               className="text-sm font-medium text-muted transition-colors duration-150 hover:text-foreground"
             >
               {item.label}
@@ -86,8 +91,8 @@ export function SiteHeader() {
         <nav className="flex flex-col gap-1 px-4 py-4" aria-label="Mobile">
           {NAV.map((item) => (
             <Link
-              key={item.hash}
-              to={`/#${item.hash}`}
+              key={item.to}
+              to={item.to}
               onClick={() => setOpen(false)}
               className="flex min-h-12 items-center rounded-md px-3 text-base font-medium text-foreground"
             >
@@ -96,7 +101,7 @@ export function SiteHeader() {
           ))}
           <Button asChild className="mt-2 w-full">
             <Link to="/#contact" onClick={() => setOpen(false)}>
-              Start Growing for $375/mo
+              Get Started
             </Link>
           </Button>
         </nav>
@@ -112,16 +117,16 @@ export function SiteFooter() {
         <div>
           <Wordmark />
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
-            Affordable AI-assisted Google and Meta ads for small businesses that want more
-            customers — without the headache of running campaigns themselves.
+            Google and Meta ads, custom merch, and websites for businesses that want more
+            customers — without the headache of running any of it themselves.
           </p>
         </div>
         <div>
           <p className="font-display text-sm tracking-[0.18em] text-chrome uppercase">Links</p>
           <ul className="mt-4 space-y-2.5 text-sm">
             {NAV.map((item) => (
-              <li key={item.hash}>
-                <Link to={`/#${item.hash}`} className="text-muted hover:text-flash">
+              <li key={item.to}>
+                <Link to={item.to} className="text-muted hover:text-flash">
                   {item.label}
                 </Link>
               </li>
@@ -159,7 +164,18 @@ export function SiteFooter() {
   );
 }
 
-export function MobileCta() {
+/**
+ * Sticky CTA for phones. Hides itself once the page's own #contact block is in
+ * view, so it never covers the form it points at — which also means every page
+ * using it needs a section with that id.
+ */
+export function MobileCta({
+  label = "Get Started",
+  to = "/#contact",
+}: {
+  label?: string;
+  to?: string;
+} = {}) {
   // Starts hidden so the prerendered HTML doesn't pin a fixed button over the
   // footer for anyone without JS — the effect below reveals it on mount and
   // then tracks scroll. Also keeps server and client markup identical for
@@ -192,9 +208,7 @@ export function MobileCta() {
       )}
     >
       <Button asChild className="w-full shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
-        <Link to="/#contact">
-          Start Growing for $375/mo
-        </Link>
+        <Link to={to}>{label}</Link>
       </Button>
     </div>
   );

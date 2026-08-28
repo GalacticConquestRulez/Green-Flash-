@@ -21,7 +21,22 @@ type Status = "idle" | "submitting" | "success";
 
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/mjybnjko";
 
-export function ContactForm() {
+/**
+ * One form, three products. `interest` rides along to Formspree so an inquiry
+ * arrives labelled with the page it came from — otherwise merch, website, and
+ * ad leads all land in the same inbox looking identical.
+ */
+export function ContactForm({
+  interest = "Advertising",
+  prompt = "What should we grow?",
+  placeholder = "Tell us about your business, current ads, and what more customers would mean.",
+  submitLabel = "Book a free strategy call",
+}: {
+  interest?: string;
+  prompt?: string;
+  placeholder?: string;
+  submitLabel?: string;
+} = {}) {
   const [status, setStatus] = useState<Status>("idle");
   const [type, setType] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -46,11 +61,13 @@ export function ContactForm() {
       return;
     }
     if (message.length < 8) {
-      setError("Tell us a bit about what you want to grow.");
+      setError("Tell us a bit about what you're after.");
       return;
     }
     setStatus("submitting");
     data.set("businessType", type);
+    data.set("interest", interest);
+    data.set("_subject", `${interest} inquiry — ${name}`);
     try {
       const res = await fetch(FORMSPREE_ENDPOINT, {
         method: "POST",
@@ -117,16 +134,12 @@ export function ContactForm() {
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="message">What should we grow?</Label>
-        <Textarea
-          id="message"
-          name="message"
-          placeholder="Tell us about your business, current ads, and what more customers would mean."
-        />
+        <Label htmlFor="message">{prompt}</Label>
+        <Textarea id="message" name="message" placeholder={placeholder} />
       </div>
       {error ? <p className="text-sm text-danger">{error}</p> : null}
       <Button type="submit" className="w-full" disabled={status === "submitting"}>
-        {status === "submitting" ? "Sending…" : "Book a free strategy call"}
+        {status === "submitting" ? "Sending…" : submitLabel}
       </Button>
       <p className="text-center text-xs text-muted">
         No long-term contracts. We’ll reply by email — usually within one business day.

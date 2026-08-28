@@ -6,8 +6,10 @@ import {
   Cpu,
   Crosshair,
   RefreshCw,
+  Monitor,
   Search,
   Share2,
+  Shirt,
   ShieldCheck,
   TrendingUp,
   Wallet,
@@ -355,6 +357,64 @@ export function Proof() {
         <p className="mt-6 text-center text-sm text-muted">
           Built for cafes, shops, home services, clinics, gyms, and growing local brands.
         </p>
+      </div>
+    </section>
+  );
+}
+
+const OTHER = [
+  {
+    icon: Shirt,
+    to: "/merch",
+    eyebrow: "$199 one-time setup",
+    title: "Custom Merch",
+    body: "Apparel, accessories, and bedding designed for your brand — with print-ready files, an ordering sheet, and the store set up so people can buy.",
+    cta: "See merch setup",
+  },
+  {
+    icon: Monitor,
+    to: "/websites",
+    eyebrow: "$375 build · $125/mo care",
+    title: "Websites",
+    body: "A mobile-first site built around your brand, launched properly, then kept current every month instead of going stale the week after it ships.",
+    cta: "See website packages",
+  },
+];
+
+/**
+ * Ads are the flagship, but merch and websites are their own pages now. This
+ * is the only place on the home page that links to them in the body copy, so
+ * the crawler has a real internal path to both.
+ */
+export function MoreServices() {
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 md:py-28">
+      <SectionHead
+        eyebrow="More from Green Flash"
+        title="Ads are one piece of it."
+        body="Merch people keep wearing and a site that stays current do the work between campaigns."
+      />
+      <div className="mt-12 grid gap-4 md:grid-cols-2">
+        {OTHER.map((o) => (
+          <Link
+            key={o.to}
+            to={o.to}
+            className="group flex flex-col rounded-2xl bg-card p-7 hairline transition-[box-shadow] duration-150 hover:shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-flash)_40%,transparent)] sm:p-9"
+          >
+            <o.icon className="size-7 text-flash" strokeWidth={1.6} />
+            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.22em] text-muted">
+              {o.eyebrow}
+            </p>
+            <h3 className="mt-2 font-display text-3xl tracking-wide text-foreground sm:text-4xl">
+              {o.title}
+            </h3>
+            <p className="mt-3 flex-1 text-sm leading-relaxed text-muted">{o.body}</p>
+            <p className="mt-6 flex items-center gap-2 text-sm font-semibold text-flash">
+              {o.cta}
+              <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
+            </p>
+          </Link>
+        ))}
       </div>
     </section>
   );

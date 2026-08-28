@@ -19,6 +19,18 @@ export const ROUTE_META = {
     description: DESCRIPTION,
     path: "/",
   },
+  "/merch": {
+    title: "Custom Merch Setup | Green Flash Advertising",
+    description:
+      "Custom branded apparel, accessories, and bedding for your business. $199 one-time Elite Branding setup fee — print-ready files, ordering sheet, and website integration included.",
+    path: "/merch",
+  },
+  "/websites": {
+    title: "Website Design & Care Plan | Green Flash Advertising",
+    description:
+      "Custom small-business websites built mobile-first for a $375 one-time fee, plus a $125/month care plan covering maintenance, security, and monthly content updates.",
+    path: "/websites",
+  },
   "/privacy": {
     title: "Privacy Policy | Green Flash Advertising",
     description:

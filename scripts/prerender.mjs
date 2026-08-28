@@ -82,8 +82,8 @@ for (const { route, meta, out } of targets) {
 
 // Generate the sitemap from the same route list, so it can't drift from what
 // actually got prerendered or go stale on lastmod.
-const PRIORITY = { "/": "1.0" };
-const CHANGEFREQ = { "/": "weekly" };
+const PRIORITY = { "/": "1.0", "/merch": "0.9", "/websites": "0.9" };
+const CHANGEFREQ = { "/": "weekly", "/merch": "monthly", "/websites": "monthly" };
 const today = new Date().toISOString().slice(0, 10);
 
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
