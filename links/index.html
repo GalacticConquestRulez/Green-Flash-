@@ -574,6 +574,15 @@
 
   .play svg { width: 1.3rem; height: 1.3rem; margin-left: 0.15rem; }
 
+  /* Site cards borrow the gold of their SITE chip rather than the green
+     reserved for things that play. */
+  .play--site {
+    border-color: rgba(201, 162, 74, 0.55);
+    color: var(--gold);
+  }
+
+  .play--site svg { margin-left: 0; }
+
   .frame:hover .play,
   .frame:focus-visible .play {
     transform: translate(-50%, -50%) scale(1.08);
@@ -766,24 +775,23 @@
       </span>
     </a>
 
-    <a class="card" href="https://batworkshop.com" target="_blank" rel="noopener noreferrer">
-      <span class="icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M3 12h18" />
-          <path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z" />
-        </svg>
-      </span>
-      <span class="meta">
+    <article class="media">
+      <a class="frame" href="https://batworkshop.com" target="_blank" rel="noopener noreferrer"
+         aria-label="Visit batworkshop.com">
+        <img src="bat-workshop.jpg" alt="" loading="lazy" decoding="async" />
+        <span class="play play--site" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18" />
+            <path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z" />
+          </svg>
+        </span>
+      </a>
+      <div class="media-meta">
         <span class="name">Bat Workshop</span>
-        <span class="sub"><span class="chip site">Site</span> batworkshop.com</span>
-      </span>
-      <span class="arrow" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 17 17 7" /><path d="M8 7h9v9" />
-        </svg>
-      </span>
-    </a>
+        <span class="chip site">batworkshop.com</span>
+      </div>
+    </article>
 
     <a class="card" href="https://2ndact.tv" target="_blank" rel="noopener noreferrer">
       <span class="icon" aria-hidden="true">
