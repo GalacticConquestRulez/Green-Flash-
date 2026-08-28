@@ -50,6 +50,14 @@
     --text: #f3f6f3;
     --muted: #8b938a;
 
+    /* An 8-way 1px ring at zero blur: it separates text from the footage the
+       way a shadow did, but as an actual outline, so nothing smears outward. */
+    --contour:
+      0 1px 0 rgba(7, 8, 7, 0.95), 1px 0 0 rgba(7, 8, 7, 0.95),
+      0 -1px 0 rgba(7, 8, 7, 0.95), -1px 0 0 rgba(7, 8, 7, 0.95),
+      1px 1px 0 rgba(7, 8, 7, 0.95), -1px 1px 0 rgba(7, 8, 7, 0.95),
+      1px -1px 0 rgba(7, 8, 7, 0.95), -1px -1px 0 rgba(7, 8, 7, 0.95);
+
     --display: "Oswald", "Arial Narrow", Impact, sans-serif;
     --body: "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
   }
@@ -98,8 +106,6 @@
     object-fit: cover;
     opacity: 0;
     transition: opacity 1400ms ease;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
   }
 
   /* Behind the footage. The page ground is near-black, so the masked edges used
@@ -113,8 +119,9 @@
     background: #222925;
   }
 
-  /* The edge itself: one hairline, not a gradient. Matches the footage
-     column's width exactly so the line sits on its boundary. */
+  /* The edge itself: one hairline against a hard cut. The footage used to
+     dissolve over 6% of its width, which read as a shadow leaning inward; now
+     it simply stops, and this line is the whole edge treatment. */
   .backdrop::after {
     content: "";
     position: absolute;
@@ -124,8 +131,8 @@
     transform: translateX(-50%);
     width: 100%;
     max-width: 34rem;
-    border-left: 1px solid rgba(255, 255, 255, 0.16);
-    border-right: 1px solid rgba(255, 255, 255, 0.16);
+    border-left: 1px solid rgba(255, 255, 255, 0.22);
+    border-right: 1px solid rgba(255, 255, 255, 0.22);
   }
 
   /* Full opacity here; the scrim below is the single place that controls how
@@ -195,7 +202,6 @@
     position: relative;
     width: min(15rem, 62%);
     animation: teeFloat 6.5s ease-in-out infinite;
-    filter: drop-shadow(0 26px 30px rgba(0, 0, 0, 0.65));
   }
 
   .tee-spin {
@@ -319,15 +325,12 @@
     .tee-mist { opacity: 0; }
   }
 
-  /* The mark is a transparent PNG and sits directly on the footage — no panel,
-     no plate. A drop shadow gives it edge separation instead. Kept light: the
-     artwork already carries its own glow, so a heavy shadow only muddies the
-     footage around it. It goes no lower than this because the small strapline
-     under the wordmark stops reading against a bright sky without it. */
+  /* The mark is a transparent PNG sitting straight on the footage — no panel,
+     no plate, and now no halo either. Its own chrome-and-green artwork carries
+     enough edge on its own; a drop shadow only muddied the footage behind it. */
   .logo-frame {
     position: relative;
     width: min(19rem, 82%);
-    filter: drop-shadow(0 3px 14px rgba(7, 8, 7, 0.32)) drop-shadow(0 1px 2px rgba(7, 8, 7, 0.38));
   }
 
   .logo-frame img {
@@ -377,9 +380,8 @@
     letter-spacing: 0.02em;
     text-wrap: balance;
     color: var(--text);
-    /* Carries these two over the brighter parts of the footage without
-       needing to darken the whole backdrop. */
-    text-shadow: 0 1px 12px rgba(7, 8, 7, 0.9), 0 1px 3px rgba(7, 8, 7, 0.8);
+    /* Carries over the brighter parts of the footage without darkening it. */
+    text-shadow: var(--contour);
   }
 
   .lede b {
@@ -393,7 +395,7 @@
     font-size: 0.9rem;
     line-height: 1.65;
     color: var(--chrome);
-    text-shadow: 0 1px 10px rgba(7, 8, 7, 0.9), 0 1px 3px rgba(7, 8, 7, 0.75);
+    text-shadow: var(--contour);
   }
 
   /* ---------- Founders ---------- */
@@ -491,12 +493,12 @@
     color: var(--text);
     margin: 0;
     white-space: nowrap;
-    /* Sits directly on footage, so it carries its own shadow rather than
+    /* Sits directly on footage, so it carries its own outline rather than
        having the whole backdrop darkened on its behalf. */
-    text-shadow: 0 1px 10px rgba(7, 8, 7, 0.95), 0 1px 3px rgba(7, 8, 7, 0.85);
+    text-shadow: var(--contour);
   }
 
-  .group-head .count { text-shadow: 0 1px 8px rgba(7, 8, 7, 0.9); }
+  .group-head .count { text-shadow: var(--contour); }
 
   /* Gold hairline, lifted from the flyer's diagonal accent */
   .group-head .rule {
@@ -608,13 +610,11 @@
     background:
       linear-gradient(135deg, rgba(108, 255, 46, 0.12), rgba(108, 255, 46, 0.03) 55%),
       var(--surface);
-    box-shadow: 0 0 30px rgba(108, 255, 46, 0.09);
   }
 
   .card--book:hover,
   .card--book:focus-visible {
     border-color: var(--flash);
-    box-shadow: 0 0 34px rgba(108, 255, 46, 0.18);
   }
 
   .card--book .icon {
@@ -828,8 +828,7 @@
     font: 600 0.95rem/1 var(--body);
     letter-spacing: 0.02em;
     text-decoration: none;
-    box-shadow: 0 0 18px rgba(108, 255, 46, 0.14), inset 0 0 12px rgba(108, 255, 46, 0.07);
-    transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+    transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
   }
   .visit svg { width: 1.05rem; height: 1.05rem; color: var(--flash); }
   .visit small {
@@ -841,7 +840,7 @@
   .visit:hover,
   .visit:focus-visible {
     border-color: var(--flash);
-    box-shadow: 0 0 26px rgba(108, 255, 46, 0.32), inset 0 0 16px rgba(108, 255, 46, 0.12);
+    background: rgba(108, 255, 46, 0.08);
     transform: translateY(-1px);
   }
 
