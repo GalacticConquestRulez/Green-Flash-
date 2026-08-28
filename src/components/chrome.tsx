@@ -136,7 +136,7 @@ export function SiteHeader() {
                       target="_blank"
                       rel="noopener noreferrer"
                       role="menuitem"
-                      className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors duration-150 hover:bg-card hover:text-foreground"
+                      className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors duration-150 hover:bg-card hover:text-flash"
                     >
                       {item.label}
                       <ArrowUpRight className="size-3.5 text-flash" />
@@ -147,7 +147,7 @@ export function SiteHeader() {
                       to={item.to}
                       role="menuitem"
                       onClick={() => setMoreOpen(false)}
-                      className="flex items-center rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors duration-150 hover:bg-card hover:text-foreground"
+                      className="flex items-center rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors duration-150 hover:bg-card hover:text-flash"
                     >
                       {item.label}
                     </Link>
@@ -213,7 +213,7 @@ export function SiteHeader() {
                 href={item.to}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex min-h-11 items-center justify-between rounded-md px-3 text-sm font-medium text-muted"
+                className="flex min-h-12 items-center justify-between rounded-md border-l-2 border-transparent px-3 text-base font-medium text-foreground"
               >
                 {item.label}
                 <ArrowUpRight className="size-4 text-flash" />
@@ -223,7 +223,7 @@ export function SiteHeader() {
                 key={item.label}
                 to={item.to}
                 onClick={() => setOpen(false)}
-                className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-muted"
+                className="flex min-h-12 items-center rounded-md border-l-2 border-transparent px-3 text-base font-medium text-foreground"
               >
                 {item.label}
               </Link>
