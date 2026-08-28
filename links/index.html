@@ -85,16 +85,14 @@
      crushes it to near-black. */
   .backdrop-video.ready { opacity: 1; }
 
+  /* Nothing is laid over the footage — no dimming and no colour tint, so it
+     renders exactly as graded. Every piece of text that sits on it carries
+     its own local backing instead. Kept as an element so a scrim can be
+     reintroduced in one place if it is ever wanted. */
   .backdrop-glow {
     position: absolute;
     inset: 0;
-    background:
-      radial-gradient(46rem 26rem at 50% -6rem, rgba(108, 255, 46, 0.13), transparent 70%),
-      radial-gradient(30rem 30rem at 92% 8%, rgba(201, 162, 74, 0.07), transparent 70%),
-      /* Barely there. The cards are opaque and the few pieces of text sitting
-         directly on footage carry their own local backing, so the footage
-         itself is left to read at close to full strength. */
-      linear-gradient(180deg, rgba(7, 8, 7, 0.3) 0%, rgba(7, 8, 7, 0.12) 40%, rgba(7, 8, 7, 0.22) 100%);
+    background: none;
   }
 
   .wrap {
