@@ -78,8 +78,34 @@
     object-fit: cover;
     opacity: 0;
     transition: opacity 1400ms ease;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  }
+
+  /* Behind the footage. The page ground is near-black, so the masked edges used
+     to dissolve into black and read as a shadow pressing in on the frame. A
+     flat grey behind it means the same fade lands on grey instead, and the
+     column reads as a panel rather than something casting a shadow. */
+  .backdrop::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #222925;
+  }
+
+  /* The edge itself: one hairline, not a gradient. Matches the footage
+     column's width exactly so the line sits on its boundary. */
+  .backdrop::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 34rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.16);
+    border-right: 1px solid rgba(255, 255, 255, 0.16);
   }
 
   /* Full opacity here; the scrim below is the single place that controls how
