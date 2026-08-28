@@ -172,20 +172,6 @@
     text-align: center;
   }
 
-  /* A soft wash behind the header copy only. Lets the footage stay bright
-     everywhere else instead of darkening the whole backdrop to rescue this
-     one block of text. */
-  .mast::before {
-    content: "";
-    position: absolute;
-    inset: -1.5rem -2rem -2.5rem;
-    z-index: -1;
-    /* Sits low and light — the logo is bright enough to hold its own against
-       the footage, so this only steadies the paragraph text beneath it. */
-    background: radial-gradient(ellipse 88% 46% at 50% 82%, rgba(7, 8, 7, 0.72), rgba(7, 8, 7, 0.34) 52%, transparent 78%);
-    pointer-events: none;
-  }
-
   /* ---------- Spray-painted tee ----------
      A rotating shirt that gets its logo sprayed on as it turns to face you.
      The "unpainted" state is the same artwork crushed to near-black, so the
@@ -745,16 +731,6 @@
     text-align: center;
   }
 
-  /* Same trick as the masthead: local backing instead of a global dim. */
-  .foot::before {
-    content: "";
-    position: absolute;
-    inset: -1rem -2rem -2rem;
-    z-index: -1;
-    background: radial-gradient(ellipse 90% 70% at 50% 55%, rgba(7, 8, 7, 0.9), transparent 74%);
-    pointer-events: none;
-  }
-
   .foot-links {
     display: flex;
     flex-wrap: wrap;
@@ -764,6 +740,9 @@
 
   .foot a {
     color: var(--chrome);
+    /* The footer sits straight on the footage now that its wash is gone, so
+       its text carries the same outline the masthead copy does. */
+    text-shadow: var(--contour);
     text-decoration: none;
     font-size: 0.86rem;
     font-weight: 500;
@@ -780,7 +759,8 @@
     font-size: 0.7rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--chrome);
+    text-shadow: var(--contour);
   }
 
   /* Progressive enhancement: hidden until JS confirms sharing is possible,
