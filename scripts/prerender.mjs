@@ -10,6 +10,8 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { schemaFor } from "./schema.mjs";
+
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
 const SITE_URL = "https://greenflashusa.com";
@@ -66,6 +68,13 @@ for (const { route, meta, out } of targets) {
   html = replaceAttr(html, /<meta\s+name="twitter:title"[^>]*>/, "content", meta.title);
   html = replaceAttr(html, /<meta\s+name="twitter:description"[^>]*>/, "content", meta.description);
   html = replaceAttr(html, /<link\s+rel="canonical"[^>]*>/, "href", url);
+  // Page-level JSON-LD (WebPage, breadcrumbs, this page's Service/Offer) rides
+  // alongside the template's shared Organization graph. The 404 gets none — a
+  // noindex page has no business describing itself to crawlers.
+  if (!meta.noindex) {
+    const ld = JSON.stringify(schemaFor(meta));
+    html = html.replace("</head>", `    <script type="application/ld+json">${ld}</script>\n  </head>`);
+  }
   html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`);
 
   // "/" -> dist/index.html, "/privacy" -> dist/privacy/index.html, "404" -> dist/404.html
@@ -100,3 +109,25 @@ ${PRERENDER_ROUTES.map(
 `;
 writeFileSync(join(dist, "sitemap.xml"), sitemap);
 console.log(`generated sitemap.xml (${PRERENDER_ROUTES.length} urls, lastmod ${today})`);
+
+// llms.txt: the emerging convention AI crawlers read for a site orientation.
+// Built from the same ROUTE_META, so page list and descriptions stay in sync.
+const llms = `# Green Flash USA (Green Flash Advertising)
+
+> One team for the whole growth stack: AI-powered Google & Meta ads management
+> ($375/month), custom branded merch (from a $199 one-time setup), and
+> mobile-first websites (landing pages $375, full sites from $975, optional
+> $125/month care plan). Online-only, serving businesses across the United
+> States. No long-term contracts. Founded by Max Glaser and Tanner Lodini
+> (Wright). Contact: greenflashusa@gmail.com
+
+## Pages
+
+${PRERENDER_ROUTES.map((r) => `- [${ROUTE_META[r].title}](${SITE_URL}${r === "/" ? "/" : r}): ${ROUTE_META[r].description}`).join("\n")}
+
+## Related
+
+- [Links hub](https://links.greenflashusa.com): client merch stores, campaign videos, and booking links.
+`;
+writeFileSync(join(dist, "llms.txt"), llms);
+console.log("generated llms.txt");

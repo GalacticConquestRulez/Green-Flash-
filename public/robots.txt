@@ -1,4 +1,35 @@
+# greenflashusa.com — everyone welcome, AI crawlers included.
+
 User-agent: *
+Allow: /
+
+# AI answer engines and assistants, named explicitly so the welcome is
+# unambiguous even if a default ever changes.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bingbot
 Allow: /
 
 Sitemap: https://greenflashusa.com/sitemap.xml
