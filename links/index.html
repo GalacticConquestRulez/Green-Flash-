@@ -90,10 +90,10 @@
     background:
       radial-gradient(46rem 26rem at 50% -6rem, rgba(108, 255, 46, 0.13), transparent 70%),
       radial-gradient(30rem 30rem at 92% 8%, rgba(201, 162, 74, 0.07), transparent 70%),
-      /* Light enough to let the colour grade read. Weighted to the top, where
-         text sits directly on the footage; the cards below are opaque and
-         need no help. */
-      linear-gradient(180deg, rgba(7, 8, 7, 0.62) 0%, rgba(7, 8, 7, 0.44) 38%, rgba(7, 8, 7, 0.5) 100%);
+      /* Barely there. The cards are opaque and the few pieces of text sitting
+         directly on footage carry their own local backing, so the footage
+         itself is left to read at close to full strength. */
+      linear-gradient(180deg, rgba(7, 8, 7, 0.3) 0%, rgba(7, 8, 7, 0.12) 40%, rgba(7, 8, 7, 0.22) 100%);
   }
 
   .wrap {
@@ -126,7 +126,7 @@
     position: absolute;
     inset: -1.5rem -2rem -2.5rem;
     z-index: -1;
-    background: radial-gradient(ellipse 80% 62% at 50% 62%, rgba(7, 8, 7, 0.82), transparent 72%);
+    background: radial-gradient(ellipse 86% 66% at 50% 62%, rgba(7, 8, 7, 0.92), rgba(7, 8, 7, 0.7) 46%, transparent 76%);
     pointer-events: none;
   }
 
@@ -396,7 +396,12 @@
     color: var(--text);
     margin: 0;
     white-space: nowrap;
+    /* Sits directly on footage, so it carries its own shadow rather than
+       having the whole backdrop darkened on its behalf. */
+    text-shadow: 0 1px 10px rgba(7, 8, 7, 0.95), 0 1px 3px rgba(7, 8, 7, 0.85);
   }
+
+  .group-head .count { text-shadow: 0 1px 8px rgba(7, 8, 7, 0.9); }
 
   /* Gold hairline, lifted from the flyer's diagonal accent */
   .group-head .rule {
@@ -635,6 +640,7 @@
 
   /* ---------- Footer ---------- */
   .foot {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -642,6 +648,16 @@
     padding-top: 1.75rem;
     border-top: 1px solid var(--line);
     text-align: center;
+  }
+
+  /* Same trick as the masthead: local backing instead of a global dim. */
+  .foot::before {
+    content: "";
+    position: absolute;
+    inset: -1rem -2rem -2rem;
+    z-index: -1;
+    background: radial-gradient(ellipse 90% 70% at 50% 55%, rgba(7, 8, 7, 0.9), transparent 74%);
+    pointer-events: none;
   }
 
   .foot-links {
