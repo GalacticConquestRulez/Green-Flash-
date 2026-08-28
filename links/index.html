@@ -171,7 +171,23 @@
     color: var(--muted);
   }
 
-  @media (max-width: 24rem) {
+  /* The two people sit side by side; AI takes the full row beneath them,
+     which reads as a deliberate third partner rather than a cramped
+     leftover cell. Three across once there's room. */
+  .founder--ai {
+    grid-column: 1 / -1;
+    border-color: rgba(108, 255, 46, 0.28);
+    background:
+      linear-gradient(135deg, rgba(108, 255, 46, 0.07), transparent 60%),
+      var(--surface);
+  }
+
+  @media (min-width: 30rem) {
+    .founders { grid-template-columns: repeat(3, 1fr); }
+    .founder--ai { grid-column: auto; }
+  }
+
+  @media (max-width: 21rem) {
     .founders { grid-template-columns: 1fr; }
   }
 
@@ -622,7 +638,7 @@
     <div class="group-head">
       <h2>Our Founders</h2>
       <span class="rule"></span>
-      <span class="count">02</span>
+      <span class="count">03</span>
     </div>
 
     <div class="founders">
@@ -633,6 +649,10 @@
       <div class="founder">
         <span class="handle">LODI</span>
         <span class="real">Tanner Lodini</span>
+      </div>
+      <div class="founder founder--ai">
+        <span class="handle">AI</span>
+        <span class="real">The Future is Now</span>
       </div>
     </div>
   </section>
