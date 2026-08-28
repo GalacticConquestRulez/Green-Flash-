@@ -54,14 +54,23 @@
     overflow: hidden;
   }
 
+  /* The footage is vertical (9:16). On a phone that fills the screen exactly,
+     no cropping. On wider screens it stays pinned to the content column's
+     width instead of being stretched across the viewport, with its edges
+     masked so it blends into the ground rather than showing a hard band. */
   .backdrop-video {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
     width: 100%;
+    max-width: 34rem;
     height: 100%;
     object-fit: cover;
     opacity: 0;
     transition: opacity 1400ms ease;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
   }
 
   .backdrop-video.ready { opacity: 0.16; }
