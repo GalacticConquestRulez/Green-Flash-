@@ -1,25 +1,35 @@
-import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Wordmark } from "@/components/mark";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * Real pages, not in-page anchors. Advertising lives on the home page, so it
- * keeps a hash; merch and websites are their own routes and get prerendered
- * and indexed separately.
+ * The three products as real pages. Advertising IS the home page, so its nav
+ * item is active on "/" — matching on the link's own path would leave it
+ * looking permanently inactive.
  */
 const NAV = [
-  { to: "/#services", label: "Advertising" },
-  { to: "/merch", label: "Merch" },
-  { to: "/websites", label: "Websites" },
-  { to: "/#contact", label: "Contact" },
+  { to: "/", label: "Advertising", activeOn: "/" },
+  { to: "/merch", label: "Merch", activeOn: "/merch" },
+  { to: "/websites", label: "Websites", activeOn: "/websites" },
+  { to: "/#contact", label: "Contact", activeOn: null },
+] as const;
+
+/** Secondary destinations, tucked behind "More" so the bar stays four items. */
+const MORE = [
+  { to: "https://links.greenflashusa.com", label: "Links Hub", external: true },
+  { to: "/privacy", label: "Privacy", external: false },
+  { to: "/terms", label: "Terms", external: false },
 ] as const;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -27,6 +37,28 @@ export function SiteHeader() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // The dropdown closes like a menu should: outside click, Escape, or leaving
+  // the page. Hover-open is deliberately not used — it strands touch devices.
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!moreRef.current?.contains(e.target as Node)) setMoreOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMoreOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [moreOpen]);
+
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -51,16 +83,78 @@ export function SiteHeader() {
           <Wordmark />
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
-          {NAV.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="text-sm font-medium text-muted transition-colors duration-150 hover:text-foreground"
+        <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
+          {NAV.map((item) => {
+            const active = item.activeOn !== null && pathname === item.activeOn;
+            return (
+              <Link
+                key={item.label}
+                to={item.to}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "relative py-1.5 text-sm font-medium transition-colors duration-150",
+                  active ? "text-foreground" : "text-muted hover:text-foreground",
+                  // active page gets the green underline; hover previews it faintly
+                  "after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-flash after:transition-[transform,opacity] after:duration-200",
+                  active
+                    ? "after:scale-x-100 after:opacity-100"
+                    : "after:scale-x-0 after:opacity-0 hover:after:scale-x-100 hover:after:opacity-40",
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+
+          <div className="relative" ref={moreRef}>
+            <button
+              type="button"
+              onClick={() => setMoreOpen((v) => !v)}
+              aria-expanded={moreOpen}
+              aria-haspopup="menu"
+              className={cn(
+                "flex items-center gap-1 py-1.5 text-sm font-medium transition-colors duration-150",
+                moreOpen ? "text-foreground" : "text-muted hover:text-foreground",
+              )}
             >
-              {item.label}
-            </Link>
-          ))}
+              More
+              <ChevronDown
+                className={cn("size-3.5 transition-transform duration-200", moreOpen && "rotate-180")}
+              />
+            </button>
+            {moreOpen ? (
+              <div
+                role="menu"
+                className="absolute right-0 top-full mt-3 w-48 overflow-hidden rounded-xl border border-border bg-background/95 p-1.5 shadow-[0_16px_48px_rgba(0,0,0,0.55)] backdrop-blur-md"
+              >
+                {MORE.map((item) =>
+                  item.external ? (
+                    <a
+                      key={item.label}
+                      href={item.to}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      role="menuitem"
+                      className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors duration-150 hover:bg-card hover:text-foreground"
+                    >
+                      {item.label}
+                      <ArrowUpRight className="size-3.5 text-flash" />
+                    </a>
+                  ) : (
+                    <Link
+                      key={item.label}
+                      to={item.to}
+                      role="menuitem"
+                      onClick={() => setMoreOpen(false)}
+                      className="flex items-center rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors duration-150 hover:bg-card hover:text-foreground"
+                    >
+                      {item.label}
+                    </Link>
+                  ),
+                )}
+              </div>
+            ) : null}
+          </div>
         </nav>
 
         <div className="hidden md:block">
@@ -85,21 +179,56 @@ export function SiteHeader() {
       <div
         className={cn(
           "md:hidden overflow-hidden border-t border-border bg-background transition-[max-height,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
-          open ? "max-h-[420px] opacity-100" : "max-h-0 border-transparent opacity-0",
+          open ? "max-h-[560px] opacity-100" : "max-h-0 border-transparent opacity-0",
         )}
       >
         <nav className="flex flex-col gap-1 px-4 py-4" aria-label="Mobile">
-          {NAV.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setOpen(false)}
-              className="flex min-h-12 items-center rounded-md px-3 text-base font-medium text-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
-          <Button asChild className="mt-2 w-full">
+          {NAV.map((item) => {
+            const active = item.activeOn !== null && pathname === item.activeOn;
+            return (
+              <Link
+                key={item.label}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex min-h-12 items-center rounded-md border-l-2 px-3 text-base font-medium",
+                  active
+                    ? "border-flash bg-card text-foreground"
+                    : "border-transparent text-foreground",
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+          <p className="mt-3 px-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
+            More
+          </p>
+          {MORE.map((item) =>
+            item.external ? (
+              <a
+                key={item.label}
+                href={item.to}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-11 items-center justify-between rounded-md px-3 text-sm font-medium text-muted"
+              >
+                {item.label}
+                <ArrowUpRight className="size-4 text-flash" />
+              </a>
+            ) : (
+              <Link
+                key={item.label}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-muted"
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
+          <Button asChild className="mt-3 w-full">
             <Link to="/#contact" onClick={() => setOpen(false)}>
               Get Started
             </Link>
@@ -131,6 +260,16 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
+            <li>
+              <a
+                href="https://links.greenflashusa.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted hover:text-flash"
+              >
+                Links Hub
+              </a>
+            </li>
           </ul>
         </div>
         <div>

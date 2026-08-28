@@ -1,24 +1,20 @@
-import { cn } from "@/lib/utils";
-
-export function FlashMark({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 48 48"
-      className={cn("text-flash", className)}
-      fill="currentColor"
-      aria-hidden
-    >
-      <path d="M27.2 3.2 8.6 25.2h13.1l-4.6 19.6L40.2 21.4H25.8L27.2 3.2Z" />
-    </svg>
-  );
-}
-
+/**
+ * The real GF mark (chrome G + green bolt F), trimmed from the brand art with
+ * a transparent ground so it sits on the header blur without a plate. The
+ * wordmark text stays HTML rather than baked into the image: it scales crisp,
+ * reads to screen readers, and keeps the header's own type in charge.
+ */
 export function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
-    <span className="flex items-center gap-2">
-      <span className="flex size-9 items-center justify-center rounded-md bg-card hairline-flash">
-        <FlashMark className="size-5" />
-      </span>
+    <span className="group/mark flex items-center gap-2.5">
+      <img
+        src="/logo-mark.png"
+        alt=""
+        className="h-9 w-auto drop-shadow-[0_0_12px_rgba(108,255,46,0.28)] transition-[filter] duration-200 group-hover/mark:drop-shadow-[0_0_16px_rgba(108,255,46,0.5)] md:h-10"
+        width={178}
+        height={120}
+        decoding="async"
+      />
       <span className="leading-none">
         <span className="font-display text-[1.05rem] font-semibold tracking-[0.12em] text-chrome">
           GREEN <span className="text-flash">FLASH</span>
