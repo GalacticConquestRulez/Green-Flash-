@@ -15,9 +15,15 @@ const DESCRIPTION =
  */
 export const ROUTE_META = {
   "/": {
-    title: "Green Flash Advertising | Affordable Google & Meta Ads for Local Businesses",
-    description: DESCRIPTION,
+    title: "Green Flash USA | Ads, Websites & Merch That Grow Your Business",
+    description:
+      "Green Flash is one team for the whole growth stack: AI-powered Google & Meta ads from $375/month, custom merch from a $199 setup, and websites from $375. No long-term contracts.",
     path: "/",
+  },
+  "/advertising": {
+    title: "Google & Meta Ads Management | Green Flash Advertising",
+    description: DESCRIPTION,
+    path: "/advertising",
   },
   "/merch": {
     title: "Custom Merch Setup | Green Flash Advertising",

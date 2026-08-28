@@ -236,13 +236,13 @@ export function Offer() {
           </ul>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild className="sm:flex-1">
-              <Link to="/#contact">
+              <Link to="/advertising#contact">
                 Get Started Today
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="sm:flex-1">
-              <Link to="/#contact">
+              <Link to="/advertising#contact">
                 Book a Call
               </Link>
             </Button>

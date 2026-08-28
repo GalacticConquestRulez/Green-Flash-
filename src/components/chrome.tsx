@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * The three products as real pages. Advertising IS the home page, so its nav
- * item is active on "/" — matching on the link's own path would leave it
- * looking permanently inactive.
+ * The three services as real pages; the logo is the way home. Contact points
+ * at the home page's form, which takes general inquiries — the service pages
+ * each carry their own labelled form.
  */
 const NAV = [
-  { to: "/", label: "Advertising", activeOn: "/" },
+  { to: "/advertising", label: "Advertising", activeOn: "/advertising" },
   { to: "/merch", label: "Merch", activeOn: "/merch" },
   { to: "/websites", label: "Websites", activeOn: "/websites" },
   { to: "/#contact", label: "Contact", activeOn: null },
@@ -160,7 +160,7 @@ export function SiteHeader() {
         <div className="hidden md:block">
           <Button asChild size="md">
             <Link to="/#contact">
-              Start Growing
+              Get Started
             </Link>
           </Button>
         </div>

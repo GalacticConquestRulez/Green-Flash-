@@ -233,7 +233,7 @@ export function WebsitesPage() {
                 </Link>
               </Button>
               <Button asChild variant="outline" className="sm:flex-1">
-                <Link to="/#contact">Pair it with ads</Link>
+                <Link to="/advertising">Pair it with ads</Link>
               </Button>
             </div>
             <p className="mt-4 text-center text-sm text-muted">
@@ -312,7 +312,7 @@ export function WebsitesPage() {
                 </p>
               </div>
               <Button asChild variant="outline" className="shrink-0">
-                <Link to="/#pricing">
+                <Link to="/advertising#pricing">
                   See ad management
                   <ArrowRight className="size-4" />
                 </Link>

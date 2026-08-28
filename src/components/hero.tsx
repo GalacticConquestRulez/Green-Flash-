@@ -43,13 +43,13 @@ export function Hero() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button asChild>
-              <Link to="/#contact">
+              <Link to="/advertising#contact">
                 Start Growing for $375/mo
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/#how-it-works">
+              <Link to="/advertising#how-it-works">
                 See How It Works
               </Link>
             </Button>

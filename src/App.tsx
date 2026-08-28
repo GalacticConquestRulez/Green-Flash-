@@ -1,19 +1,7 @@
 import { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import { MobileCta, SiteChrome } from "@/components/chrome";
-import { Hero } from "@/components/hero";
-import {
-  Benefits,
-  FinalCta,
-  MoreServices,
-  Offer,
-  Problem,
-  Process,
-  Proof,
-  Services,
-} from "@/components/sections";
-import { ROUTE_META } from "@/lib/route-meta";
-import { usePageMeta } from "@/lib/use-page-meta";
+import { AdvertisingPage } from "@/pages/advertising";
+import { HomePage } from "@/pages/home";
 import { MerchPage } from "@/pages/merch";
 import { NotFoundPage } from "@/pages/not-found";
 import { PrivacyPage } from "@/pages/privacy";
@@ -35,32 +23,13 @@ function ScrollToHash() {
   return null;
 }
 
-function Home() {
-  usePageMeta(ROUTE_META["/"]);
-  return (
-    <SiteChrome>
-      <main id="main" className="pb-20 md:pb-0">
-        <Hero />
-        <Problem />
-        <Services />
-        <Process />
-        <Offer />
-        <Benefits />
-        <Proof />
-        <MoreServices />
-        <FinalCta />
-      </main>
-      <MobileCta />
-    </SiteChrome>
-  );
-}
-
 export default function App() {
   return (
     <>
       <ScrollToHash />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/advertising" element={<AdvertisingPage />} />
         <Route path="/merch" element={<MerchPage />} />
         <Route path="/websites" element={<WebsitesPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
