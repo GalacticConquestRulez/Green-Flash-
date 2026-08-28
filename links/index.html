@@ -729,7 +729,16 @@
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var conn = navigator.connection || {};
     var frugal = conn.saveData === true || /(^|-)2g$/.test(conn.effectiveType || "");
-    if (reduce || frugal) { v.remove(); return; }
+    // Reduced motion keeps the poster as a still backdrop rather than nothing.
+    if (reduce || frugal) { v.classList.add("ready"); return; }
+
+    // iOS only permits unprompted playback when muted is set as a property,
+    // not merely as an attribute, and playsinline keeps it from going
+    // fullscreen. Belt and braces alongside the markup.
+    v.muted = true;
+    v.defaultMuted = true;
+    v.setAttribute("playsinline", "");
+    v.setAttribute("webkit-playsinline", "");
 
     // A failed or undecodable file is not a reason to tear the element out:
     // the poster frame stays as a still backdrop, which degrades better than
@@ -740,6 +749,15 @@
     requestAnimationFrame(function () { v.classList.add("ready"); });
     var play = function () { var p = v.play(); if (p) p.catch(function () {}); };
     play();
+    // Low Power Mode and "Never Auto-Play" refuse the initial call; retry once
+    // the file is actually decodable, and once on first interaction.
+    v.addEventListener("loadeddata", play, { once: true });
+    ["touchstart", "pointerdown"].forEach(function (evt) {
+      document.addEventListener(evt, function once() {
+        if (v.paused) play();
+        document.removeEventListener(evt, once);
+      }, { once: true, passive: true });
+    });
 
     // Don't burn battery decoding video the viewer can't see.
     document.addEventListener("visibilitychange", function () {
