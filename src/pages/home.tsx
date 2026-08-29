@@ -151,8 +151,9 @@ export function HomePage() {
 
           <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-12 text-center sm:px-6 md:pb-24 md:pt-20">
             <div className="stagger-in relative mx-auto max-w-3xl">
-              {/* Max's designed lockup carries the visual headline — badge,
-                  gradient type, glow, arrow, results pill — as he built it.
+              {/* Max's designed lockup carries the visual headline — gradient
+                  type, glow, arrow, results pill — cropped below its badge,
+                  which doubled the header's branding.
                   The real heading stays in the document for search engines and
                   screen readers, just visually hidden. */}
               <h1 className="sr-only">
@@ -163,7 +164,7 @@ export function HomePage() {
                 src="/hero-lockup.webp"
                 alt=""
                 width={1100}
-                height={759}
+                height={649}
                 fetchPriority="high"
                 decoding="async"
                 className="mx-auto w-full max-w-[34rem] md:max-w-[40rem]"
