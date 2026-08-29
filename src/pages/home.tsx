@@ -150,7 +150,15 @@ export function HomePage() {
           </div>
 
           <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-12 text-center sm:px-6 md:pb-24 md:pt-20">
-            <div className="stagger-in mx-auto max-w-3xl">
+            <div className="stagger-in relative mx-auto max-w-3xl">
+              {/* A feathered pool of backdrop blur behind the copy — no tint, no
+                  darkening, just softening the detail behind the letters so
+                  their colours separate. The radial mask fades the effect out,
+                  so there is no frosted rectangle with visible edges. */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-x-10 -inset-y-8 backdrop-blur-[5px] backdrop-saturate-125 [mask-image:radial-gradient(ellipse_70%_65%_at_50%_50%,#000_45%,transparent_95%)]"
+              />
               <p className="contour-text text-xs font-semibold uppercase tracking-[0.28em] text-flash">
                 Green Flash USA
               </p>
