@@ -84,21 +84,38 @@ function HeroBackdrop() {
     type NetInfo = { saveData?: boolean; effectiveType?: string };
     const conn = (navigator as { connection?: NetInfo }).connection;
     if (reduce || conn?.saveData || /2g/.test(conn?.effectiveType ?? "")) return;
-    v.src = "/hero-yacht.mp4";
+
+    // Two cuts of the footage: the 16:9 desktop view, and a vertical reel for
+    // phones — chosen by orientation so neither ever ships to the wrong shape,
+    // and swapped live if a tablet rotates.
+    const portrait = window.matchMedia("(orientation: portrait)");
+    const apply = () => {
+      const next = portrait.matches ? "/hero-yacht-portrait.mp4" : "/hero-yacht.mp4";
+      if (v.currentSrc.endsWith(next)) return;
+      v.classList.replace("opacity-100", "opacity-0");
+      v.src = next;
+      v.play().catch(() => {
+        // Autoplay refused: the poster underneath stays as a still backdrop.
+      });
+    };
     // replace, not add: with both utilities present, stylesheet order decides
     const onReady = () => v.classList.replace("opacity-0", "opacity-100");
-    v.addEventListener("canplay", onReady, { once: true });
-    v.play().catch(() => {
-      // Autoplay refused: the poster stays as a still backdrop.
-    });
-    return () => v.removeEventListener("canplay", onReady);
+    v.addEventListener("canplay", onReady);
+    portrait.addEventListener("change", apply);
+    apply();
+    return () => {
+      v.removeEventListener("canplay", onReady);
+      portrait.removeEventListener("change", apply);
+    };
   }, []);
 
+  // No poster attribute: until the video has a frame it stays transparent and
+  // the <picture> underneath shows through, which already picked the right
+  // orientation without JavaScript.
   return (
     <video
       ref={ref}
       className="absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-1000"
-      poster="/hero-yacht.jpg"
       muted
       loop
       playsInline
@@ -119,13 +136,16 @@ export function HomePage() {
               video's first frame; the video fades in over it. Nothing dims
               either layer — the text below carries contour outlines instead. */}
           <div className="pointer-events-none absolute inset-0">
-            <img
-              src="/hero-yacht.jpg"
-              alt=""
-              className="size-full object-cover"
-              fetchPriority="high"
-              decoding="async"
-            />
+            <picture className="block size-full">
+              <source media="(orientation: portrait)" srcSet="/hero-yacht-portrait.jpg" />
+              <img
+                src="/hero-yacht.jpg"
+                alt=""
+                className="size-full object-cover"
+                fetchPriority="high"
+                decoding="async"
+              />
+            </picture>
             <HeroBackdrop />
           </div>
 
