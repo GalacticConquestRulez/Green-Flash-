@@ -95,6 +95,19 @@
   font-family: var(--font-display);
 }
 
+/* For text sitting directly on video: a 1px + 2px ring at zero blur, the same
+   treatment as the links page. It outlines the letters instead of laying any
+   darkening over the footage. */
+@utility contour-text {
+  text-shadow:
+    0 1px 0 #070807, 1px 0 0 #070807, 0 -1px 0 #070807, -1px 0 0 #070807,
+    1px 1px 0 #070807, -1px 1px 0 #070807, 1px -1px 0 #070807, -1px -1px 0 #070807,
+    0 2px 0 #070807, 2px 0 0 #070807, 0 -2px 0 #070807, -2px 0 0 #070807,
+    2px 2px 0 #070807, -2px 2px 0 #070807, 2px -2px 0 #070807, -2px -2px 0 #070807,
+    1px 2px 0 #070807, -1px 2px 0 #070807, 1px -2px 0 #070807, -1px -2px 0 #070807,
+    2px 1px 0 #070807, -2px 1px 0 #070807, 2px -1px 0 #070807, -2px -1px 0 #070807;
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;

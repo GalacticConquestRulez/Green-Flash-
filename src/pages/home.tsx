@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -66,6 +67,47 @@ const WHY = [
   },
 ];
 
+/**
+ * The drone footage behind the hero, treated the way the links page treats its
+ * backdrop: nothing laid over it — no scrim, no tint — with the text carrying
+ * its own outline instead. The <video> ships with no src, so nothing downloads
+ * until the client opts in; reduced-motion, data-saver, and slow connections
+ * keep the poster frame, which is a still from the same footage.
+ */
+function HeroBackdrop() {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    type NetInfo = { saveData?: boolean; effectiveType?: string };
+    const conn = (navigator as { connection?: NetInfo }).connection;
+    if (reduce || conn?.saveData || /2g/.test(conn?.effectiveType ?? "")) return;
+    v.src = "/hero-yacht.mp4";
+    // replace, not add: with both utilities present, stylesheet order decides
+    const onReady = () => v.classList.replace("opacity-0", "opacity-100");
+    v.addEventListener("canplay", onReady, { once: true });
+    v.play().catch(() => {
+      // Autoplay refused: the poster stays as a still backdrop.
+    });
+    return () => v.removeEventListener("canplay", onReady);
+  }, []);
+
+  return (
+    <video
+      ref={ref}
+      className="absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-1000"
+      poster="/hero-yacht.jpg"
+      muted
+      loop
+      playsInline
+      preload="none"
+      aria-hidden="true"
+    />
+  );
+}
+
 export function HomePage() {
   usePageMeta(ROUTE_META["/"]);
   return (
@@ -73,31 +115,33 @@ export function HomePage() {
       <main id="main" className="pb-20 md:pb-0">
         {/* ---------- hero ---------- */}
         <section className="relative overflow-hidden border-b border-border">
+          {/* Poster underneath so there is never a black flash before the
+              video's first frame; the video fades in over it. Nothing dims
+              either layer — the text below carries contour outlines instead. */}
           <div className="pointer-events-none absolute inset-0">
             <img
-              src="/hero-street.jpg"
+              src="/hero-yacht.jpg"
               alt=""
-              className="size-full object-cover opacity-30"
+              className="size-full object-cover"
               fetchPriority="high"
               decoding="async"
             />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,8,7,0.6)_0%,rgba(7,8,7,0.82)_50%,rgba(7,8,7,1)_100%)]" />
-            <div className="absolute -left-24 top-24 size-[18rem] rounded-full bg-flash/10 blur-3xl md:size-[28rem]" />
+            <HeroBackdrop />
           </div>
 
           <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-12 text-center sm:px-6 md:pb-24 md:pt-20">
             <div className="stagger-in mx-auto max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-flash">
+              <p className="contour-text text-xs font-semibold uppercase tracking-[0.28em] text-flash">
                 Green Flash USA
               </p>
-              <h1 className="mt-4 font-display text-[2.7rem] font-semibold leading-[0.95] tracking-wide text-foreground sm:text-6xl md:text-7xl">
+              <h1 className="contour-text mt-4 font-display text-[2.7rem] font-semibold leading-[0.95] tracking-wide text-foreground sm:text-6xl md:text-7xl">
                 More clicks. More customers.
                 <span className="mt-1 block text-flash">More growth.</span>
               </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-chrome sm:text-lg">
+              <p className="contour-text mx-auto mt-6 max-w-2xl text-base font-semibold leading-relaxed text-foreground sm:text-lg">
                 One team for the whole growth stack — the ads that bring people in, the website
                 they land on, and the merch that keeps your name around. Founded by media
-                entrepreneur Max Glaser and his partner Tanner Lodini.
+                entrepreneur Max Glaser and partner Tanner Lodini.
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:items-center">
                 <Button asChild>
@@ -106,7 +150,7 @@ export function HomePage() {
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" className="bg-background/70 backdrop-blur-[2px]">
                   <Link to="/#contact">Book a Free Call</Link>
                 </Button>
               </div>
