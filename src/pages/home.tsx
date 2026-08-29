@@ -151,14 +151,6 @@ export function HomePage() {
 
           <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-12 text-center sm:px-6 md:pb-24 md:pt-20">
             <div className="stagger-in relative mx-auto max-w-3xl">
-              {/* A feathered pool of backdrop blur behind the copy — no tint, no
-                  darkening, just softening the detail behind the letters so
-                  their colours separate. The radial mask fades the effect out,
-                  so there is no frosted rectangle with visible edges. */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute -inset-x-10 -inset-y-8 backdrop-blur-[6px] [mask-image:radial-gradient(ellipse_70%_65%_at_50%_50%,#000_45%,transparent_95%)]"
-              />
               {/* Max's designed lockup carries the visual headline — badge,
                   gradient type, glow, arrow, results pill — as he built it.
                   The real heading stays in the document for search engines and
@@ -188,7 +180,7 @@ export function HomePage() {
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="bg-background/70 backdrop-blur-[2px]">
+                <Button asChild variant="outline" className="bg-background/70">
                   <Link to="/#contact">Book a Free Call</Link>
                 </Button>
               </div>

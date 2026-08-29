@@ -189,20 +189,6 @@
     text-align: center;
   }
 
-  /* A feathered pool of blur behind the copy under the tee — no tint, no
-     darkening, just melting the water detail into colour the type can sit on.
-     The radial mask fades it out, so there is no frosted rectangle. */
-  .mast::after {
-    content: "";
-    position: absolute;
-    inset: -1rem -1.5rem;
-    z-index: -1;
-    pointer-events: none;
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-    -webkit-mask-image: radial-gradient(ellipse 80% 34% at 50% 76%, #000 45%, transparent 95%);
-    mask-image: radial-gradient(ellipse 80% 34% at 50% 76%, #000 45%, transparent 95%);
-  }
 
   /* ---------- Spray-painted tee ----------
      A rotating shirt that gets its logo sprayed on as it turns to face you.
@@ -705,7 +691,6 @@
     background: rgba(7, 8, 7, 0.72);
     border: 1px solid rgba(108, 255, 46, 0.55);
     color: var(--flash);
-    backdrop-filter: blur(3px);
     transition: transform 160ms ease, background-color 160ms ease;
   }
 
