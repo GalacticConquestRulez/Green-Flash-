@@ -159,14 +159,24 @@ export function HomePage() {
                 aria-hidden="true"
                 className="pointer-events-none absolute -inset-x-10 -inset-y-8 backdrop-blur-[6px] [mask-image:radial-gradient(ellipse_70%_65%_at_50%_50%,#000_45%,transparent_95%)]"
               />
-              <p className="[text-shadow:0_1px_2px_rgba(7,8,7,0.55),0_6px_28px_rgba(7,8,7,0.5)] text-xs font-semibold uppercase tracking-[0.28em] text-flash">
-                Green Flash USA
-              </p>
-              <h1 className="[text-shadow:0_1px_2px_rgba(7,8,7,0.55),0_6px_28px_rgba(7,8,7,0.5)] mt-4 font-display text-[2.7rem] font-semibold leading-[0.95] tracking-wide text-foreground sm:text-6xl md:text-7xl">
-                More clicks. More customers.
-                <span className="mt-1 block text-flash">More growth.</span>
+              {/* Max's designed lockup carries the visual headline — badge,
+                  gradient type, glow, arrow, results pill — as he built it.
+                  The real heading stays in the document for search engines and
+                  screen readers, just visually hidden. */}
+              <h1 className="sr-only">
+                Green Flash USA — more clicks, more customers, more growth. Real results, scalable
+                growth.
               </h1>
-              <p className="[text-shadow:0_1px_2px_rgba(7,8,7,0.55),0_6px_28px_rgba(7,8,7,0.5)] mx-auto mt-6 max-w-2xl text-base font-medium leading-relaxed text-foreground sm:text-lg">
+              <img
+                src="/hero-lockup.webp"
+                alt=""
+                width={1100}
+                height={759}
+                fetchPriority="high"
+                decoding="async"
+                className="mx-auto w-full max-w-[34rem] md:max-w-[40rem]"
+              />
+              <p className="[text-shadow:0_1px_2px_rgba(7,8,7,0.55),0_6px_28px_rgba(7,8,7,0.5)] mx-auto mt-2 max-w-2xl text-base font-medium leading-relaxed text-foreground sm:text-lg">
                 One team for the whole growth stack — the ads that bring people in, the website
                 they land on, and the merch that keeps your name around. Founded by media
                 entrepreneur Max Glaser and partner Tanner Lodini.
