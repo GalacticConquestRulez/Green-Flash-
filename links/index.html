@@ -68,16 +68,12 @@
     --text: #f3f6f3;
     --muted: #8b938a;
 
-    /* A double ring at zero blur — 1px and 2px offsets in 8 directions, fully
-       opaque. It reads as a drawn outline hugging each letter, so the type
-       pops without a single pixel of the footage being dimmed or blurred. */
+    /* Soft depth, not an outline: a tight anchor plus a wide low halo. The
+       hard letter rings read as sticker type; the blur pool under the mast
+       copy now does the heavy lifting instead. */
     --contour:
-      0 1px 0 #070807, 1px 0 0 #070807, 0 -1px 0 #070807, -1px 0 0 #070807,
-      1px 1px 0 #070807, -1px 1px 0 #070807, 1px -1px 0 #070807, -1px -1px 0 #070807,
-      0 2px 0 #070807, 2px 0 0 #070807, 0 -2px 0 #070807, -2px 0 0 #070807,
-      2px 2px 0 #070807, -2px 2px 0 #070807, 2px -2px 0 #070807, -2px -2px 0 #070807,
-      1px 2px 0 #070807, -1px 2px 0 #070807, 1px -2px 0 #070807, -1px -2px 0 #070807,
-      2px 1px 0 #070807, -2px 1px 0 #070807, 2px -1px 0 #070807, -2px -1px 0 #070807;
+      0 1px 2px rgba(7, 8, 7, 0.6),
+      0 4px 20px rgba(7, 8, 7, 0.55);
 
     --display: "Oswald", "Arial Narrow", Impact, sans-serif;
     --body: "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -191,6 +187,21 @@
     align-items: center;
     gap: 1.25rem;
     text-align: center;
+  }
+
+  /* A feathered pool of blur behind the copy under the tee — no tint, no
+     darkening, just melting the water detail into colour the type can sit on.
+     The radial mask fades it out, so there is no frosted rectangle. */
+  .mast::after {
+    content: "";
+    position: absolute;
+    inset: -1rem -1.5rem;
+    z-index: -1;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    -webkit-mask-image: radial-gradient(ellipse 80% 34% at 50% 76%, #000 45%, transparent 95%);
+    mask-image: radial-gradient(ellipse 80% 34% at 50% 76%, #000 45%, transparent 95%);
   }
 
   /* ---------- Spray-painted tee ----------

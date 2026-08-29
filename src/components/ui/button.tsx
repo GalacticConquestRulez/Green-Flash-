@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-flash text-flash-fg shadow-[0_0_24px_color-mix(in_oklab,var(--color-flash)_28%,transparent)] hover:bg-flash-hot",
+          "bg-flash text-flash-fg hover:bg-flash-hot hover:shadow-[0_0_20px_color-mix(in_oklab,var(--color-flash)_25%,transparent)]",
         outline:
           "border border-border bg-transparent text-foreground hover:border-flash/50 hover:text-flash",
         ghost: "text-muted hover:text-foreground",
