@@ -62,7 +62,7 @@ const WHY = [
   },
   {
     icon: Users,
-    title: "One team for all of it",
+    title: "One team for everything",
     body: "Ads, the page they land on, and the merch that keeps your name around — built to work together, by the same people.",
   },
 ];
@@ -289,7 +289,7 @@ export function HomePage() {
                 Ready to grow?
               </p>
               <h2 className="mt-3 font-display text-5xl font-semibold tracking-wide text-foreground sm:text-6xl">
-                Tell us what you want to grow.
+                Let's grow your business.
               </h2>
               <p className="mt-5 max-w-md text-base leading-relaxed text-muted">
                 Ads, a website, merch, or all three — book a free call and we'll tell you exactly
@@ -317,7 +317,7 @@ export function HomePage() {
             <div className="rounded-2xl bg-card p-6 hairline sm:p-8">
               <ContactForm
                 interest="General"
-                prompt="What should we grow?"
+                prompt="How can we help?"
                 placeholder="Tell us about your business and whether you're thinking ads, a website, merch — or you're not sure yet. That's what the call is for."
               />
             </div>

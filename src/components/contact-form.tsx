@@ -28,7 +28,7 @@ const FORMSPREE_ENDPOINT = "https://formspree.io/f/mjybnjko";
  */
 export function ContactForm({
   interest = "Advertising",
-  prompt = "What should we grow?",
+  prompt = "What are you looking for?",
   placeholder = "Tell us about your business, current ads, and what more customers would mean.",
   submitLabel = "Book a free strategy call",
 }: {
