@@ -34,16 +34,23 @@ const MULTI = [
 ];
 
 /* ------------------------------------------------------------------ */
-/* The demo: our LodiStudios media-server logic, cut down to three     */
-/* tracks and reskinned for Green Flash. Everything on the card works  */
-/* — search, playback transport, the queue — as real application       */
-/* state, which is the point: this is what "custom web app" means.     */
+/* The demo: our LodiStudios media-server logic reskinned for Green    */
+/* Flash, streaming five real tracks from Maxgod's album 2TheMax.      */
+/* Search, transport, and queue are live application state; the audio  */
+/* element does the actual playing. If the files can't load (as in a   */
+/* static preview), the card drops to a simulated "demo mode" instead  */
+/* of breaking.                                                        */
 /* ------------------------------------------------------------------ */
 
+const ARTIST = "Maxgod";
+const ALBUM = "2TheMax";
+
 const LIBRARY = [
-  { id: 1, title: "Sunshine", artist: "LodiStudios", length: 192 },
-  { id: 2, title: "Calling Your Name", artist: "LodiStudios", length: 227 },
-  { id: 3, title: "Success", artist: "LodiStudios", length: 178 },
+  { id: 1, title: "Games", file: "/audio/games.mp3", length: 224 },
+  { id: 2, title: "Silver Lines", file: "/audio/silver-lines.mp3", length: 197 },
+  { id: 3, title: "Shoot the Liar", file: "/audio/shoot-the-liar.mp3", length: 196 },
+  { id: 4, title: "Root and Rise", file: "/audio/root-and-rise.mp3", length: 152 },
+  { id: 5, title: "Dividends", file: "/audio/dividends.mp3", length: 118 },
 ];
 
 const mmss = (s: number) =>
@@ -55,40 +62,78 @@ function DemoPlayer() {
   const [elapsed, setElapsed] = useState(0);
   const [query, setQuery] = useState("");
   const [queue, setQueue] = useState<number[]>([]);
+  const [fallback, setFallback] = useState(false);
+  const [coverBroken, setCoverBroken] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const queueRef = useRef(queue);
   queueRef.current = queue;
+  const currentRef = useRef(current);
+  currentRef.current = current;
 
   const track = LIBRARY[current];
 
+  const load = (i: number) => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (!a.currentSrc.endsWith(LIBRARY[i].file)) {
+      a.src = LIBRARY[i].file;
+    }
+  };
+
+  const startTrack = (i: number) => {
+    setCurrent(i);
+    setElapsed(0);
+    const a = audioRef.current;
+    if (a && !fallback) {
+      load(i);
+      a.play().catch(() => setFallback(true));
+    }
+    setPlaying(true);
+  };
+
+  const toggle = () => {
+    const a = audioRef.current;
+    if (fallback || !a) {
+      setPlaying((p) => !p);
+      return;
+    }
+    if (playing) {
+      a.pause();
+    } else {
+      load(current);
+      a.play().catch(() => {
+        setFallback(true);
+        setPlaying(true);
+      });
+    }
+  };
+
+  const advance = () => {
+    const q = queueRef.current;
+    if (q.length > 0) {
+      setQueue(q.slice(1));
+      startTrack(LIBRARY.findIndex((x) => x.id === q[0]));
+    } else {
+      startTrack((currentRef.current + 1) % LIBRARY.length);
+    }
+  };
+
+  const jump = (dir: 1 | -1) =>
+    startTrack((current + dir + LIBRARY.length) % LIBRARY.length);
+
+  // Simulated clock, only when real audio is unavailable.
   useEffect(() => {
-    if (!playing) return;
+    if (!fallback || !playing) return;
     const t = setInterval(() => {
       setElapsed((e) => {
-        if (e + 1 < LIBRARY[current].length) return e + 1;
-        // track finished: the queue wins, otherwise walk the library
-        const q = queueRef.current;
-        if (q.length > 0) {
-          setQueue(q.slice(1));
-          setCurrent(LIBRARY.findIndex((x) => x.id === q[0]));
-        } else {
-          setCurrent((c) => (c + 1) % LIBRARY.length);
-        }
+        if (e + 1 < LIBRARY[currentRef.current].length) return e + 1;
+        advance();
         return 0;
       });
     }, 1000);
     return () => clearInterval(t);
-  }, [playing, current]);
-
-  const jump = (dir: 1 | -1) => {
-    setCurrent((c) => (c + dir + LIBRARY.length) % LIBRARY.length);
-    setElapsed(0);
-  };
-
-  const select = (i: number) => {
-    setCurrent(i);
-    setElapsed(0);
-    setPlaying(true);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fallback, playing]);
 
   const results = LIBRARY.filter((t) =>
     t.title.toLowerCase().includes(query.trim().toLowerCase()),
@@ -96,6 +141,17 @@ function DemoPlayer() {
 
   return (
     <div className="overflow-hidden rounded-2xl bg-card hairline-flash">
+      {/* the actual player; the UI below is its remote control */}
+      <audio
+        ref={audioRef}
+        preload="none"
+        onTimeUpdate={(e) => setElapsed(e.currentTarget.currentTime)}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={advance}
+        onError={() => setFallback(true)}
+      />
+
       {/* server chrome */}
       <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
         <p className="flex items-center gap-2 font-display text-lg tracking-wide text-foreground">
@@ -107,7 +163,7 @@ function DemoPlayer() {
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-flash opacity-60" />
             <span className="relative inline-flex size-2 rounded-full bg-flash" />
           </span>
-          Online
+          {fallback ? "Demo mode" : "Online"}
         </p>
       </div>
 
@@ -118,7 +174,7 @@ function DemoPlayer() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search the library…"
+            placeholder="Search 2TheMax…"
             className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted"
             aria-label="Search the demo library"
           />
@@ -138,7 +194,7 @@ function DemoPlayer() {
                 <div className="flex items-center gap-3 px-5 py-3">
                   <button
                     type="button"
-                    onClick={() => (active ? setPlaying((p) => !p) : select(i))}
+                    onClick={() => (active ? toggle() : startTrack(i))}
                     aria-label={active && playing ? `Pause ${t.title}` : `Play ${t.title}`}
                     className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border text-foreground transition-colors duration-150 hover:border-flash hover:text-flash"
                   >
@@ -152,9 +208,8 @@ function DemoPlayer() {
                     <p className={`truncate text-sm font-semibold ${active ? "text-flash" : "text-foreground"}`}>
                       {t.title}
                     </p>
-                    <p className="text-xs text-muted">{t.artist}</p>
+                    <p className="text-xs text-muted">{ARTIST}</p>
                   </div>
-                  {/* tiny equalizer, moving only while this row is playing */}
                   {active && playing ? (
                     <span className="flex h-4 items-end gap-0.5" aria-hidden="true">
                       <span className="eq-bar w-1 rounded-sm bg-flash" />
@@ -183,6 +238,14 @@ function DemoPlayer() {
       {/* transport */}
       <div className="border-t border-border px-5 py-4">
         <div className="flex items-center gap-4">
+          {/* album art; falls back to the GF mark until the 2TheMax cover ships */}
+          <img
+            src={coverBroken ? "/logo-mark.png" : "/audio/cover.jpg"}
+            onError={() => setCoverBroken(true)}
+            alt={`${ALBUM} album cover`}
+            className="hidden size-12 shrink-0 rounded-lg border border-border object-cover sm:block"
+            loading="lazy"
+          />
           <div className="flex items-center gap-1.5">
             <button
               type="button"
@@ -194,7 +257,7 @@ function DemoPlayer() {
             </button>
             <button
               type="button"
-              onClick={() => setPlaying((p) => !p)}
+              onClick={toggle}
               aria-label={playing ? "Pause" : "Play"}
               className="flex size-11 items-center justify-center rounded-full bg-flash text-flash-fg transition-colors duration-150 hover:bg-flash-hot"
             >
@@ -216,10 +279,13 @@ function DemoPlayer() {
                 {mmss(elapsed)} / {mmss(track.length)}
               </p>
             </div>
+            <p className="text-xs text-muted">
+              {ARTIST} · {ALBUM}
+            </p>
             <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-border">
               <div
                 className="h-full rounded-full bg-flash transition-[width] duration-500"
-                style={{ width: `${(elapsed / track.length) * 100}%` }}
+                style={{ width: `${Math.min(100, (elapsed / track.length) * 100)}%` }}
               />
             </div>
           </div>
@@ -347,18 +413,18 @@ export function AppsPage() {
               </h2>
               <p className="mt-5 text-base leading-relaxed text-muted">
                 We build and run custom media servers and streaming software — this widget runs the
-                same application logic as our LodiStudios platform, cut down to a three-track
-                library and reskinned for Green Flash.
+                same application logic as our LodiStudios platform, reskinned for Green Flash and
+                streaming Maxgod's album 2TheMax.
               </p>
               <p className="mt-4 text-base leading-relaxed text-muted">
-                Everything on the card works: search the library, play and pause, skip, queue
-                tracks and watch them take over when the current one ends. That responsiveness is
-                the difference between a website and an application.
+                Everything on the card is real: press play and the music streams. Search the
+                library, pause, skip, queue tracks and hear them take over when the current one
+                ends. That is the difference between a website and an application.
               </p>
               <ul className="mt-8 space-y-3 text-sm text-chrome">
                 {[
                   "Modeled on streaming software we run in production",
-                  "Live application state — no page reloads",
+                  "Streams real audio — turn your sound on",
                   "Yours would run your logic, not our jukebox",
                 ].map((t) => (
                   <li key={t} className="flex items-center gap-2.5">
