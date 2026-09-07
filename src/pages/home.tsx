@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
+  AppWindow,
   ArrowRight,
   Check,
   Cpu,
@@ -35,6 +36,16 @@ const SERVICES = [
     body: "A custom-branded line — apparel, accessories, bedding — with print-ready files, an ordering sheet, and a store people can actually buy from.",
     points: ["Custom designs, not templates", "Print-ready files included", "Website integration available"],
     cta: "See merch setup",
+    flagship: false,
+  },
+  {
+    icon: AppWindow,
+    to: "/apps",
+    eyebrow: "Web apps from $1,249",
+    title: "Apps",
+    body: "Boutique software: custom web apps, and full iOS + Android + web rollouts from $12,499 — modeled on the media servers and streaming software we run.",
+    points: ["Built around your workflow", "One backend, every platform", "Try the live demo on the page"],
+    cta: "See app development",
     flagship: false,
   },
   {
@@ -217,7 +228,7 @@ export function HomePage() {
             </p>
           </div>
 
-          <div className="mt-12 grid gap-4 lg:grid-cols-3">
+          <div className="mt-12 grid gap-4 md:grid-cols-2">
             {SERVICES.map((s) => (
               <Link
                 key={s.to}

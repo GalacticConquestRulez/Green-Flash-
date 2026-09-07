@@ -158,6 +158,49 @@ export function schemaFor(meta) {
       );
       break;
 
+    case "/apps":
+      graph.push(
+        webPage(meta, { breadcrumb: crumb([["Home", "/"], ["Apps", "/apps"]]) }),
+        crumb([["Home", "/"], ["Apps", "/apps"]]),
+        {
+          "@type": "Service",
+          "@id": `${SITE}/apps#service`,
+          name: "Custom App Development",
+          serviceType: "Software development",
+          provider: { "@id": ORG },
+          areaServed: { "@type": "Country", name: "United States" },
+          description:
+            "Boutique application development: custom web applications, and multi-platform rollouts shipping one product as iOS, Android, and web applications on a shared backend. Built on experience running media servers and streaming software in production.",
+          offers: [
+            {
+              "@type": "Offer",
+              name: "Custom Web App",
+              url: `${SITE}/apps#pricing`,
+              priceCurrency: "USD",
+              priceSpecification: {
+                "@type": "PriceSpecification",
+                minPrice: "1249",
+                priceCurrency: "USD",
+              },
+              availability: "https://schema.org/InStock",
+            },
+            {
+              "@type": "Offer",
+              name: "Multi-Platform App Rollout",
+              url: `${SITE}/apps#pricing`,
+              priceCurrency: "USD",
+              priceSpecification: {
+                "@type": "PriceSpecification",
+                minPrice: "12499",
+                priceCurrency: "USD",
+              },
+              availability: "https://schema.org/InStock",
+            },
+          ],
+        },
+      );
+      break;
+
     case "/privacy":
     case "/terms":
       graph.push(

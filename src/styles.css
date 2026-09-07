@@ -140,6 +140,17 @@
   animation-delay: 360ms;
 }
 
+/* The demo player's three-bar equalizer; reduced-motion flattens it via the
+   global animation kill above. */
+.eq-bar {
+  height: 30%;
+  animation: eq-bounce 640ms ease-in-out infinite alternate;
+}
+@keyframes eq-bounce {
+  from { height: 25%; }
+  to { height: 100%; }
+}
+
 .hairline {
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-foreground) 10%, transparent);
 }

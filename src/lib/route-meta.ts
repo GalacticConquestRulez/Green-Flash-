@@ -37,6 +37,12 @@ export const ROUTE_META = {
       "Single landing pages from $375 and full multi-page websites from $975, built mobile-first. Add the $125/month care plan for maintenance, security, and monthly content updates.",
     path: "/websites",
   },
+  "/apps": {
+    title: "Custom Web & Mobile App Development | Green Flash Advertising",
+    description:
+      "Boutique app development: custom web apps from $1,249 and full iOS, Android & web application rollouts from $12,499 — built on experience running media servers and streaming software.",
+    path: "/apps",
+  },
   "/privacy": {
     title: "Privacy Policy | Green Flash Advertising",
     description:

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { AdvertisingPage } from "@/pages/advertising";
+import { AppsPage } from "@/pages/apps";
 import { HomePage } from "@/pages/home";
 import { MerchPage } from "@/pages/merch";
 import { NotFoundPage } from "@/pages/not-found";
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/advertising" element={<AdvertisingPage />} />
         <Route path="/merch" element={<MerchPage />} />
         <Route path="/websites" element={<WebsitesPage />} />
+        <Route path="/apps" element={<AppsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="*" element={<NotFoundPage />} />

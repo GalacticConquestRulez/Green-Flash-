@@ -20,7 +20,9 @@ export function TermsPage() {
               advertising spend billed separately through your own platform accounts. Merch setup is
               a $199 one-time fee. A single landing page is a $375 one-time fee; a full multi-page
               website starts at $975 and is quoted before work begins. Either can add the optional
-              $125 per month care plan. Nothing here is a long-term contract; either party may cancel a
+              $125 per month care plan. Custom web applications start at $1,249 and multi-platform
+              application rollouts at $12,499; both are scoped and quoted in writing before work
+              begins. Nothing here is a long-term contract; either party may cancel a
               recurring plan with written notice before the next billing date.
             </p>
           </section>

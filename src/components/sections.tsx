@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import {
+  AppWindow,
   ArrowRight,
   BarChart3,
   Check,
@@ -364,6 +365,14 @@ export function Proof() {
 
 const OTHER = [
   {
+    icon: AppWindow,
+    to: "/apps",
+    eyebrow: "Web apps from $1,249",
+    title: "Custom Apps",
+    body: "Boutique software — web apps to full iOS + Android + web rollouts — modeled on the media servers and streaming software we run in production.",
+    cta: "See app development",
+  },
+  {
     icon: Shirt,
     to: "/merch",
     eyebrow: "$199 one-time setup",
@@ -394,7 +403,7 @@ export function MoreServices() {
         title="Ads are one piece of it."
         body="Merch people keep wearing and a site that stays current do the work between campaigns."
       />
-      <div className="mt-12 grid gap-4 md:grid-cols-2">
+      <div className="mt-12 grid gap-4 md:grid-cols-3">
         {OTHER.map((o) => (
           <Link
             key={o.to}
