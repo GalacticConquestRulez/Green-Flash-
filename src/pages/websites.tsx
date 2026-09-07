@@ -5,7 +5,10 @@ import {
   Gauge,
   LifeBuoy,
   LockKeyhole,
+  MessagesSquare,
+  PenTool,
   RefreshCw,
+  Rocket,
   Search,
   Smartphone,
   Sparkles,
@@ -78,22 +81,22 @@ const WHY = [
 
 const STEPS = [
   {
-    n: "01",
+    icon: MessagesSquare,
     title: "Tell us about the business",
     body: "What you do, who you want walking in, and any photos or copy you already have. We'll say whether one page covers it or you need the full site.",
   },
   {
-    n: "02",
+    icon: PenTool,
     title: "We design and build",
     body: "You see the layout before it goes anywhere. Changes are part of the build, not an upsell.",
   },
   {
-    n: "03",
+    icon: Rocket,
     title: "We launch it",
     body: "Domain, SSL, analytics, search console — wired up and live. You don't touch a config file.",
   },
   {
-    n: "04",
+    icon: RefreshCw,
     title: "We keep it current",
     body: "The care plan handles updates, patches, and the monthly changes so it never goes stale.",
   },
@@ -252,14 +255,18 @@ export function WebsitesPage() {
               Four steps. Then it runs.
             </h2>
           </div>
-          <ol className="mt-14 grid gap-6 md:grid-cols-4">
-            {STEPS.map((step, i) => (
-              <li key={step.n} className="relative">
-                {i < STEPS.length - 1 ? (
-                  <span className="pointer-events-none absolute left-[3.25rem] right-[-0.75rem] top-5 hidden h-px bg-border md:block" />
-                ) : null}
-                <p className="font-display text-4xl text-flash">{step.n}</p>
-                <h3 className="mt-3 font-display text-2xl tracking-wide text-foreground">
+          <ol className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map((step) => (
+              <li key={step.title} className="relative overflow-hidden rounded-xl bg-card p-6 hairline">
+                <step.icon
+                  aria-hidden
+                  className="pointer-events-none absolute -bottom-8 -right-8 size-36 text-flash/[0.07]"
+                  strokeWidth={1}
+                />
+                <span className="inline-flex size-11 items-center justify-center rounded-lg bg-flash/10">
+                  <step.icon className="size-5 text-flash" strokeWidth={1.75} />
+                </span>
+                <h3 className="mt-4 font-display text-2xl tracking-wide text-foreground">
                   {step.title}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{step.body}</p>

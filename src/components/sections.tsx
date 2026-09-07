@@ -3,11 +3,13 @@ import {
   AppWindow,
   ArrowRight,
   BarChart3,
+  Camera,
   Check,
   Cpu,
   Crosshair,
   RefreshCw,
   Monitor,
+  Rocket,
   Search,
   Share2,
   Shirt,
@@ -140,22 +142,22 @@ export function Services() {
 
 const STEPS = [
   {
-    n: "01",
+    icon: Camera,
     title: "Send your photos and videos",
     body: "Use what you already have — storefront shots, team photos, product clips. No studio required.",
   },
   {
-    n: "02",
+    icon: Rocket,
     title: "We build and launch",
     body: "Campaigns go live on Meta and Google, with tracking wired so you can see what actually paid off.",
   },
   {
-    n: "03",
+    icon: Cpu,
     title: "AI + HYROS keep watch",
     body: "Our AI system and HYROS tracking monitor performance and optimize in real time.",
   },
   {
-    n: "04",
+    icon: TrendingUp,
     title: "You get more customers",
     body: "You keep running the business. We handle the ads, the tweaks, and the reporting.",
   },
@@ -170,14 +172,18 @@ export function Process() {
           title="Four steps. Then it runs."
           body="No six-week onboarding. No 40-page strategy deck. Send the content. We take it from there."
         />
-        <ol className="mt-14 grid gap-6 md:grid-cols-4">
-          {STEPS.map((step, i) => (
-            <li key={step.n} className="relative">
-              {i < STEPS.length - 1 ? (
-                <span className="pointer-events-none absolute left-[3.25rem] right-[-0.75rem] top-5 hidden h-px bg-border md:block" />
-              ) : null}
-              <p className="font-display text-4xl text-flash">{step.n}</p>
-              <h3 className="mt-3 font-display text-2xl tracking-wide text-foreground">
+        <ol className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {STEPS.map((step) => (
+            <li key={step.title} className="relative overflow-hidden rounded-xl bg-card p-6 hairline">
+              <step.icon
+                aria-hidden
+                className="pointer-events-none absolute -bottom-8 -right-8 size-36 text-flash/[0.07]"
+                strokeWidth={1}
+              />
+              <span className="inline-flex size-11 items-center justify-center rounded-lg bg-flash/10">
+                <step.icon className="size-5 text-flash" strokeWidth={1.75} />
+              </span>
+              <h3 className="mt-4 font-display text-2xl tracking-wide text-foreground">
                 {step.title}
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted">{step.body}</p>
