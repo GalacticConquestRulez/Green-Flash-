@@ -21,3 +21,11 @@ if (container.hasChildNodes()) {
 } else {
   createRoot(container).render(app);
 }
+
+// Installability: the manifest plus a registered worker lets the site be
+// added to a home screen and launched standalone, like a native app.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}

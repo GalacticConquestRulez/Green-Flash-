@@ -6,6 +6,8 @@ import {
   ListPlus,
   Pause,
   Play,
+  RotateCcw,
+  RotateCw,
   Search,
   Server,
   SkipBack,
@@ -120,6 +122,61 @@ function DemoPlayer() {
 
   const jump = (dir: 1 | -1) =>
     startTrack((current + dir + LIBRARY.length) % LIBRARY.length);
+
+  const seekTo = (t: number) => {
+    const clamped = Math.max(0, Math.min(t, LIBRARY[currentRef.current].length - 1));
+    const a = audioRef.current;
+    if (a && !fallback && a.currentSrc) {
+      a.currentTime = clamped;
+    }
+    setElapsed(clamped);
+  };
+  const nudge = (delta: number) =>
+    seekTo((audioRef.current && !fallback ? audioRef.current.currentTime : elapsed) + delta);
+
+  // Media Session: hands the track — artwork, title, transport — to the
+  // OS, so lock screens, watches, Bluetooth displays, and CarPlay/Android
+  // Auto "Now Playing" all show and control this player.
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+    const ms = navigator.mediaSession;
+    ms.metadata = new MediaMetadata({
+      title: LIBRARY[current].title,
+      artist: ARTIST,
+      album: ALBUM,
+      artwork: [
+        { src: "/audio/cover.jpg", sizes: "480x480", type: "image/jpeg" },
+        { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      ],
+    });
+    const set = (action: MediaSessionAction, fn: MediaSessionActionHandler | null) => {
+      try { ms.setActionHandler(action, fn); } catch { /* older browsers */ }
+    };
+    set("play", () => audioRef.current?.play().catch(() => {}));
+    set("pause", () => audioRef.current?.pause());
+    set("previoustrack", () => startTrack((currentRef.current - 1 + LIBRARY.length) % LIBRARY.length));
+    set("nexttrack", () => startTrack((currentRef.current + 1) % LIBRARY.length));
+    set("seekbackward", (d) => nudge(-(d.seekOffset ?? 10)));
+    set("seekforward", (d) => nudge(d.seekOffset ?? 10));
+    set("seekto", (d) => { if (d.seekTime != null) seekTo(d.seekTime); });
+    return () => {
+      (["play", "pause", "previoustrack", "nexttrack", "seekbackward", "seekforward", "seekto"] as const)
+        .forEach((a) => set(a, null));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current]);
+
+  // keep the OS scrubber in sync with real playback
+  useEffect(() => {
+    if (!("mediaSession" in navigator) || fallback) return;
+    try {
+      navigator.mediaSession.setPositionState({
+        duration: LIBRARY[current].length,
+        position: Math.min(elapsed, LIBRARY[current].length),
+        playbackRate: 1,
+      });
+    } catch { /* unsupported */ }
+  }, [elapsed, current, fallback]);
 
   // Simulated clock, only when real audio is unavailable.
   useEffect(() => {
@@ -237,58 +294,79 @@ function DemoPlayer() {
 
       {/* transport */}
       <div className="border-t border-border px-5 py-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* album art; falls back to the GF mark until the 2TheMax cover ships */}
           <img
             src={coverBroken ? "/logo-mark.png" : "/audio/cover.jpg"}
             onError={() => setCoverBroken(true)}
             alt={`${ALBUM} album cover`}
-            className="hidden size-12 shrink-0 rounded-lg border border-border object-cover sm:block"
+            className="size-12 shrink-0 rounded-lg border border-border object-cover"
             loading="lazy"
           />
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => jump(-1)}
-              aria-label="Previous track"
-              className="flex size-9 items-center justify-center rounded-full text-muted transition-colors duration-150 hover:text-foreground"
-            >
-              <SkipBack className="size-4" />
-            </button>
-            <button
-              type="button"
-              onClick={toggle}
-              aria-label={playing ? "Pause" : "Play"}
-              className="flex size-11 items-center justify-center rounded-full bg-flash text-flash-fg transition-colors duration-150 hover:bg-flash-hot"
-            >
-              {playing ? <Pause className="size-5" /> : <Play className="ml-0.5 size-5" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => jump(1)}
-              aria-label="Next track"
-              className="flex size-9 items-center justify-center rounded-full text-muted transition-colors duration-150 hover:text-foreground"
-            >
-              <SkipForward className="size-4" />
-            </button>
-          </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-baseline justify-between gap-3">
-              <p className="truncate text-sm font-semibold text-foreground">{track.title}</p>
-              <p className="text-xs tabular-nums text-muted">
-                {mmss(elapsed)} / {mmss(track.length)}
-              </p>
-            </div>
-            <p className="text-xs text-muted">
+            <p className="truncate text-sm font-semibold text-foreground">{track.title}</p>
+            <p className="truncate text-xs text-muted">
               {ARTIST} · {ALBUM}
             </p>
-            <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-border">
-              <div
-                className="h-full rounded-full bg-flash transition-[width] duration-500"
-                style={{ width: `${Math.min(100, (elapsed / track.length) * 100)}%` }}
-              />
-            </div>
           </div>
+          <p className="shrink-0 text-xs tabular-nums text-muted">
+            {mmss(elapsed)} / {mmss(track.length)}
+          </p>
+        </div>
+
+        {/* a real scrubber: drag or tap anywhere to seek */}
+        <input
+          type="range"
+          min={0}
+          max={track.length}
+          step={1}
+          value={Math.min(elapsed, track.length)}
+          onChange={(e) => seekTo(Number(e.target.value))}
+          aria-label="Seek"
+          className="mt-3 block h-1.5 w-full cursor-pointer appearance-auto accent-flash"
+        />
+
+        <div className="mt-2 flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => jump(-1)}
+            aria-label="Previous track"
+            className="flex size-10 items-center justify-center rounded-full text-muted transition-colors duration-150 hover:text-foreground"
+          >
+            <SkipBack className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => nudge(-10)}
+            aria-label="Rewind 10 seconds"
+            className="flex size-10 items-center justify-center rounded-full text-muted transition-colors duration-150 hover:text-foreground"
+          >
+            <RotateCcw className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label={playing ? "Pause" : "Play"}
+            className="flex size-12 items-center justify-center rounded-full bg-flash text-flash-fg transition-colors duration-150 hover:bg-flash-hot"
+          >
+            {playing ? <Pause className="size-5" /> : <Play className="ml-0.5 size-5" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => nudge(10)}
+            aria-label="Forward 10 seconds"
+            className="flex size-10 items-center justify-center rounded-full text-muted transition-colors duration-150 hover:text-foreground"
+          >
+            <RotateCw className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => jump(1)}
+            aria-label="Next track"
+            className="flex size-10 items-center justify-center rounded-full text-muted transition-colors duration-150 hover:text-foreground"
+          >
+            <SkipForward className="size-4" />
+          </button>
         </div>
         <p className="mt-3 text-xs text-muted">
           {queue.length > 0
@@ -417,14 +495,17 @@ export function AppsPage() {
                 streaming Maxgod's album 2TheMax.
               </p>
               <p className="mt-4 text-base leading-relaxed text-muted">
-                Everything on the card is real: press play and the music streams. Search the
-                library, pause, skip, queue tracks and hear them take over when the current one
-                ends. That is the difference between a website and an application.
+                Everything on the card is real: press play and the music streams. Search, pause,
+                skip, rewind, scrub, queue — and once it's playing, your phone treats it like any
+                music app: artwork and controls on the lock screen and in the car. Add the page to
+                your home screen and it opens standalone, like something from the App Store.
               </p>
               <ul className="mt-8 space-y-3 text-sm text-chrome">
                 {[
                   "Modeled on streaming software we run in production",
                   "Streams real audio — turn your sound on",
+                  "Controls it from your lock screen, watch, or car's Now Playing display",
+                  "Installs to your home screen and launches like a native app",
                   "Yours would run your logic, not our jukebox",
                 ].map((t) => (
                   <li key={t} className="flex items-center gap-2.5">
