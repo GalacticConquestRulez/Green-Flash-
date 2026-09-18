@@ -65,6 +65,22 @@ Ephraim before any production code.
 - **The graffiti-removal signature is an animation of a graffitied brick wall being cleaned to
   sparkling new** — "Wash" in the motion vocabulary (Roll · Scale · Cure · Wash). Drawn wall by
   default; his real before/after photos if he sends them.
+- **The graffiti has to read as a real tagged wall — never cartoon bubble letters.** The first
+  drawn version was three bubble-letter pieces in magenta, blue and amber, evenly spaced, all
+  plainly painted the same afternoon by the same hand; the owner's verdict was *"that graffiti
+  looks horrendous"*, and on a page selling graffiti removal a clip-art idea of graffiti is the
+  one thing we cannot put up. So: **handstyle letterforms traced from real spray and marker
+  fonts** (`tools/make-tags.py` → `tag_paths.py`; faces and their licences in `tools/fonts/`),
+  **layered by age** — a buffed patch with an older tag ghosting through it, then a throw-up,
+  then a handstyle, then marker over everything, including a name crossed out by whoever came
+  next — and every sprayed piece carrying a **dark outline, drips off the letter bottoms and an
+  overspray halo** (the blurred copy of itself underneath, which is what says "sprayed" more
+  than the letters do). Grime goes under the paint, the light and the vignette over it. Names
+  are invented: no real crew, nothing readable as a slur, and nothing green — the mint is the
+  brand's one accent and graffiti never borrows it. To change a word, its face or its size:
+  edit `WORDS` in `tools/make-tags.py`, run `python3 tools/make-tags.py`, place it in `_tags()`
+  in `wall.py`, and commit the regenerated `tag_paths.py` with the wall. `docs/wash.md` is the
+  long version.
 - The full build plan is `PLAN.md` in this repo (copied from the approved plan). Opus subagents
   implement one step each from it; the lead session reviews each commit.
 - `research/wix/` holds the saved Wix pages and a full-page screenshot from the audit
