@@ -16,7 +16,7 @@ Two environment variables move the whole site:
 Every root-absolute link in the output goes through u() and every image through
 img(), so the same build runs at the domain root and under a preview prefix.
 """
-import os, html, json, hashlib
+import os, sys, html, json, hashlib
 
 SRC = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(SRC, 'site')
@@ -36,6 +36,19 @@ IG = 'https://www.instagram.com/openairmurals'
 # site/css/site.css, and docs/contrast.py fails the build if they ever drift.
 INK = '#0A0A0B'
 MINT = '#71EEB8'
+
+# One accent on one dark canvas: if that pair stops being readable the design
+# has stopped working, so the build refuses to finish. docs/contrast.py reads
+# the tokens straight out of the stylesheet and checks the two constants above
+# still match the tokens they mirror.
+sys.path.insert(0, os.path.join(SRC, 'docs'))
+import contrast
+contrast.check(os.path.join(OUT, 'css', 'site.css'), {'--ink': INK, '--mint': MINT})
+
+# One request for both families. Archivo ships the width axis the dimension
+# figures need (wdth 62..125); Inter carries the body and its tabular numerals.
+FONTS = ('https://fonts.googleapis.com/css2?'
+         'family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;600;700&display=swap')
 
 
 def u(path):
@@ -166,6 +179,8 @@ def layout(path, title, desc, body, ld=None, noindex=False):
 <meta property="og:type" content="website"><meta property="og:site_name" content="{SITE_NAME}"><meta property="og:title" content="{html.escape(title)}"><meta property="og:description" content="{html.escape(desc)}"><meta property="og:url" content="{canonical}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="{INK}">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="{FONTS}" rel="stylesheet">
 <link rel="stylesheet" href="{u('/css/site.css')}?v={asset_v("css/site.css")}">
 {ldjson}
 </head>

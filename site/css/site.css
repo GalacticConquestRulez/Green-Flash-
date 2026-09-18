@@ -1,1 +1,105 @@
-/* Open Air Gallery — site stylesheet. Tokens and type land in the next commit. */
+/* =====================================================================
+   Open Air Gallery — site stylesheet
+
+   Dark only. The murals are the colour; the page is not. Every colour in
+   this file is named once in :root and used through var() everywhere else,
+   so a bare hex outside this block is a bug.
+
+   Contrast, computed in docs/contrast.py and asserted at build time:
+     --mint on --ink        13.8:1  (AAA)
+     --mint-deep on --ink    7.7:1  (AA at every size)
+     --muted on --ink        8.9:1
+     --ink on --mint        13.8:1  (the primary button)
+   Two rules that go with it: mint never carries body copy under 16px, and
+   mint never sits on --wall.
+   ===================================================================== */
+:root{
+  --ink:#0A0A0B; --ink-2:#121214; --ink-3:#1A1A1D;
+  --paper:#F4F3EF; --muted:#A6A49E; --dim:#6E6C67;
+  --mint:#71EEB8; --mint-deep:#55B38A; --wall:#E9E7E2;
+  --line:rgba(244,243,239,.10); --line-2:rgba(244,243,239,.20);
+  --mint-glow:rgba(113,238,184,.14); --shade:rgba(10,10,11,.72);
+  --radius:4px;                 /* near-square — signwriting, not SaaS */
+  --max:1240px; --nav-h:72px;
+  /* Archivo carries the width axis the dimension figures need; the fallbacks
+     are metric-near grotesques so a 9rem figure does not reflow the page
+     while the variable font is still in flight. */
+  --font-display:"Archivo","Helvetica Neue",Helvetica,Arial,"Liberation Sans",sans-serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--ink);color:var(--paper);
+  font-family:var(--font-body);font-size:16px;line-height:1.65;
+  font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;
+}
+img,picture,video,svg{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+ul{list-style:none;margin:0;padding:0}
+:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+
+/* --- type ------------------------------------------------------------ */
+h1,h2,h3,h4{margin:0;line-height:1.1;font-weight:400}
+h1,h2,.display{
+  font-family:var(--font-display);text-transform:uppercase;
+  font-variation-settings:'wdth' 110,'wght' 800;
+  letter-spacing:-.005em;line-height:.94;
+}
+h1{font-size:clamp(2.6rem,7.4vw,5.6rem)}
+h2{font-size:clamp(2rem,4.6vw,3.6rem)}
+h3{font-family:var(--font-body);font-weight:700;font-size:1.2rem;letter-spacing:-.01em;line-height:1.3}
+h4{font-family:var(--font-body);font-weight:700;font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+p{margin:0 0 1em}
+b,strong{font-weight:700}
+small{font-size:.82rem}
+.muted{color:var(--muted)}
+.lead{font-size:1.1rem;color:var(--muted);max-width:62ch}
+.eyebrow{
+  display:inline-block;font-family:var(--font-display);
+  font-variation-settings:'wdth' 75,'wght' 700;
+  font-size:.78rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--mint);margin-bottom:.9rem;
+}
+
+/* --- shell ----------------------------------------------------------- */
+.wrap{width:min(var(--max),calc(100% - 2rem));margin-inline:auto}
+section{padding:clamp(4.5rem,10vw,8rem) 0;position:relative}
+.section-head{max-width:760px;margin-bottom:clamp(2rem,5vw,3.5rem)}
+.alt{background:var(--ink-2)}
+.skip{position:absolute;left:-999px;top:0;background:var(--mint);color:var(--ink);padding:.5rem 1rem;z-index:1000;font-weight:700}
+.skip:focus{left:1rem;top:1rem}
+
+/* --- buttons --------------------------------------------------------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  padding:.85rem 1.5rem;border-radius:var(--radius);
+  font-family:var(--font-body);font-weight:700;font-size:.95rem;line-height:1;
+  border:1px solid transparent;cursor:pointer;white-space:nowrap;
+  transition:background .2s,border-color .2s,color .2s,transform .2s var(--ease);
+}
+.btn-mint{background:var(--mint);color:var(--ink)}
+.btn-mint:hover{background:var(--mint-deep);color:var(--ink)}
+.btn-ghost{background:transparent;border-color:var(--line-2);color:var(--paper)}
+.btn-ghost:hover{border-color:var(--mint);color:var(--mint)}
+.btn-sm{padding:.6rem 1.05rem;font-size:.85rem}
+.btn svg{width:17px;height:17px;flex:none}
+.btn-row{display:flex;gap:.7rem;flex-wrap:wrap}
+@media (prefers-reduced-motion:no-preference){
+  .btn:hover{transform:translateY(-1px)}
+}
+
+/* --- breakpoints: base, 640, 960, 1240 ------------------------------- */
+@media (min-width:640px){
+  .wrap{width:min(var(--max),calc(100% - 3rem))}
+  .lead{font-size:1.15rem}
+}
+@media (min-width:960px){
+  body{font-size:17px}
+  .wrap{width:min(var(--max),calc(100% - 4rem))}
+}
+@media (min-width:1240px){
+  .wrap{width:var(--max)}
+}
