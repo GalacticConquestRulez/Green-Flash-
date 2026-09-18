@@ -279,6 +279,13 @@ html.motion .dims.in::before{
 /* The rule Cure sweeps. */
 .dims::after{content:"";position:absolute;left:0;right:0;bottom:-.16em;height:1px;background:var(--line)}
 .dims-sm{font-size:clamp(1.5rem,4.6vw,2.2rem)}
+/* A card sets the figures at 2.2rem, where .38em prime marks land near 13px and
+   read as dots rather than marks. They carry the only mint on a card, so they
+   have to be legible: .46em at card size only — the project-page figures are
+   three times as big and stay as specified. The vertical-align is retuned from
+   .34em to .28em because it is relative to the mark's own size, and .28 x .46
+   is the same optical lift off the baseline as .34 x .38 was. */
+.dims-sm .f,.dims-sm .x{font-size:.46em;vertical-align:.28em}
 
 /* --- project card ----------------------------------------------------- */
 /* The card is the link. Photo at 4:3, the figures over a scrim at the foot,
