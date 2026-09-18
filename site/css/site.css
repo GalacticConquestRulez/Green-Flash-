@@ -341,7 +341,7 @@ html.motion .dims.in::before{
 /* And the last few per cent: a mint eyebrow is small type, and small type over
    a photograph of a flower mural needs its own edge. An ink halo does that
    without drawing a box round the words. */
-.page-hero .hero-inner .eyebrow,.page-hero .hero-inner .lead{text-shadow:0 1px 14px var(--ink)}
+.page-hero .hero-inner .eyebrow,.page-hero .hero-inner .lead,.page-hero .hero-inner .crumbs{text-shadow:0 1px 14px var(--ink)}
 .page-hero.tall .wrap{width:min(var(--max),calc(100% - 2rem))}
 .page-hero .hero-media picture{width:100%;height:100%}
 @media (min-width:640px){.page-hero.tall .wrap{width:min(var(--max),calc(100% - 3rem))}}
@@ -640,3 +640,56 @@ html.js .swipe-dots{display:flex}
   padding:clamp(1.8rem,5vw,3.4rem);
 }
 .gr-panel .lead{color:var(--paper);opacity:.9;max-width:64ch;margin-bottom:1.4rem}
+
+/* =====================================================================
+   CONTACT
+
+   The form on the left, four cards on the right, and every one of them is
+   real without JavaScript: the fields are server-rendered, the two link
+   cards are ordinary links, and the note under the button carries the
+   address to write to when nothing else works.
+   ===================================================================== */
+.contact-grid{display:grid;gap:clamp(2rem,5vw,3.2rem);align-items:start}
+@media (min-width:960px){.contact-grid{grid-template-columns:7fr 5fr}}
+
+.form{display:grid;gap:1.1rem;margin-top:1.8rem}
+.form .row{display:grid;grid-template-columns:1fr;gap:1.1rem}
+@media (min-width:560px){.form .row{grid-template-columns:1fr 1fr}}
+.field{display:grid;gap:.45rem}
+.field label{font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.field input,.field textarea,.field select{
+  width:100%;background:var(--ink);border:1px solid var(--line-2);color:var(--paper);
+  padding:.85rem 1rem;border-radius:var(--radius);font:inherit;font-size:1rem;
+  transition:border-color .2s,box-shadow .2s;
+}
+.field input::placeholder,.field textarea::placeholder{color:var(--dim)}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--mint);box-shadow:0 0 0 3px var(--mint-glow)}
+.field textarea{min-height:150px;resize:vertical}
+.field option{background:var(--ink);color:var(--paper)}
+.field .hint{font-size:.8rem;line-height:1.5;color:var(--dim)}
+/* The chevron is drawn with a border rather than an inline SVG: a background
+   image would have to name a colour in hex, and the only hexes on this site
+   live in :root. */
+.sel{position:relative;display:block}
+.sel select{appearance:none;-webkit-appearance:none;padding-right:2.6rem}
+.sel::after{
+  content:"";position:absolute;right:1.1rem;top:50%;width:.46rem;height:.46rem;
+  border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+  transform:translateY(-70%) rotate(45deg);pointer-events:none;
+}
+/* The honeypot: off the screen, out of the tab order, never shown to anybody
+   who is not a robot. display:none would keep some bots from filling it. */
+.gotcha{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+.form-note{margin:0;font-size:.86rem;line-height:1.6;color:var(--dim)}
+.form-note a{color:var(--mint)}
+.form-status{display:none;padding:1rem 1.2rem;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--ink-3)}
+.form-status.on{display:block}
+.form-status a{color:var(--mint)}
+
+.contact-side{display:grid;gap:1rem}
+.contact-card{display:flex;gap:1rem;align-items:flex-start;padding:1.4rem;background:var(--ink-2);border:1px solid var(--line);border-radius:var(--radius);transition:border-color .2s}
+a.contact-card:hover,a.contact-card:focus-visible{border-color:var(--mint)}
+.contact-card .ic{flex:none;display:grid;place-items:center;width:42px;height:42px;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--ink-3);color:var(--mint)}
+.contact-card .ic svg{width:20px;height:20px}
+.contact-card b{display:block;margin-bottom:.25rem;font-size:.95rem}
+.contact-card span{display:block;color:var(--muted);font-size:.9rem;line-height:1.6;word-break:break-word}

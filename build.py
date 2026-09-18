@@ -31,6 +31,12 @@ EMAIL = 'hello@openairgallery.art'
 IG_HANDLE = '@openairmurals'
 IG = 'https://www.instagram.com/openairmurals'
 
+# Where the contact form posts. Unset is a supported state, not a broken one:
+# site.js then hands the filled-in message to the visitor's own mail app,
+# addressed to EMAIL, which needs no account and works today. Set it to a
+# Formspree or Web3Forms endpoint and the same form POSTs JSON instead.
+FORM_ENDPOINT = os.environ.get('FORM_ENDPOINT', '')
+
 # The two colours the HTML itself has to name (a <meta> tag and the inline
 # favicon cannot read a CSS custom property). They mirror --ink and --mint in
 # site/css/site.css, and docs/contrast.py fails the build if they ever drift.
@@ -221,6 +227,8 @@ ICONS = {
  'ig': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>',
  'chevL': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
  'chevR': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+ 'clock': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>',
+ 'pin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 10-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>',
 }
 
 # (label, href). No dropdowns on this site — six pages, all one click away.
@@ -833,6 +841,105 @@ pages['/services'] = dict(
 {cta(title='Which one do you need?',
      text='Tell us the wall, the city and roughly how big it is. We will come back with '
           'a plan and a price.')}''')
+
+
+# ---------------------------------------------------------------- CONTACT
+# The consultation request. The fields are the ones his own Wix form asks for,
+# minus the ones it asked for twice: first/last name become one name, "position"
+# and "type of organization" go, and the address field keeps his own helper
+# sentence because it says exactly what he wants to know.
+#
+# The form works with no endpoint and no JavaScript, in that order:
+#
+#   * FORM_ENDPOINT set    — site.js POSTs the fields as JSON and says so.
+#   * FORM_ENDPOINT unset  — site.js hands the message to the visitor's own
+#                            mail app, addressed to EMAIL. Nothing is lost and
+#                            no account is needed. This is today's state.
+#   * no JavaScript at all — every field, label and option is in the server
+#                            HTML, and the note under the button gives the
+#                            address to write to directly.
+#
+# _gotcha is the honeypot Formspree and Web3Forms both read: off-screen, out of
+# the tab order, and dropped before anything is sent.
+BUDGET_BANDS = ('Not sure yet', 'Under $5,000', '$5,000 – $10,000', '$10,000 – $25,000',
+                '$25,000 – $50,000', '$50,000 and up')
+
+
+def _options(values):
+    return ''.join(f'<option value="{html.escape(v)}">{html.escape(v)}</option>'
+                   for v in values)
+
+
+pages['/contact'] = dict(
+  title=f'Contact | {SITE_NAME}',
+  desc=f'Book a free consultation with Open Air Gallery. Tell us the wall, the city and '
+       f'roughly how big it is, or email {EMAIL} directly.',
+  body=f'''
+{page_hero('Book a free consultation', 'Let’s get to work',
+           'Fill out the form and we’ll connect with you shortly. Tell us the wall, the '
+           'city and roughly how big it is, and you get a plan and a price back.',
+           media_slug='contact-band',
+           media_alt='Three Open Air Gallery painters flat on a lift platform, rolling out '
+                     'a wall by hand',
+           crumb='Contact')}
+
+<section><div class="wrap">
+  <div class="contact-grid">
+    <div class="rv">
+      <div class="eyebrow">The brief</div>
+      <h2>Tell us about the wall</h2>
+      <form id="contact-form" class="form" method="post">
+        <div class="row">
+          <div class="field"><label for="name">Name</label>
+            <input id="name" name="name" required autocomplete="name" placeholder="Your name"></div>
+          <div class="field"><label for="email">Email</label>
+            <input id="email" name="email" type="email" required autocomplete="email" placeholder="you@company.com"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label for="phone">Phone</label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="Optional"></div>
+          <div class="field"><label for="company">Company</label>
+            <input id="company" name="company" autocomplete="organization" placeholder="Optional"></div>
+        </div>
+        <div class="field"><label for="location">Location</label>
+          <input id="location" name="location" placeholder="City and state, or the address of the wall">
+          <span class="hint">Please tell us your company location or the location of the potential mural/graphic.</span></div>
+        <div class="row">
+          <div class="field"><label for="service">Service</label>
+            <span class="sel"><select id="service" name="service">{_options(SERVICE_OPTIONS)}</select></span></div>
+          <div class="field"><label for="budget">Budget</label>
+            <span class="sel"><select id="budget" name="budget">{_options(BUDGET_BANDS)}</select></span></div>
+        </div>
+        <div class="field"><label for="message">Message</label>
+          <textarea id="message" name="message" required placeholder="What is the wall, how big is it, and when do you need it?"></textarea></div>
+        <div class="gotcha" aria-hidden="true">
+          <label for="_gotcha">Leave this field empty</label>
+          <input id="_gotcha" name="_gotcha" tabindex="-1" autocomplete="off"></div>
+        <div class="btn-row"><button class="btn btn-mint" type="submit">Send the brief {ICONS['arrow']}</button></div>
+        <div class="form-status" role="status"></div>
+        <p class="form-note">Sending opens a pre-filled email from your own mail app. You can
+        also write to <a href="mailto:{EMAIL}">{EMAIL}</a> directly, or send a DM to
+        <a {ext(IG)}>{IG_HANDLE}</a>.</p>
+      </form>
+    </div>
+
+    <div class="contact-side rv rv-d1">
+      <a class="contact-card" href="mailto:{EMAIL}"><div class="ic">{ICONS['mail']}</div>
+        <div><b>Email</b><span>{EMAIL}</span></div></a>
+      <a class="contact-card" {ext(IG)}><div class="ic">{ICONS['ig']}</div>
+        <div><b>Instagram</b><span>{IG_HANDLE} — the walls as they go up</span></div></a>
+      <div class="contact-card"><div class="ic">{ICONS['clock']}</div>
+        <div><b>What happens next</b><span>Fill out the form and we’ll connect with you
+        shortly. For graffiti removal, a picture is enough to start: send us a picture of the
+        space you want cleaned and we’ll send you a no hassle quote and date of completion.</span></div></div>
+      <div class="contact-card"><div class="ic">{ICONS['pin']}</div>
+        <div><b>Where we work</b><span>New York and nationwide. {spell(WALLS, cap=True)} walls
+        in {spell(len(CITIES))} cities so far, from Manhattan to Los Angeles.</span></div></div>
+    </div>
+  </div>
+</div></section>
+<script>window.OAG={{form:{json.dumps(FORM_ENDPOINT)},email:{json.dumps(EMAIL)}}}</script>
+''')
 
 
 # ---------------------------------------------------------------- write

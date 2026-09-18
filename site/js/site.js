@@ -183,3 +183,76 @@
     sync();
   });
 })();
+
+/* =====================================================================
+   The contact form.
+
+   Three states, and the page is complete in all of them:
+
+     endpoint set    POST the fields as JSON, say so, reset the form.
+     endpoint unset  hand the message to the visitor's own mail app,
+                     addressed to the studio. This is today's state and it
+                     needs no account anywhere.
+     no script       every field, label and option is in the server HTML and
+                     the note under the button gives the address to write to.
+
+   Ported from /root/dronegodmax-src/site/js/site.js:51-73, with two
+   differences: an unknown ?service= is ignored rather than added to the
+   select — the form offers what the company actually sells — and the
+   honeypot is checked before anything leaves the page.
+   ===================================================================== */
+(function () {
+  const form = document.querySelector('#contact-form');
+  if (!form) return;
+  const $ = (s, c = document) => c.querySelector(s);
+  const CFG = window.OAG || {};
+  const ENDPOINT = CFG.form || '';
+  const TO = CFG.email || '';
+
+  // /contact?service=Graffiti%20removal arrives from the services links and
+  // from the graffiti band: choose that option if the form has it.
+  const want = (new URLSearchParams(location.search).get('service') || '').trim().toLowerCase();
+  const sel = $('#service');
+  if (want && sel) {
+    const opts = [...sel.options];
+    const hit = opts.find(o => o.value.toLowerCase() === want)
+             || opts.find(o => o.value.toLowerCase().startsWith(want));
+    if (hit) hit.selected = true;
+  }
+
+  const status = $('.form-status');
+  const say = (h) => { if (status) { status.innerHTML = h; status.classList.add('on'); } };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(form).entries());
+    if (d._gotcha) return;                 // a robot filled the hidden field
+    delete d._gotcha;
+
+    const subject = `[Open Air Gallery] ${d.service || 'Enquiry'} — ${d.name || ''}`.trim();
+    const body = [
+      `Name: ${d.name || '-'}`,
+      `Email: ${d.email || '-'}`,
+      `Phone: ${d.phone || '-'}`,
+      `Company: ${d.company || '-'}`,
+      `Location: ${d.location || '-'}`,
+      `Service: ${d.service || '-'}`,
+      `Budget: ${d.budget || '-'}`,
+      '',
+      d.message || '',
+    ].join('\n');
+
+    if (ENDPOINT) {
+      try {
+        const r = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ ...d, _subject: subject }),
+        });
+        if (r.ok) { say('Message sent. We will come back to you shortly.'); form.reset(); return; }
+      } catch (_) {}
+    }
+    location.href = `mailto:${TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    say(`Your email app should open with the brief ready to send. If it did not, write to <a href="mailto:${TO}">${TO}</a> directly.`);
+  });
+})();
