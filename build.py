@@ -58,7 +58,8 @@ FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox
            f"stroke='{MINT.replace('#', '%23')}' stroke-width='6'/%3E%3C/svg%3E")
 
 # The twelve walls. Every project fact on the site comes from here.
-from projects import PROJECTS, FEATURED_ORDER, CATEGORIES, featured, total_sq_ft
+from projects import (PROJECTS, FEATURED_ORDER, CATEGORIES, BY_SLUG,
+                      featured, total_sq_ft)
 
 
 def u(path):
@@ -130,6 +131,28 @@ def pic(name, alt, sizes, cls='', extra='', lazy=True):
 # What a card asks the browser for: one of three across at desktop, two at
 # tablet, the full width on a phone.
 CARD_SIZES = '(min-width:960px) 33vw, (min-width:640px) 50vw, 100vw'
+PAIR_SIZES = '(min-width:640px) 50vw, 100vw'
+
+# A hero runs the full width of the window, but it is never asked to fill more
+# than 1,600 CSS px. PLAN.md §9(a): ten of the twelve photographs Wix ever held
+# are only ~1,200 px wide, so a 2,560 px laptop asking for 2,560 px of image
+# would only be told "the biggest I have is 1,242" — and then stretch it. The
+# cap is the honest ceiling until Ephraim's originals arrive.
+HERO_SIZES = '(min-width:1600px) 1600px, 100vw'
+
+# Small numbers read better as words in a sentence, and the only numbers this
+# site spells out are counts it computed itself.
+_WORDS = ('zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+          'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
+          'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty')
+
+
+def spell(n, cap=False):
+    w = _WORDS[n] if 0 <= n < len(_WORDS) else f'{n:,}'
+    return w[:1].upper() + w[1:] if cap else w
+
+
+PRIME = '\u2032'          # the foot mark, kept out of f-strings that nest quotes
 
 
 def dims(w, h, size=''):
@@ -144,12 +167,12 @@ def dims(w, h, size=''):
             f'<span class="f">\u2032</span></div>')
 
 
-def pcard(p, cls=''):
+def pcard(p, cls='', sizes=CARD_SIZES):
     """A project card. The card is the link; the figures are the headline."""
     place = f"{p['city']}, {p['state']}"
     alt = f"{p['title']} mural by Open Air Gallery, {place}"
     return f'''<a class="pcard rv {cls}" href="{u('/work/' + p['slug'])}">
-  <div class="pcard-img">{pic(p['hero'], alt, CARD_SIZES)}</div>
+  <div class="pcard-img">{pic(p['hero'], alt, sizes)}</div>
   <div class="pcard-body">{dims(p['dim_w'], p['dim_h'], 'sm')}<h3>{p['title']}</h3><span class="place">{place}</span></div>
 </a>'''
 
@@ -265,12 +288,21 @@ def asset_v(rel):
         return hashlib.md5(f.read()).hexdigest()[:8]
 
 
-def page_hero(eyebrow, title, lead, media_slug=None, crumb=None):
-    media = (f'<div class="hero-media">{img(media_slug, "", extra="fetchpriority=high")}</div>'
-             f'<div class="hero-shade"></div>') if media_slug else ''
+def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_alt=''):
+    """The top of a page: a photograph, a shade over it, and the words.
+
+    The photograph goes through pic() rather than img() so the browser picks a
+    rendition instead of always taking the widest one, and it is the page's
+    LCP element, so it loads eagerly at high priority. media_alt is the
+    description of the mural; leave it empty only when the photograph is
+    genuinely decorative, which on this site it never is.
+    """
+    media = (f'<div class="hero-media">'
+             f'{pic(media_slug, media_alt, HERO_SIZES, extra="fetchpriority=\"high\"", lazy=False)}'
+             f'</div><div class="hero-shade"></div>') if media_slug else ''
     crumbs = (f'<div class="crumbs"><a href="{u("/")}">Home</a><span>/</span><span>{crumb or title}</span></div>'
               if crumb is not False else '')
-    return f'''<section class="page-hero">{media}
+    return f'''<section class="page-hero{" " + cls if cls else ""}">{media}
   <div class="wrap"><div class="hero-inner">{crumbs}<div class="eyebrow">{eyebrow}</div><h1>{title}</h1><p class="lead">{lead}</p></div></div></section>'''
 
 
@@ -282,6 +314,41 @@ def cta(title='Ready when you are.',
   <h2>{title}</h2><p>{text}</p>
   <div class="btn-row"><a class="btn btn-mint" href="{u(primary[1])}">{primary[0]} {ICONS['arrow']}</a><a class="btn btn-ghost" href="{u(secondary[1])}">{secondary[0]}</a></div>
 </div></div></section>'''
+
+
+# Ephraim's own account of the work, transcribed from the About page of his
+# live site (research/wix/about.html, saved 2026-09-18). His three stage names
+# and his three paragraphs, verbatim but for one typo — he wrote "how the light
+# will affect it's color", which is set as "its" here. Nothing else is changed:
+# these are his sentences and they are better than anything written for him.
+# Home quotes all three as the process; About runs them at length; Services
+# takes the second and third for paint science and preservation.
+PROCESS = [
+  ('Mural prep',
+   'When it comes to mural creations, it starts from a small image and explodes '
+   'onto a massive canvas. It takes meticulous prep work to ensure that the scale '
+   'of the image is appropriately captured. The ability to scale and project is '
+   'what differs an artist and a muralist.'),
+  ('Paint analysis',
+   'There is a science to paint and an understanding for the preservation of the '
+   'environment. We analyze the way the paint will decay over time and how the '
+   'light will affect its color. This intensive process allows us to use only what '
+   'we need and what will last.'),
+  ('Mural preservation',
+   'After the completion of the mural, we understand the fears of clients regarding '
+   'vandalism and degradation. We take this into account and apply environmentally '
+   'friendly coating that will make it easy to clean any future vandalism without '
+   'damaging the art work.'),
+]
+
+
+def beats(items, cls=''):
+    """His stages as quoted blocks — the stage name, then his own sentences."""
+    li = ''.join(
+        f'<li class="beat rv{" rv-d" + str(i) if i else ""}">'
+        f'<h3>{stage}</h3><blockquote><p>{words}</p></blockquote></li>'
+        for i, (stage, words) in enumerate(items))
+    return f'<ol class="{("beats " + cls).strip()}">{li}</ol>'
 
 
 def swipe(slides, label, cls=''):
@@ -338,6 +405,23 @@ def layout(path, title, desc, body, ld=None, noindex=False):
 pages = {}
 
 # ---------------------------------------------------------------- HOME
+# Every number on this page is computed from projects.py. None of them is
+# typed: "Twelve walls. Over 23,000 square feet." is the roster adding itself
+# up, so the day a thirteenth wall lands the sentence is already true.
+WALLS = len(PROJECTS)
+SQ_FT = total_sq_ft()
+CITIES = {(p['city'], p['state']) for p in PROJECTS}
+TALLEST = max(PROJECTS, key=lambda p: p['dim_h'])
+WIDEST = max(PROJECTS, key=lambda p: p['dim_w'])
+ROCHESTER = [p for p in PROJECTS if p['category'] == 'civic']
+
+
+def stat(figure, label, mark=''):
+    m = f'<span class="f">{mark}</span>' if mark else ''
+    return (f'<li class="stat rv"><span class="stat-n">{figure}{m}</span>'
+            f'<span class="stat-l">{label}</span></li>')
+
+
 pages['/index'] = dict(
   title=f'{SITE_NAME} | Murals at building scale, New York and nationwide',
   desc='Open Air Gallery is a muralist and large-image company led by Ephraim. Gucci in Manhattan at 81 by 80 feet, Crown Royal in Portland at 85 by 90, John Lewis and Malcolm X in Rochester.',
@@ -345,12 +429,46 @@ pages['/index'] = dict(
 {page_hero('Muralist and large-image company',
            'Murals that capture the gaze',
            'Open Air Gallery is Ephraim’s studio: eighty-one feet of Gucci on a Manhattan wall, eighty-five feet of Crown Royal in Portland, John Lewis and Malcolm X in Rochester.',
-           crumb=False)}
-<section><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">Selected work</div><h2>Twelve walls, measured in feet</h2>
-  <p class="lead">Six of them here, all twelve on the Work page. The number under each photograph is how much wall it took.</p></div>
-  <div class="pgrid">{''.join(pcard(p, f'rv-d{i % 3}' if i % 3 else '') for i, p in enumerate(featured()))}</div>
+           media_slug='gucci-new-york-hero',
+           media_alt='The Gucci mural by Open Air Gallery, eighty-one feet across a New York City wall',
+           crumb=False, cls='tall')}
+
+<section class="alt"><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">The measure of it</div>
+  <h2>{spell(WALLS, cap=True)} walls. Over {SQ_FT // 1000:,},000 square feet.</h2>
+  <p class="lead">Added up wall by wall, the work so far comes to {SQ_FT:,} square feet of painted surface in {spell(len(CITIES))} cities. The tallest of them stands {TALLEST['dim_h']} feet in {TALLEST['city']}; the widest runs {WIDEST['dim_w']} feet.</p></div>
+  <ul class="stats">
+    {stat(WALLS, 'walls painted')}
+    {stat(f'{SQ_FT:,}', 'square feet of wall')}
+    {stat(TALLEST['dim_h'], f'tallest wall, {TALLEST["city"]}', mark='′')}
+    {stat(len(CITIES), 'cities, coast to coast')}
+  </ul>
 </div></section>
+
+<section><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">Selected work</div><h2>{spell(WALLS, cap=True)} walls, measured in feet</h2>
+  <p class="lead">Six of them here, all {spell(WALLS)} on the Work page. The number over each photograph is how much wall it took.</p></div>
+  <div class="pgrid">{''.join(pcard(p, f'rv-d{i % 3}' if i % 3 else '') for i, p in enumerate(featured()))}
+  </div>
+  <div class="row-end rv"><a class="btn btn-ghost" href="{u('/work')}">All {spell(WALLS)} walls {ICONS['arrow']}</a></div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">{ROCHESTER[0]['city']}, {ROCHESTER[0]['state']}</div>
+  <h2>Two walls in Rochester</h2>
+  <p class="lead">{ROCHESTER[0]['title']} and {ROCHESTER[1]['title']}, painted in the same city at the same size: {ROCHESTER[0]['dim_w']} feet wide by {ROCHESTER[0]['dim_h']} feet tall, each of them.</p></div>
+  <div class="pgrid pair">{''.join(pcard(p, 'pcard-lg' + (' rv-d1' if i else ''), PAIR_SIZES) for i, p in enumerate(ROCHESTER))}
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">How a wall gets painted</div><h2>Prep, paint, preservation</h2>
+  <p class="lead">Ephraim’s three stages, in his own words.</p></div>
+  {beats(PROCESS)}
+</div></section>
+
+<!-- gr_band() lands in step 12 -->
+
 {cta()}''')
 
 # ---------------------------------------------------------------- write
