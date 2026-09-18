@@ -222,17 +222,26 @@ def brick_svg(tagged=False, uid='wash'):
         f'</svg>')
 
 
-# The washer head that replaces the cursor: a wand, a nozzle and the fan of
-# spray coming off it. Drawn once, moved with two custom properties.
+# The washer head that replaces the cursor: the wand comes in over the
+# shoulder from the top left and the nozzle tip sits exactly on the pointer,
+# where the stroke is actually landing. The CSS centres the box on the
+# pointer, so everything here is drawn around (36,36).
 HEAD_SVG = (
-    '<svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true" focusable="false">'
-    '<path d="M6 30 L30 30" stroke="#F4F3EF" stroke-opacity=".28" stroke-width="7" '
+    '<svg viewBox="0 0 72 72" width="72" height="72" aria-hidden="true" focusable="false">'
+    '<g transform="rotate(45 36 36)">'
+    '<path d="M-6 36.5 L6 36.5" stroke="#F4F3EF" stroke-opacity=".22" stroke-width="6" '
     'stroke-linecap="round"/>'
-    '<path d="M4 44 L22 34 L28 38 L10 50 Z" fill="#2B2B31"/>'
-    '<rect x="20" y="24" width="26" height="12" rx="3" fill="#3A3A42"/>'
-    '<rect x="44" y="26" width="12" height="8" rx="2" fill="#8B8279"/>'
-    '<path d="M56 30 L64 18 L64 42 Z" fill="#F4F3EF" fill-opacity=".22"/>'
-    '<circle cx="57" cy="30" r="3" fill="#F4F3EF"/></svg>')
+    '<rect x="2" y="31" width="22" height="11" rx="5" fill="#2B2B31"/>'
+    '<rect x="14" y="41" width="9" height="10" rx="3" fill="#2B2B31"/>'
+    '<rect x="22" y="32.5" width="8" height="8" rx="2.5" fill="#3A3A42"/>'
+    '<rect x="28" y="33.5" width="8" height="6" rx="2" fill="#8B8279"/>'
+    '</g>'
+    '<circle cx="36" cy="36" r="14" fill="#F4F3EF" opacity=".13"/>'
+    '<circle cx="36" cy="36" r="7" fill="#F4F3EF" opacity=".3"/>'
+    '<circle cx="36" cy="36" r="2.4" fill="#F4F3EF"/>'
+    '<circle cx="47" cy="30" r="1.6" fill="#F4F3EF" opacity=".55"/>'
+    '<circle cx="44" cy="45" r="1.2" fill="#F4F3EF" opacity=".45"/>'
+    '<circle cx="28" cy="47" r="1.4" fill="#F4F3EF" opacity=".4"/></svg>')
 
 # A speaker with, and without, the two little waves.
 SND_ON = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
