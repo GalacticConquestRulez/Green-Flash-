@@ -153,6 +153,7 @@ def spell(n, cap=False):
 
 
 PRIME = '\u2032'          # the foot mark, kept out of f-strings that nest quotes
+TIMES = '\u00d7'
 
 
 def dims(w, h, size=''):
@@ -470,6 +471,139 @@ pages['/index'] = dict(
 <!-- gr_band() lands in step 12 -->
 
 {cta()}''')
+
+# ---------------------------------------------------------------- WORK
+# The index is one grid of all twelve with four chips over it. The chips are
+# anchors and the filtering is CSS: `#f-civic:target ~ .pgrid .pcard:not(...)`
+# hides what does not match. No JavaScript is involved, so the filter works in
+# a text browser, in a crawler, and on a page whose script never arrived — and
+# with nothing targeted the grid shows everything, which is the right default.
+CAT_LABEL = {'brand': 'Brands', 'portrait': 'Portraits', 'civic': 'Civic'}
+
+
+def work_index():
+    chips = [('#f-all', 'All', len(PROJECTS))]
+    chips += [(f'#f-{c}', CAT_LABEL[c], sum(1 for p in PROJECTS if p['category'] == c))
+              for c in CATEGORIES]
+    targets = '<span class="ftarget" id="f-all"></span>' + ''.join(
+        f'<span class="ftarget" id="f-{c}"></span>' for c in CATEGORIES)
+    bar = ''.join(f'<li><a class="chip" href="{href}">{label}'
+                  f'<span class="ct">{n}</span></a></li>' for href, label, n in chips)
+    cards = ''.join(pcard(p, f"cat-{p['category']}" + (f' rv-d{i % 3}' if i % 3 else ''))
+                    for i, p in enumerate(PROJECTS))
+    return f'''<section class="work"><div class="wrap">
+  {targets}
+  <ul class="filters" aria-label="Filter the work">{bar}</ul>
+  <div class="pgrid">{cards}</div>
+</div></section>'''
+
+
+pages['/work'] = dict(
+  title=f'Work | {SITE_NAME}',
+  desc=f'All {spell(WALLS)} walls Open Air Gallery has painted, with what each one measured — '
+       f'{SQ_FT:,} square feet across {spell(len(CITIES))} cities, from Gucci in Manhattan to '
+       f'John Lewis and Malcolm X in Rochester.',
+  body=f'''
+{page_hero('The roster', f'{spell(WALLS, cap=True)} walls',
+           f'Every wall Open Air Gallery has painted, with what it measured. '
+           f'{SQ_FT:,} square feet in {spell(len(CITIES))} cities — brand walls, painted '
+           f'portraits, and the two Rochester commissions.',
+           crumb='Work')}
+{work_index()}
+{cta()}''')
+
+
+# ---------------------------------------------------------------- PROJECTS
+# A six-foot figure, drawn once: 20 units wide by 60 tall, so two feet by six,
+# and the aspect ratio is the scale. Step 14 gives her the drag; until then she
+# stands at --fx:.12 on the baseline, correctly sized, captioned. On the Gucci
+# wall that makes her about a thirtieth of the picture, which is the point.
+FIGURE_SVG = ('<svg class="fig-svg" viewBox="0 0 20 60" fill="currentColor" aria-hidden="true" '
+              'focusable="false"><circle cx="10" cy="5.5" r="4.4"/>'
+              '<path d="M10 11c3.6 0 6.2 2.2 6.6 5.6l1.1 12c.1 1.3-.7 2.2-1.8 2.3-1.1.1-1.9-.6-2-1.8'
+              'l-.7-7.1-.5 9.2 2 16.9c.2 1.5-.8 2.6-2.2 2.7-1.3.1-2.3-.8-2.5-2.2l-1-12.4-1 12.4c-.2 '
+              '1.4-1.2 2.3-2.5 2.2-1.4-.1-2.4-1.2-2.2-2.7l2-16.9-.5-9.2-.7 7.1c-.1 1.2-.9 1.9-2 1.8'
+              '-1.1-.1-1.9-1-1.8-2.3l1.1-12C3.8 13.2 6.4 11 10 11z"/></svg>')
+
+
+def scale_hero(p):
+    """The wall at full bleed, with the scale figure standing on it.
+
+    PLAN.md §4a: the wrapper carries data-scale and the wall's width in feet,
+    and the figure is sized (6 / ft) of the picture's width — she is 2 ft wide
+    and 6 ft tall, so the CSS gives her 2/ft of the width and an aspect ratio
+    of 1:3 and the arithmetic comes out on its own. This is the No-JS state the
+    plan describes and it is what ships until step 14: she stands at --fx:.12
+    on a mint baseline with a real "6 ft" caption, which is a static scale bar.
+    """
+    alt = (f"{p['title']} mural by Open Air Gallery in {p['city']}, {p['state']} — "
+           f"{p['dim_w']} feet wide by {p['dim_h']} feet tall")
+    return f'''<section class="phero"><div class="scale" data-scale data-ft="{p['dim_w']}" style="--ft:{p['dim_w']};--fx:.12">
+  <div class="scale-media">{pic(p['hero'], alt, '100vw', extra='fetchpriority="high"', lazy=False)}</div>
+  <div class="scale-base"></div>
+  <button class="fig" type="button" data-fig aria-label="Drag the figure for scale"><span class="fig-cap">6 ft</span>{FIGURE_SVG}</button>
+</div></section>'''
+
+
+def project_page(p):
+    i = PROJECTS.index(p)
+    prv, nxt = PROJECTS[i - 1], PROJECTS[(i + 1) % len(PROJECTS)]
+    place = f"{p['city']}, {p['state']}"
+
+    # Facts only where there is a fact. No client on a wall that had none, no
+    # year anywhere until Ephraim gives them, no credit until he names one.
+    meta = ''
+    if p['client']:
+        meta += f'<div><dt>Client</dt><dd>{p["client"]}</dd></div>'
+    meta += f'<div><dt>Location</dt><dd>{place}</dd></div>'
+    if p['year']:
+        meta += f'<div><dt>Year</dt><dd>{p["year"]}</dd></div>'
+    credit = f'<p class="credit">{p["credit"]}</p>' if p['credit'] else ''
+
+    gallery = ''
+    if p['gallery']:
+        slides = [pic(name, f'{p["title"]} mural by Open Air Gallery, {place}',
+                      '(min-width:960px) 76vw, 100vw')
+                  for name in [p['hero']] + list(p['gallery'])]
+        gallery = f'''<section class="alt"><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">The gallery</div><h2>{spell(len(slides), cap=True)} views of the same wall</h2></div>
+  {swipe(slides, f'Photographs of the {p["title"]} mural')}
+</div></section>'''
+
+    def step(q, side, label, icon):
+        figure = f'{q["dim_w"]}{PRIME} {TIMES} {q["dim_h"]}{PRIME}'
+        return (f'<a class="pnav-{side}" href="{u("/work/" + q["slug"])}">'
+                f'<span class="pnav-k">{ICONS[icon]}{label}</span>'
+                f'<span class="pnav-t">{q["title"]}</span>'
+                f'<span class="pnav-d">{figure}</span></a>')
+
+    return f'''
+{scale_hero(p)}
+<section class="pintro"><div class="wrap">
+  <div class="crumbs"><a href="{u('/')}">Home</a><span>/</span><a href="{u('/work')}">Work</a><span>/</span><span>{p['title']}</span></div>
+  <div class="eyebrow">{place}</div>
+  <h1>{p['title']}</h1>
+  {dims(p['dim_w'], p['dim_h'])}
+  <p class="lead pstory">{p['story']}</p>
+  <dl class="pmeta">{meta}</dl>
+  {credit}
+</div></section>
+{gallery}
+<section class="pnav-wrap"><div class="wrap">
+  <nav class="pnav" aria-label="More projects">{step(prv, 'prev', 'Previous', 'chevL')}{step(nxt, 'next', 'Next', 'chevR')}</nav>
+</div></section>
+{cta(title='Want one this size?',
+     text='Tell us the wall, the city and roughly how big it is. We will come back with a plan and a price.',
+     secondary=('All twelve walls', '/work'))}'''
+
+
+for _p in PROJECTS:
+    _place = f"{_p['city']}, {_p['state']}"
+    pages[f"/work/{_p['slug']}"] = dict(
+      title=f"{_p['title']}, {_place} | {SITE_NAME}",
+      desc=_p['story'],
+      body=project_page(_p))
+
 
 # ---------------------------------------------------------------- write
 os.makedirs(OUT, exist_ok=True)

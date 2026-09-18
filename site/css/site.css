@@ -245,15 +245,22 @@ html.motion .dims.dims.in{font-variation-settings:'wdth' 125,'wght' 800;animatio
 /* --- Cure ------------------------------------------------------------- */
 /* One pass of mint down the rule, then it is done for good: .in is added
    once and the observer stops watching. */
+/* The sheen is a background travelling inside the rule, not an element
+   sliding along it. It used to be a 40%-wide box translated 250% of its own
+   width, which worked on a card — .pcard clips — and on a project page, where
+   the figures sit in an unclipped .wrap, pushed the document 150px wider than
+   the window and gave the whole page a horizontal scrollbar. A background can
+   be positioned outside its box; it cannot overflow it. */
 html.motion .dims.in::before{
-  content:"";position:absolute;left:0;bottom:-.16em;height:1px;width:40%;
-  background:linear-gradient(90deg,transparent,var(--mint),transparent);
+  content:"";position:absolute;left:0;right:0;bottom:-.16em;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent) no-repeat;
+  background-size:40% 100%;
   animation:oaCure 1.8s var(--ease) .4s 1 both;pointer-events:none;
 }
 @keyframes oaCure{
-  from{transform:translateX(-100%);opacity:0}
+  from{background-position:-45% 0;opacity:0}
   18%{opacity:1}
-  to{transform:translateX(250%);opacity:0}
+  to{background-position:145% 0;opacity:0}
 }
 
 /* --- and the way out -------------------------------------------------- */
@@ -383,3 +390,149 @@ html.motion .dims.in::before{
 .beat blockquote{margin:0}
 .beat blockquote p{margin:0;color:var(--paper);opacity:.9;max-width:52ch}
 @media (min-width:960px){.beats{grid-template-columns:repeat(3,1fr);gap:2rem}}
+
+/* =====================================================================
+   WORK — the index
+
+   One grid of twelve with four chips over it, and the filtering is CSS.
+   The chips are ordinary anchors pointing at four empty targets that sit
+   just above the grid; :target then hides the cards that do not match.
+   No script is involved, so the filter survives a blocked or broken
+   site.js, and with nothing targeted every wall is on screen — which is
+   the state the page should open in anyway.
+   ===================================================================== */
+/* The hero already ends on a paragraph; a second full section pad under it
+   just leaves a hole above the chips. */
+.work{padding-top:clamp(2.5rem,6vw,4rem)}
+.ftarget{display:block;height:0;scroll-margin-top:calc(var(--nav-h) + 1.5rem)}
+.filters{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:clamp(1.6rem,4vw,2.4rem)}
+.chip{
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.55rem 1rem;border:1px solid var(--line-2);border-radius:999px;
+  font-size:.86rem;font-weight:600;color:var(--muted);
+  transition:border-color .2s,color .2s,background .2s;
+}
+.chip:hover{border-color:var(--mint);color:var(--paper)}
+.chip .ct{font-size:.74rem;color:var(--dim);font-variant-numeric:tabular-nums}
+/* The chip that is doing the filtering, and All when nothing else is. */
+.chip[href="#f-all"],
+#f-brand:target ~ .filters .chip[href="#f-brand"],
+#f-portrait:target ~ .filters .chip[href="#f-portrait"],
+#f-civic:target ~ .filters .chip[href="#f-civic"]{background:var(--mint);border-color:var(--mint);color:var(--ink)}
+.chip[href="#f-all"] .ct,
+#f-brand:target ~ .filters .chip[href="#f-brand"] .ct,
+#f-portrait:target ~ .filters .chip[href="#f-portrait"] .ct,
+#f-civic:target ~ .filters .chip[href="#f-civic"] .ct{color:var(--ink);opacity:.62}
+#f-brand:target ~ .filters .chip[href="#f-all"],
+#f-portrait:target ~ .filters .chip[href="#f-all"],
+#f-civic:target ~ .filters .chip[href="#f-all"]{background:transparent;border-color:var(--line-2);color:var(--muted)}
+#f-brand:target ~ .filters .chip[href="#f-all"] .ct,
+#f-portrait:target ~ .filters .chip[href="#f-all"] .ct,
+#f-civic:target ~ .filters .chip[href="#f-all"] .ct{color:var(--dim);opacity:1}
+/* and the filtering itself */
+#f-brand:target ~ .pgrid .pcard:not(.cat-brand),
+#f-portrait:target ~ .pgrid .pcard:not(.cat-portrait),
+#f-civic:target ~ .pgrid .pcard:not(.cat-civic){display:none}
+
+/* =====================================================================
+   A PROJECT PAGE
+
+   The wall at full bleed with a six-foot figure standing on it, then the
+   measurements set large, then what is known about the wall and nothing
+   that is not.
+   ===================================================================== */
+.phero{padding:var(--nav-h) 0 0}
+.scale{position:relative;isolation:isolate}
+/* The height is written out rather than left to aspect-ratio with a
+   max-height on the same box: given both, the browser keeps the ratio by
+   *narrowing* the box, and the full-bleed hero came out 1280px wide in a
+   1440px window with ink down the right-hand side. A height in vh and vw
+   says what is meant — as tall as the ratio allows, never taller than the
+   window — and the box stays the full width of the page. */
+.scale-media{position:relative;height:min(68vh,120vw);overflow:hidden;background:var(--ink-3)}
+.scale-media picture,.scale-media img{width:100%;height:100%;object-fit:cover}
+@media (min-width:640px){.scale-media{height:min(74vh,80vw)}}
+@media (min-width:960px){.scale-media{height:min(80vh,56.25vw)}}
+
+/* The baseline the figure stands on, and the figure. --ft is the wall's
+   width in feet, written on the element by build.py; she is two feet wide
+   and six tall, so 2/ft of the picture's width at an aspect ratio of 1:3
+   makes her exactly (6 / ft) of it high. On Gucci that is a thirtieth of
+   the frame, which is the entire point of putting her there. --fx is where
+   she stands, 0 to 1; step 14 gives her the drag. */
+.scale-base{position:absolute;left:0;right:0;bottom:var(--base,7%);height:1px;background:var(--mint);opacity:.5}
+.fig{
+  position:absolute;bottom:var(--base,7%);
+  --fw:calc(200% / var(--ft, 40));
+  left:calc(var(--fx,.12) * (100% - var(--fw)));
+  width:var(--fw);min-width:9px;aspect-ratio:1/3;
+  padding:0;border:0;background:none;color:var(--mint);
+  filter:drop-shadow(0 1px 3px var(--ink));
+}
+.fig-svg{width:100%;height:100%}
+.fig-cap{
+  position:absolute;left:50%;bottom:calc(100% + .45rem);transform:translateX(-50%);
+  font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mint);
+  white-space:nowrap;text-shadow:0 1px 8px var(--ink);
+}
+
+/* --- the words under the wall ----------------------------------------- */
+.pintro{padding-top:clamp(2.5rem,6vw,4rem)}
+.pintro .dims{margin:1.4rem 0 1.8rem}
+.pstory{max-width:58ch}
+.pmeta{display:flex;flex-wrap:wrap;gap:1.6rem 2.6rem;margin:2rem 0 0;padding-top:1.5rem;border-top:1px solid var(--line)}
+.pmeta dt{font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.pmeta dd{margin:.35rem 0 0;font-weight:600}
+.credit{margin-top:1.4rem;font-size:.86rem;color:var(--dim)}
+
+/* --- previous and next ------------------------------------------------- */
+.pnav-wrap{padding-top:0}
+.pnav{display:grid;gap:.8rem;border-top:1px solid var(--line);padding-top:1.6rem}
+.pnav a{display:grid;gap:.4rem;padding:1.2rem 1.3rem;border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-2);transition:border-color .25s}
+.pnav a:hover,.pnav a:focus-visible{border-color:var(--mint)}
+.pnav-next{text-align:right}
+.pnav-k{display:flex;align-items:center;gap:.4rem;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.pnav-next .pnav-k{flex-direction:row-reverse}
+.pnav-k svg{width:15px;height:15px}
+.pnav-t{font-weight:700;font-size:1.05rem}
+.pnav-d{font-family:var(--font-display);font-variation-settings:'wdth' 118,'wght' 800;font-size:1.3rem;color:var(--mint)}
+@media (min-width:640px){.pnav{grid-template-columns:1fr 1fr;gap:1rem}}
+
+/* =====================================================================
+   SWIPE — the gallery rail
+
+   With no script the rail is a native scroll-snap strip you can drag with
+   a finger or reach with the keyboard, so the arrows and the dots never
+   render: they live behind html.js because they are enhancement, and a
+   control that cannot do anything should not be on the page at all.
+   ===================================================================== */
+.swipe{position:relative}
+.swipe-rail{display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;
+  padding-bottom:1rem;scrollbar-width:none;-ms-overflow-style:none}
+.swipe-rail::-webkit-scrollbar{display:none}
+.swipe-rail:focus-visible{outline:2px solid var(--mint);outline-offset:4px;border-radius:var(--radius)}
+html.js .swipe-rail{cursor:grab}
+html.js .swipe-rail.dragging{cursor:grabbing;scroll-behavior:auto;scroll-snap-type:none;user-select:none}
+.swipe-slide{flex:0 0 min(92%,var(--slide,900px));scroll-snap-align:center}
+.swipe-slide:first-child{scroll-snap-align:start}
+.swipe-slide:last-child{scroll-snap-align:end}
+.swipe-slide>*{width:100%;margin:0}
+.swipe-slide img{width:100%;height:auto;border-radius:var(--radius)}
+.swipe.fits .swipe-dots,.swipe.fits .swipe-arw,.swipe.fits .swipe-hint{display:none}
+.swipe-arw{display:none;position:absolute;top:calc(50% - 1rem);translate:0 -50%;z-index:4;
+  width:46px;height:46px;border-radius:50%;place-items:center;cursor:pointer;
+  background:var(--ink-2);border:1px solid var(--line-2);color:var(--paper);
+  transition:background .2s,border-color .2s,color .2s,opacity .2s}
+html.js .swipe-arw{display:grid}
+.swipe-arw svg{width:20px;height:20px}
+.swipe-arw:hover{background:var(--mint);border-color:var(--mint);color:var(--ink)}
+.swipe-arw.prev{left:2px}
+.swipe-arw.next{right:2px}
+.swipe-arw[disabled]{opacity:0;pointer-events:none}
+@media (hover:none){.swipe-arw{display:none!important}}
+.swipe-dots{display:none;justify-content:center;gap:.4rem;margin-top:.2rem}
+html.js .swipe-dots{display:flex}
+.swipe-dot{width:8px;height:8px;padding:0;border:0;border-radius:999px;background:var(--line-2);cursor:pointer;transition:width .3s var(--ease),background .3s}
+.swipe-dot.is-on{width:26px;background:var(--mint)}
+.swipe-hint{display:none;position:absolute;right:.2rem;top:-1.9rem;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+@media (hover:none){html.js .swipe-hint{display:block}}

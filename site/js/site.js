@@ -82,3 +82,104 @@
   }), { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
   targets.forEach(el => io.observe(el));
 })();
+
+/* =====================================================================
+   Swipe rails — the project galleries.
+
+   The rail itself is CSS: a scroll-snap strip you can already throw with a
+   finger and walk with the keyboard. This adds the arrows, the dots and a
+   mouse drag, all of which the stylesheet keeps behind html.js, so with no
+   script there is no control on the page that cannot do anything.
+   ===================================================================== */
+(function () {
+  const $ = (s, c = document) => c.querySelector(s);
+  const $$ = (s, c = document) => [...c.querySelectorAll(s)];
+  const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+
+  let smooth = true;
+  try { smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+  $$('[data-swipe]').forEach(sw => {
+    const rail = $('[data-rail]', sw);
+    if (!rail) return;
+    const slides = $$('.swipe-slide', rail);
+    const dots = $$('.swipe-dot', sw);
+    const prev = $('[data-prev]', sw), next = $('[data-next]', sw);
+
+    // One slide is not a carousel: take the furniture away rather than
+    // leave arrows that go nowhere.
+    if (slides.length < 2) {
+      $$('.swipe-arw,.swipe-dots,.swipe-hint', sw).forEach(el => el.remove());
+      return;
+    }
+
+    // Where slide i lands once the rail has run out of room to scroll.
+    const target = i => {
+      const s = slides[i], end = Math.max(0, rail.scrollWidth - rail.clientWidth);
+      return clamp(s.offsetLeft - (rail.clientWidth - s.offsetWidth) / 2, 0, end);
+    };
+    const at = () => {
+      let best = 0, bd = Infinity;
+      slides.forEach((s, i) => {
+        const d = Math.abs(target(i) - rail.scrollLeft);
+        if (d < bd) { bd = d; best = i; }
+      });
+      return best;
+    };
+    const sync = () => {
+      const i = at(), end = rail.scrollWidth - rail.clientWidth;
+      sw.classList.toggle('fits', end < 6);   // nothing to swipe: no furniture
+      dots.forEach((d, n) => d.classList.toggle('is-on', n === i));
+      if (prev) prev.disabled = rail.scrollLeft <= 4;
+      if (next) next.disabled = rail.scrollLeft >= end - 4;
+    };
+    const to = i => rail.scrollTo({
+      left: target(clamp(i, 0, slides.length - 1)),
+      behavior: smooth ? 'smooth' : 'auto',
+    });
+
+    let raf = 0;
+    rail.addEventListener('scroll', () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(sync);
+    }, { passive: true });
+    if (prev) prev.addEventListener('click', () => to(at() - 1));
+    if (next) next.addEventListener('click', () => to(at() + 1));
+    dots.forEach((d, n) => d.addEventListener('click', () => to(n)));
+    rail.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      e.preventDefault();
+      to(at() + (e.key === 'ArrowRight' ? 1 : -1));
+    });
+
+    // Throw it with a mouse the way a finger already can.
+    let down = false, sx = 0, sl = 0, moved = 0;
+    rail.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'touch' || e.button) return;
+      down = true; moved = 0; sx = e.clientX; sl = rail.scrollLeft;
+      try { rail.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    rail.addEventListener('pointermove', e => {
+      if (!down) return;
+      const dx = e.clientX - sx;
+      moved = Math.abs(dx);
+      if (moved > 4) rail.classList.add('dragging');
+      rail.scrollLeft = sl - dx;
+    });
+    const stop = () => {
+      if (!down) return;
+      down = false;
+      rail.classList.remove('dragging');
+      if (moved > 4) to(at());
+    };
+    rail.addEventListener('pointerup', stop);
+    rail.addEventListener('pointercancel', stop);
+    // A drag that ends on a link must not also count as a click on it.
+    rail.addEventListener('click', e => {
+      if (moved > 6) { e.preventDefault(); e.stopPropagation(); moved = 0; }
+    }, true);
+
+    addEventListener('resize', sync, { passive: true });
+    sync();
+  });
+})();
