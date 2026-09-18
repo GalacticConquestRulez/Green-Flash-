@@ -1,0 +1,272 @@
+/* =====================================================================
+   Open Air Gallery — WASH
+
+   The graffiti-removal signature: a drawn brick wall the visitor cleans by
+   dragging. Markup comes from wall.py, behaviour from js/wash.js; this file
+   is only the staging, and it obeys the same contract as the motion block in
+   site.css.
+
+     * Nothing here is load-bearing. With no JavaScript the figure is the
+       finished clean wall with the tagged one beside it as a real "before"
+       thumbnail, and that is a complete before/after on its own.
+     * Everything that hides anything is scoped to html.motion and carries
+       `animation:... 0s linear 2.8s forwards`, so a page whose wash.js never
+       arrives falls back to that same pair 2.8 seconds later.
+     * The stage has a fixed 16:9 aspect-ratio and the foot a min-height, so
+       no state in here changes the figure's box. CLS is 0 by construction.
+     * No counter, no percentage, no label. The wall does the talking.
+
+   Load order: after site.css (it uses its tokens and --ease/--ease-roll).
+   ===================================================================== */
+
+.wall{
+  --wall-thumb-w:84px;
+  --wall-gap:.9rem;
+  margin:0;display:block;position:relative;
+}
+
+/* --- the stage -------------------------------------------------------- */
+/* 16:9 everywhere: the SVG viewBox, this box and the 256x144 mask canvas in
+   wash.js are the same rectangle, so a stroke lands under the pointer. */
+.wall-stage{
+  position:relative;aspect-ratio:16/9;overflow:hidden;
+  border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--ink-3);isolation:isolate;
+}
+.wall-layer{position:absolute;inset:0}
+.wall-layer svg{display:block;width:100%;height:100%}
+.wall-clean{z-index:1}
+/* Without html.motion there is no second layer on the stage at all — the
+   before lives in the thumbnail, where it can be read rather than washed. */
+.wall-tag{z-index:2;display:none}
+.wall-glint,.wall-rinse{z-index:3;pointer-events:none}
+.wall-sparks{position:absolute;inset:0;z-index:4;pointer-events:none}
+.wall-head{z-index:5}
+
+/* --- the foot: before thumbnail, caption, sound ----------------------- */
+/* min-height is what keeps the box still: the thumbnail collapses to zero
+   width under html.motion and comes back at 2.8s if the script never does,
+   and neither costs a pixel of height. */
+.wall-foot{
+  display:flex;align-items:center;gap:0;min-height:68px;
+  padding-top:.85rem;
+}
+.wall-thumb{
+  position:relative;flex:none;width:var(--wall-thumb-w);
+  margin-inline-end:var(--wall-gap);
+  border:1px solid var(--line-2);border-radius:var(--radius);
+  overflow:hidden;line-height:0;
+}
+.wall-thumb svg{display:block;width:100%;height:auto;aspect-ratio:16/9}
+.wall-thumb-t{
+  position:absolute;left:0;right:0;bottom:0;
+  font-family:var(--font-display);font-variation-settings:'wdth' 75,'wght' 700;
+  font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;line-height:1.6;
+  text-align:center;color:var(--paper);background:var(--scrim);
+}
+.wall-cap{flex:1 1 auto;font-size:.86rem;line-height:1.5;color:var(--muted)}
+.wall-hint{display:none;color:var(--paper)}
+
+/* The toggle and the hint describe things only the script can do, so they
+   stay out of the document until it has bound. They are not content. */
+.wall-snd{
+  display:none;flex:none;align-items:center;gap:.45rem;margin-inline-start:var(--wall-gap);
+  padding:.5rem .8rem;border:1px solid var(--line-2);border-radius:var(--radius);
+  background:transparent;color:var(--muted);cursor:pointer;
+  font-family:var(--font-body);font-weight:700;font-size:.72rem;
+  letter-spacing:.12em;text-transform:uppercase;line-height:1;
+  transition:color .2s,border-color .2s;
+}
+.wall-snd:hover{color:var(--paper);border-color:var(--line-2)}
+.wall-snd svg{width:15px;height:15px;display:block}
+.wall-snd .wall-snd-on{display:none}
+.wall-snd[aria-pressed="true"]{color:var(--mint);border-color:var(--mint-deep)}
+.wall-snd[aria-pressed="true"] .wall-snd-on{display:block}
+.wall-snd[aria-pressed="true"] .wall-snd-off{display:none}
+
+/* --- the washer head -------------------------------------------------- */
+/* A follower, not a cursor image: it can carry a spray fan and it never
+   flickers across the element boundary. Fine pointers only. */
+.wall-head{
+  display:none;position:absolute;left:0;top:0;width:72px;height:72px;
+  margin:-36px 0 0 -36px;pointer-events:none;opacity:0;
+  transform:translate3d(var(--hx,-999px),var(--hy,-999px),0) rotate(-8deg);
+  transition:opacity .18s linear;
+}
+.wall-head svg{width:100%;height:100%}
+
+/* =====================================================================
+   html.motion — and only here does anything hide
+   ===================================================================== */
+html.motion .wall-tag{
+  display:block;
+  animation:oaWashSelfOut 0s linear 2.8s forwards;
+}
+html.motion .wall-thumb{
+  width:0;margin-inline-end:0;opacity:0;visibility:hidden;border-width:0;
+  animation:oaWashSelfIn 0s linear 2.8s forwards;
+}
+/* The way back: if wash.js never runs, 2.8s later the figure is the same
+   before/after pair the no-script render shows. */
+@keyframes oaWashSelfOut{to{opacity:0;visibility:hidden}}
+@keyframes oaWashSelfIn{
+  to{width:var(--wall-thumb-w);margin-inline-end:var(--wall-gap);
+     opacity:1;visibility:visible;border-width:1px}
+}
+/* wash.js bound: it owns the layer now, so the safety net comes off. */
+html.motion .wall.is-live .wall-tag,
+html.motion .wall.is-live .wall-thumb{animation:none}
+html.motion .wall.is-live .wall-hint{display:inline}
+/* Once it is clean there is nothing left to drag, so the invitation goes. */
+html.motion .wall.is-clean .wall-hint{display:none}
+html.motion .wall.is-live .wall-snd{display:inline-flex}
+
+/* --- interactive: the mask the canvas paints -------------------------- */
+/* wash.js writes --wash-mask as a 256x144 PNG data URL: opaque where the tag
+   is still up, transparent where the stroke has been. Unset, mask-image
+   resolves to none and the tag is simply whole. */
+html.motion .wall.is-live[data-wash="interactive"] .wall-tag{
+  -webkit-mask-image:var(--wash-mask,none);
+          mask-image:var(--wash-mask,none);
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:center;mask-position:center;
+}
+/* Only while a stroke is actually in progress. */
+html.motion .wall.is-dragging .wall-tag{will-change:-webkit-mask-image,mask-image}
+html.motion .wall.is-clean .wall-tag{
+  opacity:0;visibility:hidden;
+  -webkit-mask-image:none;mask-image:none;will-change:auto;
+}
+
+@media (hover:hover) and (pointer:fine){
+  html.motion .wall.is-live[data-wash="interactive"] .wall-head{display:block}
+  html.motion .wall.is-live[data-wash="interactive"] .wall-stage{cursor:none}
+  html.motion .wall.is-clean .wall-stage{cursor:default}
+  html.motion .wall.is-clean .wall-head{display:none}
+}
+html.motion .wall.is-hover .wall-head{opacity:1}
+/* Vertical gestures keep scrolling the page; horizontal ones wash. */
+html.motion .wall.is-live[data-wash="interactive"] .wall-stage{touch-action:pan-y}
+
+/* --- auto: the home band's loop --------------------------------------- */
+/* No pointer handling and no script beyond the in-view gate: the sweep is a
+   mask-position animation, paused whenever the figure is off screen. */
+html.motion .wall[data-wash="auto"] .wall-tag{
+  -webkit-mask-image:linear-gradient(97deg,rgba(0,0,0,0) 0 42%,#000 58%,#000 100%);
+          mask-image:linear-gradient(97deg,rgba(0,0,0,0) 0 42%,#000 58%,#000 100%);
+  -webkit-mask-size:300% 100%;mask-size:300% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:100% 0;mask-position:100% 0;
+}
+html.motion .wall[data-wash="auto"].is-live .wall-tag{
+  animation:oaWashLoop 8s var(--ease-roll) infinite;
+}
+html.motion .wall[data-wash="auto"].is-live .wall-glint{
+  animation:oaWashLoopGlint 8s linear infinite;
+}
+html.motion .wall[data-wash="auto"].is-paused .wall-tag,
+html.motion .wall[data-wash="auto"].is-paused .wall-glint{animation-play-state:paused}
+@keyframes oaWashLoop{
+  0%,6%{-webkit-mask-position:100% 0;mask-position:100% 0;opacity:1}
+  46%,74%{-webkit-mask-position:0 0;mask-position:0 0;opacity:1}
+  86%{-webkit-mask-position:0 0;mask-position:0 0;opacity:0}
+  86.5%{-webkit-mask-position:100% 0;mask-position:100% 0;opacity:0}
+  100%{-webkit-mask-position:100% 0;mask-position:100% 0;opacity:1}
+}
+/* One pass of light as it comes clean, then nothing for six seconds. */
+@keyframes oaWashLoopGlint{
+  0%,44%{opacity:0;transform:translateX(-70%)}
+  46%{opacity:0;transform:translateX(-70%)}
+  50%{opacity:1}
+  56%,100%{opacity:0;transform:translateX(70%)}
+}
+
+/* --- the finish: one glint, a handful of sparks ----------------------- */
+.wall-glint{
+  position:absolute;inset:-12% -35%;opacity:0;transform:translateX(-70%);
+  background:linear-gradient(100deg,
+    transparent 44%,rgba(255,255,255,.10) 48%,rgba(255,255,255,.55) 50%,
+    rgba(255,255,255,.10) 52%,transparent 56%);
+}
+html.motion .wall.is-done .wall-glint{animation:oaWashGlint .7s var(--ease) both}
+@keyframes oaWashGlint{
+  from{opacity:0;transform:translateX(-70%)}
+  22%{opacity:1}
+  to{opacity:0;transform:translateX(70%)}
+}
+
+.wall-spark{
+  position:absolute;left:var(--x);top:var(--y);
+  width:var(--s,18px);height:var(--s,18px);margin:calc(var(--s,18px) / -2);
+  pointer-events:none;opacity:0;
+  filter:drop-shadow(0 0 6px rgba(255,255,255,.65));
+  animation:oaWashSpark 900ms var(--ease) var(--d,0ms) both;
+}
+/* Two crossed lenses make a four-point twinkle without an image. */
+.wall-spark::before,.wall-spark::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.wall-spark::before{left:0;right:0;top:43%;bottom:43%}
+.wall-spark::after{top:0;bottom:0;left:43%;right:43%}
+@keyframes oaWashSpark{
+  0%{opacity:0;transform:scale(.2) rotate(0)}
+  28%{opacity:1;transform:scale(1) rotate(12deg)}
+  100%{opacity:0;transform:scale(.45) rotate(48deg)}
+}
+
+/* --- the tilt rinse (coarse pointers, opt-in by a first drag) --------- */
+.wall-rinse{
+  position:absolute;inset:0;opacity:0;
+  background:linear-gradient(180deg,
+    rgba(255,255,255,.22) 0,rgba(190,220,255,.12) 38%,transparent 72%);
+  transform:translateY(calc(-100% + var(--rinse,0%)));
+  transition:opacity .3s linear;
+}
+.wall.is-rinsing .wall-rinse{opacity:1}
+
+/* --- the crossfade path ---------------------------------------------- */
+/* Two ways in: the visitor asked for reduced motion, or the first twenty
+   frames of a stroke could not hold 40fps. Either way the canvas never runs,
+   the tag simply dissolves, and the thumbnail comes back so the before is
+   still there to look at. */
+/* The mask stays exactly where the stroke left it and the layer fades from
+   there: clearing it first would flash the whole tag back for a frame. */
+html.motion .wall.is-crossfade .wall-tag{
+  will-change:auto;transition:opacity .9s var(--ease);
+}
+html.motion .wall.is-crossfade.is-faded .wall-tag{opacity:0}
+html.motion .wall.is-crossfade .wall-hint,
+html.motion .wall.is-crossfade .wall-snd,
+html.motion .wall.is-crossfade .wall-head{display:none}
+html.motion .wall.is-crossfade .wall-stage{cursor:default;touch-action:auto}
+html.motion .wall.is-crossfade .wall-thumb{
+  width:var(--wall-thumb-w);margin-inline-end:var(--wall-gap);
+  opacity:1;visibility:visible;border-width:1px;animation:none;
+}
+
+/* --- and the way out -------------------------------------------------- */
+/* html.motion is withheld already when the visitor asks for reduced motion.
+   This is the second lock: if the class arrives anyway, the wall is clean,
+   the before is a thumbnail, and nothing moves. */
+@media (prefers-reduced-motion:reduce){
+  html.motion .wall .wall-tag{
+    opacity:0;visibility:hidden;animation:none;transition:none;
+    -webkit-mask-image:none;mask-image:none;
+  }
+  html.motion .wall .wall-thumb{
+    width:var(--wall-thumb-w);margin-inline-end:var(--wall-gap);
+    opacity:1;visibility:visible;border-width:1px;animation:none;
+  }
+  html.motion .wall .wall-glint,html.motion .wall .wall-spark{animation:none;opacity:0}
+  html.motion .wall .wall-head{display:none}
+  html.motion .wall .wall-stage{cursor:default;touch-action:auto}
+  html.motion .wall .wall-hint,html.motion .wall .wall-snd{display:none}
+}
+
+/* --- small screens ---------------------------------------------------- */
+@media (max-width:519px){
+  .wall{--wall-thumb-w:66px}
+  .wall-foot{align-items:flex-start;min-height:62px}
+  .wall-cap{font-size:.8rem}
+  .wall-snd .wall-snd-t{display:none}
+  .wall-snd{padding:.5rem .55rem;margin-inline-start:.6rem}
+}
