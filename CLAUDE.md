@@ -74,3 +74,23 @@ Ephraim before any production code.
 - `docs/plan-agent-notes.md` holds the design agent's refined implementation notes (the wall
   mechanic's canvas/mask/completion details, the fetch step-down, the vhost model, `.preview-slug`,
   `BASE_PATH`, `assets/_sources.json`). Where PLAN.md is the frame, those notes are the detail.
+
+## Images — what the Wix site actually holds (2026-09-18, from the pipeline run)
+- All twelve heroes fetched (`assets/`, renditions in `out/img/`, provenance in
+  `assets/_sources.json`, procedure in `docs/images.md`). **Ten of twelve are only ~1,200–1,284 px
+  wide** — the largest files Ephraim ever uploaded to Wix. Only Vitamin Water (2,732) and Upendo
+  (2,250) clear 1,600. A full-bleed dark photo-first site wants 2,400: **his originals are needed
+  before launch**, and `pic()` must use real rendition widths in `srcset`, with heroes capped at
+  ~1,600 CSS px meanwhile.
+- The highest-resolution mural photo on the whole site (4,762 × 3,175, John Lewis) was on the
+  About page, not the project page — pulled as `john-lewis-rochester-1`.
+- **Wix's `enc_auto` honours the Accept header**: a browser Accept returns AVIF bytes named
+  `.jpg`. `fetch-wix.py` sends `image/jpeg,image/png` on purpose. Do not "simplify" that.
+- **Surname:** the portrait's alt text on Wix reads "Ephraim Gebre" — the only place a surname
+  appears. **Unconfirmed; do not caption with it until the owner confirms.**
+- `research/wix/graffiti-removal.html` is saved (he spells it "Graffitti"). Its copy is real and
+  reusable (three services, each with a paragraph; "Book Your Free Consult"; "See Our Process").
+  Its only non-stock image is `b79272_2838f371…~mv2.jpg` (served at w_2500) — add it to
+  `wix-sources.json` extras when the page is built. The rest are stock placeholders — never use.
+- Extras (nine signs/banners, Snickers, The Inn, GST Loft) are recorded under `not_fetched` in
+  `wix-sources.json` with exact URLs; move one to `extras` and re-run to pull it.
