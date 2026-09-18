@@ -31,3 +31,23 @@ better than the site presenting it — that is the whole brief in one sentence.
 - Original high-resolution mural photos — from Ephraim, or pulled from Wix at native size?
 - Company-first (Open Air Gallery) or artist-first (Ephraim) in voice and structure?
 - Timeline.
+
+## Proposed answers (2026-09-18, pending the owner's confirmation)
+1. **Scope:** full replacement, five pages — Home · Work (page per project) · About (Ephraim,
+   team, process) · Services (murals, banners, graffiti removal) · Contact (consultation).
+   Media and Shop dropped (both 404 today).
+2. **References:** show a mockup first, then ask. The reference is the work itself:
+   photo-first, full-bleed, **dimensions as the hook** ("81′ × 80′" set large on every
+   project), dark canvas so the murals are the only colour, his mint kept as the one accent.
+   One kinesthetic touch: a human figure dragged beside each mural for scale.
+3. **Domain:** no transfer — Ephraim's Wix login, an A record to the droplet + `www` CNAME,
+   certbot. Preview at preview.greenflashusa.com/p/openairgallery/ until approved.
+4. **Graffiti removal stays** (Services page); **Shop goes** (Phase 2 if he sells prints).
+5. **Photos:** originals from Ephraim (shared folder, people in frame for scale); the mockup
+   uses the Wix copies meanwhile.
+6. **Voice:** company brand (Open Air Gallery), artist-led story (Ephraim named in the hero,
+   his page, his process).
+7. **Timeline:** plan + mockup in a day; build 2–3 days; Ephraim reviews on preview; live
+   within two weeks, gated only by photos and the Wix login.
+First step on "go": one-page plan, HTML mockup of Home + the Gucci project page, screenshot to
+Ephraim before any production code.
