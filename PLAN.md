@@ -48,7 +48,7 @@ site/js/site.js       hand-written
 site/*.html           generated, gitignored
 assets/               originals, gitignored        out/img/{,t/}  ffmpeg output, gitignored
 fetch-wix.py  wix-sources.json  process.sh  publish-preview.sh  deploy.sh
-deploy/nginx/openair-site.conf   .gitignore   CLAUDE.md
+deploy/nginx/ephraim-site.conf   .gitignore   CLAUDE.md
 ```
 **Copy from DGM `build.py`:** `ext()` 133-135, `img()` 171-173, `asset_v()` 628-631,
 `layout()` 673-707 (rewrite head: site name, theme-color `#0A0A0B`, fonts), `nav_html()`
@@ -222,7 +222,7 @@ Every step ends with `python3 build.py` succeeding and a screenshot pass:
 | 16 | SEO | `build.py` | `layout()`, sitemap 1380-1394 | 18 URLs incl. `/graffiti-removal`; JSON-LD parses |
 | 17 | Preview publish | `publish-preview.sh` | `publisher.py` 88-105 | `curl -I` → 200 + `X-Robots-Tag` |
 | 18 | Owner + Ephraim review | `CLAUDE.md` | house rule | corrections recorded |
-| 19 | Subdomain go-live | `deploy.sh`, `deploy/nginx/openair-site.conf` | `deploy.sh`, `/etc/nginx/sites-enabled/max` | §7 |
+| 19 | Subdomain go-live | `deploy.sh`, `deploy/nginx/ephraim-site.conf` | `deploy.sh`, `/etc/nginx/sites-enabled/max` | §7 |
 
 **JSON-LD:** site-wide `LocalBusiness` (name, email, `areaServed` NYC + US, `sameAs` Instagram,
 `founder` Person Ephraim); each project a `CreativeWork` (`creator`, `locationCreated`,
@@ -237,14 +237,14 @@ the bot: `PREFIX=/p/$SLUG BASE_URL=https://preview.greenflashusa.com/p/$SLUG pyt
 `User-agent: *\nDisallow: /` → `chmod 755/644` → swap into `/srv/sitebuilder/p/$SLUG` via
 rename → print the URL. `SLUG` is a fixed 22-char `secrets.token_urlsafe(16)` stored in the
 script so republishes keep Ephraim's link alive.
-**Subdomain go-live:** `gd-dns add openair --ip 142.93.198.162` → `dig` → `certbot certonly
---nginx -d openair.greenflashusa.com` → `mkdir /var/www/openair && chown www-data:www-data` →
-`deploy/nginx/openair-site.conf` = `/etc/nginx/snippets/dronegodmax-site.conf` with
-`root /var/www/openair`, same headers/gzip/`try_files`/immutable `/assets/` cache, minus every
+**Subdomain go-live:** `gd-dns add ephraim --ip 142.93.198.162` → `dig` → `certbot certonly
+--nginx -d ephraim.greenflashusa.com` → `mkdir /var/www/ephraim && chown www-data:www-data` →
+`deploy/nginx/ephraim-site.conf` = `/etc/nginx/snippets/dronegodmax-site.conf` with
+`root /var/www/ephraim`, same headers/gzip/`try_files`/immutable `/assets/` cache, minus every
 WordPress and Instagram block, installed to `/etc/nginx/snippets/`; vhost at
-`/etc/nginx/sites-available/openair.greenflashusa.com` modelled on `sites-enabled/max` (serving,
-not redirecting) → `BASE_URL=https://openair.greenflashusa.com ./deploy.sh` (rsync `site/`
-`--delete --exclude assets/`, rsync `out/img/` → `/var/www/openair/assets/img/`, chown,
+`/etc/nginx/sites-available/ephraim.greenflashusa.com` modelled on `sites-enabled/max` (serving,
+not redirecting) → `BASE_URL=https://ephraim.greenflashusa.com ./deploy.sh` (rsync `site/`
+`--delete --exclude assets/`, rsync `out/img/` → `/var/www/ephraim/assets/img/`, chown,
 `nginx -t && systemctl reload nginx`).
 **Nothing touches Wix or openairgallery.art now.** Later, as its own step: Ephraim adds an A
 record at Wix → `142.93.198.162` and a `www` CNAME; `certbot certonly --nginx -d

@@ -58,7 +58,7 @@ Ephraim before any production code.
 - **Design:** dark canvas, dimensions as the hook, mint `#71EEB8` (sampled from his site) as the
   single accent. Company brand, artist-led story.
 - **Hosting:** preview at preview.greenflashusa.com/p/<slug>/, then **live on a Green Flash
-  subdomain (openair.greenflashusa.com) while Wix keeps serving openairgallery.art.** Nothing
+  subdomain (ephraim.greenflashusa.com) while Wix keeps serving openairgallery.art.** Nothing
   touches Wix or the real domain until Ephraim switches DNS himself, later.
 - **Home page references graffiti removal the way Max's site advertises Green Flash** — a
   distinct band (`gr_band()`, modelled on DGM's `gf_band()`), placed after the process.
@@ -69,3 +69,8 @@ Ephraim before any production code.
   implement one step each from it; the lead session reviews each commit.
 - `research/wix/` holds the saved Wix pages and a full-page screenshot from the audit
   (untracked) — the source for `wix-sources.json` and for quoting his own copy.
+- **Subdomain name (owner, 2026-09-18): `ephraim.greenflashusa.com`.** Web root `/var/www/ephraim`,
+  nginx snippet `ephraim-site.conf`, `gd-dns add ephraim`.
+- `docs/plan-agent-notes.md` holds the design agent's refined implementation notes (the wall
+  mechanic's canvas/mask/completion details, the fetch step-down, the vhost model, `.preview-slug`,
+  `BASE_PATH`, `assets/_sources.json`). Where PLAN.md is the frame, those notes are the detail.
