@@ -410,7 +410,24 @@ def swipe(slides, label, cls=''):
 </div>'''
 
 
-def layout(path, title, desc, body, ld=None, noindex=False, wash=False):
+def ld_json(ld):
+    """A JSON-LD block that cannot end its own <script> element.
+
+    Nothing on this site puts a '<' in structured data today, but the tag is
+    written once and the content comes from projects.py, so the escape is
+    cheaper than the assumption. json.dumps already escapes the rest.
+    """
+    if not ld:
+        return ''
+    if isinstance(ld, list):
+        ld = {'@context': 'https://schema.org', '@graph': ld}
+    else:
+        ld = {'@context': 'https://schema.org', **ld}
+    body = json.dumps(ld, ensure_ascii=False).replace('<', '\\u003c')
+    return f'<script type="application/ld+json">{body}</script>'
+
+
+def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None):
     """The document around a page body.
 
     `wash` carries the two Wash assets — css/wash.css and js/wash.js — and it
@@ -420,7 +437,16 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False):
     """
     canonical = BASE_URL + (path if path != '/index' else '/')
     robots = '<meta name="robots" content="noindex,nofollow">' if noindex else ''
-    ldjson = f'<script type="application/ld+json">{json.dumps(ld)}</script>' if ld else ''
+    ldjson = ld_json(ld)
+    # The card a link to this page draws. og:image wants an absolute URL, and
+    # the width and height stop a scraper guessing at the crop.
+    ogimg = ''
+    if og:
+        src, w, h = abs_img(og)
+        ogimg = (f'<meta property="og:image" content="{src}">'
+                 f'<meta property="og:image:width" content="{w}">'
+                 f'<meta property="og:image:height" content="{h}">'
+                 f'<meta property="og:image:alt" content="{html.escape(title)}">')
     washer = (f'<link rel="stylesheet" href="{u("/css/wash.css")}?v={asset_v("css/wash.css")}">'
               f'\n<script src="{u("/js/wash.js")}?v={asset_v("js/wash.js")}" defer></script>'
               if wash else '')
@@ -435,6 +461,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False):
 <link rel="canonical" href="{canonical}">
 {robots}
 <meta property="og:type" content="website"><meta property="og:site_name" content="{SITE_NAME}"><meta property="og:title" content="{html.escape(title)}"><meta property="og:description" content="{html.escape(desc)}"><meta property="og:url" content="{canonical}">
+{ogimg}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="{INK}">
 <link rel="icon" href="{FAVICON}">
@@ -1226,6 +1253,160 @@ pages['/contact'] = dict(
 ''')
 
 
+# ---------------------------------------------------------------------- SEO
+# What a machine reads: one business, described once, and every page saying
+# which part of it this page is.
+#
+# Rules, and they are the same rules the copy follows. Nothing is asserted
+# that is not on the site or in projects.py: no street address (Ephraim has
+# not published one), no telephone, no opening hours, no founding date, no
+# surname on the founder (CLAUDE.md: the only surname anywhere is one
+# unconfirmed Wix alt attribute), and no dateCreated on a wall whose year we
+# do not know — which today is all twelve. A civil-rights mural with an
+# invented date on it would be worse than one with no date at all.
+#
+# The business gets a stable @id so the project pages, the Service and the
+# OfferCatalog can point at it instead of repeating it.
+BUSINESS_ID = f'{BASE_URL}/#business'
+NYC = {'@type': 'City', 'name': 'New York', 'addressRegion': 'NY',
+       'address': {'@type': 'PostalAddress', 'addressLocality': 'New York',
+                   'addressRegion': 'NY', 'addressCountry': 'US'}}
+USA = {'@type': 'Country', 'name': 'United States'}
+
+
+def abs_img(name):
+    """The absolute URL of the largest rendition of an image, for og:image.
+
+    Same rule as pic(): the widths are read off the files rather than
+    assumed, so the tag never advertises a size that is not on disk.
+
+    Not u(): an absolute URL is built the way layout() builds `canonical`,
+    from BASE_URL and a bare path. On the preview BASE_URL already ends in
+    /p/<slug>, so putting the path through u() as well writes the prefix
+    twice and every social card 404s.
+    """
+    root = os.path.join(SRC, 'out', 'img')
+    best = None
+    for rel in (f'{name}.webp', f'{name}-1600.webp', f'{name}-800.webp'):
+        path = os.path.join(root, rel)
+        if not os.path.exists(path):
+            continue
+        w, h = webp_size(path)
+        if best is None or w > best[1]:
+            best = (rel, w, h)
+    assert best, f'abs_img({name!r}): nothing in out/img/ — run ./process.sh'
+    return f'{BASE_URL}/assets/img/{best[0]}', best[1], best[2]
+
+
+BUSINESS = {
+  '@type': 'LocalBusiness',
+  '@id': BUSINESS_ID,
+  'name': SITE_NAME,
+  'url': BASE_URL + '/',
+  'email': EMAIL,
+  'description': ('A muralist and large-image company led by Ephraim: murals, '
+                  'banners and signs painted at building scale, plus graffiti '
+                  'removal, pressure washing and commercial painting.'),
+  'image': abs_img('gucci-new-york-hero')[0],
+  'areaServed': [NYC, USA],
+  'sameAs': [IG],
+  'founder': {'@type': 'Person', 'name': 'Ephraim'},
+  'knowsAbout': ['Mural painting', 'Hand-painted signs and banners',
+                 'Graffiti removal', 'Pressure washing', 'Commercial painting'],
+}
+
+
+def feet(n):
+    """A measurement a machine can compare. UN/CEFACT FOT is the foot."""
+    return {'@type': 'QuantitativeValue', 'value': n, 'unitCode': 'FOT',
+            'unitText': 'feet'}
+
+
+def project_ld(p):
+    """One wall as a CreativeWork, measured, placed and attributed."""
+    path = f"/work/{p['slug']}"
+    ld = {
+      '@type': 'CreativeWork',
+      '@id': f'{BASE_URL}{path}#work',
+      'name': p['title'],
+      'url': BASE_URL + path,
+      'description': p['story'],
+      'creator': {'@id': BUSINESS_ID},
+      'locationCreated': {'@type': 'Place', 'name': f"{p['city']}, {p['state']}"},
+      'width': feet(p['dim_w']),
+      'height': feet(p['dim_h']),
+      'image': abs_img(p['hero'])[0],
+      'genre': {'brand': 'Brand mural', 'portrait': 'Painted portrait',
+                'civic': 'Civic mural'}[p['category']],
+    }
+    if p['client']:
+        ld['sponsor'] = {'@type': 'Organization', 'name': p['client']}
+    if p['year']:                 # None on all twelve today, and left out
+        ld['dateCreated'] = str(p['year'])
+    return ld
+
+
+GR_SERVICE_LD = {
+  '@type': 'Service',
+  '@id': f'{BASE_URL}/graffiti-removal#service',
+  'serviceType': 'Graffiti removal',
+  'name': 'Commercial graffiti removal',
+  'url': f'{BASE_URL}/graffiti-removal',
+  'description': ('Graffiti removal, pressure washing and commercial painting '
+                  'in New York City. The surface material decides the stripping '
+                  'technique; an anti-graffiti coating keeps the next one cheap.'),
+  'provider': {'@id': BUSINESS_ID},
+  'areaServed': NYC,
+}
+
+# The catalogue is SERVICE_OPTIONS without "Something else", which is a way
+# of asking rather than a thing to buy — so the form and the catalogue can
+# never fall out of step with one another.
+SERVICES_LD = {
+  '@type': 'OfferCatalog',
+  '@id': f'{BASE_URL}/services#catalog',
+  'name': f'{SITE_NAME} services',
+  'url': f'{BASE_URL}/services',
+  'itemListElement': [
+    {'@type': 'Offer',
+     'itemOffered': {'@type': 'Service', 'name': s, 'provider': {'@id': BUSINESS_ID}}}
+    for s in SERVICE_OPTIONS if s != 'Something else'],
+}
+
+# Every page carries the business; the pages that are also something in their
+# own right carry that too, in one @graph.
+pages['/index']['ld'] = BUSINESS
+pages['/graffiti-removal']['ld'] = [BUSINESS, GR_SERVICE_LD]
+pages['/services']['ld'] = [BUSINESS, SERVICES_LD]
+pages['/work']['ld'] = BUSINESS
+pages['/about']['ld'] = BUSINESS
+pages['/contact']['ld'] = BUSINESS
+for _p in PROJECTS:
+    pages[f"/work/{_p['slug']}"]['ld'] = [BUSINESS, project_ld(_p)]
+
+# og:image, one per page and never a guess: a project shows its own wall, and
+# every other page shows the photograph it is actually about.
+OG = {
+  '/index': 'gucci-new-york-hero',
+  '/work': 'crown-royal-trail-blazers-hero',
+  '/about': 'about-team',
+  '/services': 'moncler-wide',
+  '/graffiti-removal': 'moncler-wide',
+  '/contact': 'contact-band',
+}
+for _path, _name in OG.items():
+    pages[_path]['og'] = _name
+for _p in PROJECTS:
+    pages[f"/work/{_p['slug']}"]['og'] = _p['hero']
+
+# Nothing may ship without the three things a result page is made of.
+for _path, _d in pages.items():
+    assert _d.get('title') and _d.get('desc'), f'{_path}: no title or description'
+    assert _d.get('og'), f'{_path}: no og:image'
+_titles = [d['title'] for d in pages.values()]
+assert len(set(_titles)) == len(_titles), 'two pages share a title'
+
+
 # ---------------------------------------------------------------- write
 os.makedirs(OUT, exist_ok=True)
 
@@ -1244,7 +1425,7 @@ for path, p in pages.items():
     os.makedirs(os.path.dirname(fn), exist_ok=True)
     with open(fn, 'w') as f:
         f.write(layout(path, p['title'], p['desc'], p['body'], p.get('ld'),
-                       p.get('noindex', False), p.get('wash', False)))
+                       p.get('noindex', False), p.get('wash', False), p.get('og')))
     print('wrote', fn)
 
 # sitemap + robots
