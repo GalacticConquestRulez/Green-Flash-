@@ -16,7 +16,7 @@ Two environment variables move the whole site:
 Every root-absolute link in the output goes through u() and every image through
 img(), so the same build runs at the domain root and under a preview prefix.
 """
-import os, sys, html, json, hashlib
+import os, sys, html, json, struct, hashlib
 
 SRC = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(SRC, 'site')
@@ -57,6 +57,9 @@ FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox
            f"%3Crect x='11' y='15' width='42' height='34' fill='none' "
            f"stroke='{MINT.replace('#', '%23')}' stroke-width='6'/%3E%3C/svg%3E")
 
+# The twelve walls. Every project fact on the site comes from here.
+from projects import PROJECTS, FEATURED_ORDER, CATEGORIES, featured, total_sq_ft
+
 
 def u(path):
     """A root-absolute link, prefixed so the preview works under /p/<slug>/."""
@@ -72,6 +75,120 @@ def img(slug, alt='', thumb=False, cls='', extra=''):
     src = u(f"/assets/img/{'t/' if thumb else ''}{slug}.webp")
     c = f' class="{cls}"' if cls else ''
     return f'<img src="{src}" alt="{html.escape(alt)}" loading="lazy" decoding="async"{c} {extra}>'
+
+
+def webp_size(path):
+    """(width, height) straight out of a WebP header. No dependencies: this
+    build has to run on the droplet with nothing but python3."""
+    with open(path, 'rb') as f:
+        h = f.read(30)
+    if h[:4] != b'RIFF' or h[8:12] != b'WEBP':
+        raise ValueError(f'{path}: not a WebP')
+    fmt = h[12:16]
+    if fmt == b'VP8 ':
+        w, ht = struct.unpack('<HH', h[26:30])
+        return w & 0x3FFF, ht & 0x3FFF
+    if fmt == b'VP8L':
+        b = struct.unpack('<I', h[21:25])[0]
+        return (b & 0x3FFF) + 1, ((b >> 14) & 0x3FFF) + 1
+    if fmt == b'VP8X':
+        return ((h[24] | h[25] << 8 | h[26] << 16) + 1,
+                (h[27] | h[28] << 8 | h[29] << 16) + 1)
+    raise ValueError(f'{path}: unknown WebP chunk {fmt!r}')
+
+
+def pic(name, alt, sizes, cls='', extra='', lazy=True):
+    """<picture> over whichever renditions process.sh actually produced.
+
+    The width descriptors are read off the files, never assumed. Ten of the
+    twelve heroes are only ~1,200 px wide on Wix (docs/images.md), and for a
+    source under 1,600 the `.webp` and `-1600.webp` renditions come out the
+    same pixel size — writing 2400w/1600w/800w by rote would lie to the
+    browser about all of them. Identical widths collapse to one entry.
+    """
+    root = os.path.join(SRC, 'out', 'img')
+    by_w = {}
+    for rel in (f't/{name}.webp', f'{name}-800.webp', f'{name}-1600.webp', f'{name}.webp'):
+        path = os.path.join(root, rel)
+        if not os.path.exists(path):
+            continue
+        w, h = webp_size(path)
+        by_w.setdefault(w, (rel, w, h))     # first one wins: the smaller file
+    assert by_w, (f'pic({name!r}): nothing in out/img/ — run ./process.sh, '
+                  f'or see docs/images.md')
+    widths = sorted(by_w)
+    srcset = ', '.join(f'{u("/assets/img/" + by_w[w][0])} {w}w' for w in widths)
+    small = by_w[widths[0]]
+    big = by_w[widths[-1]]
+    c = f' class="{cls}"' if cls else ''
+    load = 'lazy' if lazy else 'eager'
+    return (f'<picture{c}><img src="{u("/assets/img/" + small[0])}" srcset="{srcset}" '
+            f'sizes="{sizes}" alt="{html.escape(alt)}" width="{big[1]}" height="{big[2]}" '
+            f'loading="{load}" decoding="async"{" " + extra if extra else ""}></picture>')
+
+
+# What a card asks the browser for: one of three across at desktop, two at
+# tablet, the full width on a phone.
+CARD_SIZES = '(min-width:960px) 33vw, (min-width:640px) 50vw, 100vw'
+
+
+def dims(w, h, size=''):
+    """The hook: a wall's measurements, set physically wide.
+
+    Mint touches the prime marks and the times sign and nothing else — one
+    accent stays one accent. `size` adds a modifier: dims('sm') on a card.
+    """
+    cls = 'dims' + (f' dims-{size}' if size else '')
+    return (f'<div class="{cls}"><span class="n">{w}</span><span class="f">\u2032</span>'
+            f'<span class="x">\u00d7</span><span class="n">{h}</span>'
+            f'<span class="f">\u2032</span></div>')
+
+
+def pcard(p, cls=''):
+    """A project card. The card is the link; the figures are the headline."""
+    place = f"{p['city']}, {p['state']}"
+    alt = f"{p['title']} mural by Open Air Gallery, {place}"
+    return f'''<a class="pcard rv {cls}" href="{u('/work/' + p['slug'])}">
+  <div class="pcard-img">{pic(p['hero'], alt, CARD_SIZES)}</div>
+  <div class="pcard-body">{dims(p['dim_w'], p['dim_h'], 'sm')}<h3>{p['title']}</h3><span class="place">{place}</span></div>
+</a>'''
+
+
+def check_projects():
+    """Refuse to build on a malformed project row.
+
+    The dimensions are the whole design, so a string, a float or a typo has to
+    stop the build rather than reach a page. The hero check is a hard assert:
+    the images pipeline has landed (docs/images.md) and every one of the twelve
+    heroes is on disk, so a missing file now means process.sh has not been run,
+    not that the photograph does not exist yet.
+    """
+    root = os.path.join(SRC, 'out', 'img')
+    seen = set()
+    for p in PROJECTS:
+        slug = p['slug']
+        assert slug and slug not in seen, f'projects.py: empty or duplicate slug {slug!r}'
+        seen.add(slug)
+        for k in ('dim_w', 'dim_h'):
+            v = p[k]
+            assert isinstance(v, int) and not isinstance(v, bool) and 0 < v < 1000, (
+                f'{slug}: {k} must be a whole number of feet, got {v!r}')
+        assert p['category'] in CATEGORIES, (
+            f"{slug}: category {p['category']!r} is not one of {CATEGORIES}")
+        assert p['year'] is None or (isinstance(p['year'], int) and 1900 < p['year'] < 2100), (
+            f"{slug}: year is {p['year']!r} — leave it None rather than guess")
+        assert p['story'] and p['title'] and p['city'] and p['state'], f'{slug}: missing text'
+        for name in [p['hero']] + list(p['gallery']):
+            assert os.path.exists(os.path.join(root, name + '.webp')), (
+                f'{slug}: out/img/{name}.webp is missing — run ./process.sh '
+                f'(see docs/images.md)')
+    flagged = {p['slug'] for p in PROJECTS if p['featured']}
+    assert flagged == set(FEATURED_ORDER), (
+        f'projects.py: featured flags {sorted(flagged)} do not match '
+        f'FEATURED_ORDER {sorted(FEATURED_ORDER)}')
+
+
+check_projects()
 
 
 ICONS = {
@@ -91,16 +208,6 @@ NAV = [
   ('Contact', '/contact'),
 ]
 
-# The six walls the footer lists, in the order PLAN.md §3 features them.
-# projects.py takes this over when the data lands.
-FOOTER_WORK = [
-  ('Gucci', '/work/gucci-new-york'),
-  ('Crown Royal \u00d7 Trail Blazers', '/work/crown-royal-trail-blazers'),
-  ('I Am Speaking: John Lewis', '/work/john-lewis-rochester'),
-  ('Uber', '/work/uber-san-francisco'),
-  ('Malcolm X', '/work/malcolm-x-rochester'),
-  ('Upendo', '/work/upendo-los-angeles'),
-]
 COMPANY = [('Services', '/services'), ('Graffiti Removal', '/graffiti-removal'),
            ('About', '/about'), ('Contact', '/contact')]
 FOOT_LINE = ('Murals &middot; Banners &middot; Signs &middot; Graffiti removal '
@@ -126,7 +233,8 @@ def nav_html():
 
 
 def footer_html():
-    work = ''.join(f'<li><a href="{u(href)}">{label}</a></li>' for label, href in FOOTER_WORK)
+    work = ''.join(f'<li><a href="{u("/work/" + p["slug"])}">{p["title"]}</a></li>'
+                   for p in featured())
     company = ''.join(f'<li><a href="{u(href)}">{label}</a></li>' for label, href in COMPANY)
     return f'''<footer>
   <div class="wrap">
@@ -239,13 +347,25 @@ pages['/index'] = dict(
            'Open Air Gallery is Ephraim’s studio: eighty-one feet of Gucci on a Manhattan wall, eighty-five feet of Crown Royal in Portland, John Lewis and Malcolm X in Rochester.',
            crumb=False)}
 <section><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">What this is</div><h2>Twelve walls, measured in feet</h2>
-  <p class="lead">The scaffold is up. Sections land one commit at a time: the work, the Rochester civic beat, the process, graffiti removal, and the consultation.</p></div>
+  <div class="section-head rv"><div class="eyebrow">Selected work</div><h2>Twelve walls, measured in feet</h2>
+  <p class="lead">Six of them here, all twelve on the Work page. The number under each photograph is how much wall it took.</p></div>
+  <div class="pgrid">{''.join(pcard(p, f'rv-d{i % 3}' if i % 3 else '') for i, p in enumerate(featured()))}</div>
 </div></section>
 {cta()}''')
 
 # ---------------------------------------------------------------- write
 os.makedirs(OUT, exist_ok=True)
+
+# Local convenience only: the pages ask for /assets/img/..., which deploy.sh
+# rsyncs out of out/img/ (and skips in site/, --exclude 'assets/'). Link the
+# two here so `python3 -m http.server -d site` serves a complete site while we
+# are building it. Nothing in the deployed tree depends on this.
+_img = os.path.join(SRC, 'out', 'img')
+_link = os.path.join(OUT, 'assets', 'img')
+if os.path.isdir(_img) and not os.path.exists(_link):
+    os.makedirs(os.path.dirname(_link), exist_ok=True)
+    os.symlink(os.path.relpath(_img, os.path.dirname(_link)), _link)
+
 for path, p in pages.items():
     fn = os.path.join(OUT, path.strip('/') + '.html')
     os.makedirs(os.path.dirname(fn), exist_ok=True)

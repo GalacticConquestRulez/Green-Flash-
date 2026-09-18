@@ -19,6 +19,7 @@
   --mint:#71EEB8; --mint-deep:#55B38A; --wall:#E9E7E2;
   --line:rgba(244,243,239,.10); --line-2:rgba(244,243,239,.20);
   --mint-glow:rgba(113,238,184,.14); --shade:rgba(10,10,11,.72);
+  --scrim:rgba(10,10,11,.88); --scrim-soft:rgba(10,10,11,.45);
   --radius:4px;                 /* near-square — signwriting, not SaaS */
   --max:1240px; --nav-h:72px;
   /* Archivo carries the width axis the dimension figures need; the fallbacks
@@ -258,3 +259,41 @@ html.motion .dims.in::before{
   html.motion .dims.in::before{content:none;animation:none}
   html{scroll-behavior:auto}
 }
+
+/* =====================================================================
+   THE DIMENSIONS HOOK
+
+   The measurements are the headline. Archivo's width axis is what makes
+   that work: at wdth 125 the figures are physically wide, so 81' x 80'
+   occupies the page the way the wall occupies the street. Mint touches the
+   prime marks and the times sign, and nothing else.
+   ===================================================================== */
+.dims{
+  display:block;font-family:var(--font-display);
+  font-variation-settings:'wdth' 125,'wght' 800;
+  font-size:clamp(3.4rem,11vw,9rem);line-height:.82;letter-spacing:-.02em;
+  color:var(--paper);
+}
+.dims .f,.dims .x{font-size:.38em;color:var(--mint);vertical-align:.34em}
+.dims .x{margin:0 .12em}
+/* The rule Cure sweeps. */
+.dims::after{content:"";position:absolute;left:0;right:0;bottom:-.16em;height:1px;background:var(--line)}
+.dims-sm{font-size:clamp(1.5rem,4.6vw,2.2rem)}
+
+/* --- project card ----------------------------------------------------- */
+/* The card is the link. Photo at 4:3, the figures over a scrim at the foot,
+   a hairline that goes mint when you reach it. */
+.pcard{position:relative;display:block;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-2);transition:border-color .25s,transform .35s var(--ease)}
+.pcard:hover,.pcard:focus-visible{border-color:var(--mint)}
+.pcard-img{aspect-ratio:4/3;background:var(--ink-3)}
+.pcard-img picture,.pcard-img img{display:block;width:100%;height:100%}
+.pcard-img img{object-fit:cover;transition:transform .7s var(--ease)}
+.pcard:hover .pcard-img img{transform:scale(1.04)}
+.pcard-body{position:absolute;inset:auto 0 0 0;padding:1.1rem 1.15rem 1.15rem;background:linear-gradient(0deg,var(--scrim) 0%,var(--scrim-soft) 58%,transparent 100%)}
+.pcard h3{margin-top:.55rem;font-size:1.02rem}
+.pcard .place{display:block;margin-top:.2rem;font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+
+.pgrid{display:grid;gap:1rem;grid-template-columns:1fr}
+@media (min-width:640px){.pgrid{grid-template-columns:repeat(2,1fr);gap:1.2rem}}
+@media (min-width:960px){.pgrid{grid-template-columns:repeat(3,1fr)}}
+@media (prefers-reduced-motion:no-preference){.pcard:hover{transform:translateY(-3px)}}

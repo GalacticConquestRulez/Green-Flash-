@@ -2,6 +2,7 @@ site/*.html
 site/work/
 site/sitemap.xml
 site/robots.txt
+site/assets/
 assets/
 out/
 wix-cache/
