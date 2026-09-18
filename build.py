@@ -655,8 +655,13 @@ def scale_hero(p):
     and the figure is sized (6 / ft) of the picture's width — she is 2 ft wide
     and 6 ft tall, so the CSS gives her 2/ft of the width and an aspect ratio
     of 1:3 and the arithmetic comes out on its own. This is the No-JS state the
-    plan describes and it is what ships until step 14: she stands at --fx:.12
-    on a mint baseline with a real "6 ft" caption, which is a static scale bar.
+    plan describes and it is still exactly what a visitor with no JavaScript
+    gets: she stands at --fx:.12 on a mint baseline with a real "6 ft"
+    caption, which is a static scale bar and needs nothing else to be true.
+
+    site.js gives her the drag on top of that. The hint is aria-hidden and
+    display:none outside html.motion, because "Drag me" is an instruction for
+    something only the script can do — it is not content.
     """
     alt = (f"{p['title']} mural by Open Air Gallery in {p['city']}, {p['state']} — "
            f"{p['dim_w']} feet wide by {p['dim_h']} feet tall")
@@ -664,6 +669,7 @@ def scale_hero(p):
   <div class="scale-media">{pic(p['hero'], alt, '100vw', extra='fetchpriority="high"', lazy=False)}</div>
   <div class="scale-base"></div>
   <button class="fig" type="button" data-fig aria-label="Drag the figure for scale"><span class="fig-cap">6 ft</span>{FIGURE_SVG}</button>
+  <span class="scale-hint" aria-hidden="true">Drag me</span>
 </div></section>'''
 
 

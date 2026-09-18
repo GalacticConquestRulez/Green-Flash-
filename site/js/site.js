@@ -323,3 +323,129 @@
     });
   });
 })();
+
+/* =====================================================================
+   Scale — the six-foot figure, dragged (PLAN.md §4a).
+
+   She is already on the wall: server-rendered at --fx:.12, sized
+   (6 / ft) of the picture, captioned "6 ft". That is a static scale bar
+   and it is the whole answer with no script. This lets a visitor walk
+   her along the baseline, which is the only way to feel how little of
+   an eighty-one-foot wall a person is.
+
+   Gated on html.motion, so reduced motion binds nothing and renders the
+   static figure — the plan asks for exactly that. One pointer handler
+   per figure, one rAF, one custom property, listeners bound only while
+   the wall is on screen. Nothing here displays a number.
+   ===================================================================== */
+(function () {
+  const root = document.documentElement;
+  if (!root.classList.contains('motion')) return;
+  let reduced = false;
+  try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  if (reduced) return;
+
+  const figures = [...document.querySelectorAll('[data-scale]')];
+  if (!figures.length) return;
+
+  const clamp = (n) => Math.min(1, Math.max(0, n));
+
+  // Tilt is an extra on a phone that already has the drag, so it is only
+  // ever layered on where it costs nothing: browsers that hand out
+  // deviceorientation without a permission prompt. Where iOS would put up a
+  // dialog — requestPermission is a function there and nowhere else — it is
+  // simply not offered, because a modal is not worth a parlour trick.
+  const TILT_FREE = (() => {
+    try {
+      return 'DeviceOrientationEvent' in window &&
+             typeof DeviceOrientationEvent.requestPermission !== 'function';
+    } catch (e) { return false; }
+  })();
+
+  figures.forEach(scale => {
+    const fig = scale.querySelector('[data-fig]');
+    if (!fig) return;
+
+    let fx = parseFloat(getComputedStyle(scale).getPropertyValue('--fx')) || 0.12;
+    let raf = 0;
+    const paint = () => { raf = 0; scale.style.setProperty('--fx', fx.toFixed(4)); };
+    const set = (v) => { fx = clamp(v); if (!raf) raf = requestAnimationFrame(paint); };
+
+    // She is a fixed fraction of the picture wide, and travels the rest of
+    // it, so the pointer maps onto the same range the stylesheet gives her.
+    const fromEvent = (e) => {
+      const r = scale.getBoundingClientRect();
+      const w = fig.getBoundingClientRect().width;
+      const run = r.width - w;
+      if (run > 0) set((e.clientX - r.left - w / 2) / run);
+    };
+
+    let used = false;
+    const mark = () => { if (!used) { used = true; scale.classList.add('is-used'); } };
+
+    /* --- the drag ---------------------------------------------------- */
+    let dragging = false;
+    scale.addEventListener('pointerdown', e => {
+      if (e.button) return;
+      dragging = true;
+      scale.classList.add('is-live');
+      try { scale.setPointerCapture(e.pointerId); } catch (_) {}
+      mark();
+      fromEvent(e);
+      e.preventDefault();               // no image drag, no text selection
+    });
+    scale.addEventListener('pointermove', e => { if (dragging) fromEvent(e); });
+    const stop = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      scale.classList.remove('is-live');
+      try { scale.releasePointerCapture(e.pointerId); } catch (_) {}
+    };
+    scale.addEventListener('pointerup', stop);
+    scale.addEventListener('pointercancel', stop);
+
+    /* --- the keyboard: she is a real button --------------------------- */
+    fig.addEventListener('keydown', e => {
+      const step = { ArrowLeft: -0.02, ArrowRight: 0.02, Home: -1, End: 1 }[e.key];
+      if (step === undefined) return;
+      e.preventDefault();
+      mark();
+      set(Math.abs(step) === 1 ? (step + 1) / 2 : fx + step);
+    });
+
+    /* --- the tilt ----------------------------------------------------- */
+    // Only after a first drag: a figure that wanders because the phone is in
+    // a hand is a bug until the visitor knows she is theirs to move. Damped,
+    // capped at 30 Hz, and detached the moment the wall scrolls away.
+    let tilting = false, last = 0;
+    const onTilt = (e) => {
+      const g = e.gamma;
+      if (g == null) return;
+      const now = e.timeStamp || Date.now();
+      if (now - last < 33) return;      // 30 Hz is plenty for a lean
+      last = now;
+      if (!scale.classList.contains('is-tilting')) scale.classList.add('is-tilting');
+      const target = clamp(0.5 + Math.max(-25, Math.min(25, g)) / 50);
+      set(fx + (target - fx) * 0.12);   // low-pass, so a wobble is not a jump
+    };
+    const tiltOn = () => {
+      if (tilting || !TILT_FREE || !used) return;
+      tilting = true;
+      addEventListener('deviceorientation', onTilt);
+    };
+    const tiltOff = () => {
+      if (!tilting) return;
+      tilting = false;
+      scale.classList.remove('is-tilting');
+      removeEventListener('deviceorientation', onTilt);
+    };
+    scale.addEventListener('pointerup', tiltOn);
+
+    /* --- in view only -------------------------------------------------- */
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(es => es.forEach(en => {
+        if (en.isIntersecting) { if (used) tiltOn(); } else { tiltOff(); }
+      }), { threshold: 0.05 }).observe(scale);
+    }
+  });
+})();

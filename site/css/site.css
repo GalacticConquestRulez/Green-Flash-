@@ -851,3 +851,45 @@ html.motion .ba-handle:focus-visible{outline:2px solid var(--mint);outline-offse
 .gr-strip p b{color:var(--paper)}
 .gr-strip-links{display:flex;gap:.5rem;flex-wrap:wrap}
 @media (min-width:860px){.gr-strip{grid-template-columns:1fr auto;gap:1.8rem}}
+
+/* =====================================================================
+   SCALE — the six-foot figure, dragged
+
+   The static scale bar is the component: she is server-rendered at
+   --fx:.12, sized (6 / ft) of the picture, with a real "6 ft" caption, and
+   that is a complete and honest answer to "how big is this wall" with no
+   script at all. Everything below only lets a visitor walk her along it.
+
+   So it is all scoped to html.motion, which the bootstrap withholds when
+   the visitor has asked for reduced motion — the reduced-motion render is
+   the static one, and site.js binds no listeners there either. No counter,
+   no percentage, no readout: the answer is how small she looks.
+   ===================================================================== */
+/* pan-y, not none: a finger must still be able to scroll the page past a
+   wall that fills it. A horizontal drag reaches the handler regardless. */
+html.motion .scale{touch-action:pan-y}
+html.motion .fig{cursor:grab;touch-action:none}
+html.motion .scale.is-live .fig{cursor:grabbing}
+/* Keyboard steps and the tilt settle; a drag does not, because a figure that
+   lags the finger holding it does not feel like a figure. */
+html.motion .fig{transition:left .18s var(--ease)}
+html.motion .scale.is-live .fig,html.motion .scale.is-tilting .fig{transition:none}
+html.motion .fig:focus-visible{outline:2px solid var(--mint);outline-offset:3px;border-radius:2px}
+
+/* The hint is an instruction for something only the script can do, so it is
+   not in the document until the script could do it — and it goes as soon as
+   the visitor has done it once. */
+.scale-hint{
+  display:none;position:absolute;right:1rem;bottom:calc(var(--base,7%) + .6rem);
+  font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mint);
+  text-shadow:0 1px 8px var(--ink);pointer-events:none;
+}
+html.motion .scale-hint{display:block}
+html.motion .scale.is-used .scale-hint{opacity:0}
+@media (prefers-reduced-motion:no-preference){
+  html.motion .scale-hint{transition:opacity .4s var(--ease)}
+}
+@media (prefers-reduced-motion:reduce){
+  html.motion .fig{transition:none}
+  html.motion .scale-hint{display:none}
+}
