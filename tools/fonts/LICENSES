@@ -1,0 +1,29 @@
+Fonts in this folder
+====================
+
+These three faces are here only so tools/make-tags.py can trace eight words
+into SVG outlines for the Wash wall (wall.py, tag_paths.py). They are a build
+input: no font file is ever served, linked or embedded by the site, and no
+@font-face refers to them.
+
+Sedgwick Ave — SedgwickAve.woff2
+Sedgwick Ave Display — SedgwickAveDisplay.woff2
+    Copyright 2017 The Sedgwick Ave Project Authors
+    https://github.com/googlefonts/sedgwickave
+    SIL Open Font License 1.1 — https://scripts.sil.org/OFL
+    The OFL permits use, study, modification and redistribution, including of
+    derivative works such as traced outlines. It forbids selling the fonts on
+    their own and requires that any derived *font* keep the licence and not
+    use the Reserved Font Name. tag_paths.py is artwork, not a font, and the
+    site ships no font file, so neither obligation lands on the build — the
+    attribution above is kept all the same.
+
+Permanent Marker — PermanentMarker.woff2
+    Copyright (c) 2010 Font Diner, Inc.
+    Apache License 2.0 — https://www.apache.org/licenses/LICENSE-2.0
+    Permits use and derivative works with attribution and notice of the
+    licence, which is what this file is.
+
+If a future word needs a face that is not here, check its licence before
+adding it: the wall's whole argument for being drawn rather than photographed
+is that it raises no licensing question.
