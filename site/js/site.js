@@ -49,3 +49,36 @@
   const y = $('#year');
   if (y) y.textContent = new Date().getFullYear();
 })();
+
+/* =====================================================================
+   The motion layer — Roll · Scale · Cure.
+
+   One IntersectionObserver, one class. Nothing in here is load-bearing:
+   without it html.motion is absent, nothing is hidden, and the page is the
+   page. It returns before touching the DOM unless motion is genuinely on,
+   so the reduced-motion render is the same document as the no-script one.
+   ===================================================================== */
+(function () {
+  const root = document.documentElement;
+  const motion = root.classList.contains('motion');
+  let reduced = false;
+  try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  if (!motion || reduced) return;
+
+  const targets = [...document.querySelectorAll('.rv,.dims')];
+  if (!targets.length) return;
+
+  // No observer means no way to unhide: show everything now rather than
+  // making the visitor wait for the 2.8s self-reveal.
+  if (!('IntersectionObserver' in window)) {
+    targets.forEach(el => el.classList.add('in'));
+    return;
+  }
+
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    e.target.classList.add('in');
+    io.unobserve(e.target);          // Cure runs once, and only once
+  }), { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+  targets.forEach(el => io.observe(el));
+})();
