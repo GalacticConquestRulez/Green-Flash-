@@ -20,6 +20,12 @@
   --line:rgba(244,243,239,.10); --line-2:rgba(244,243,239,.20);
   --mint-glow:rgba(113,238,184,.14); --shade:rgba(10,10,11,.72);
   --scrim:rgba(10,10,11,.88); --scrim-soft:rgba(10,10,11,.45);
+  /* Ink on the one light panel: the ghost of a buff job across its corner,
+     its hairlines, and the muted grey that stands in for --muted there.
+     --ink-mute on --wall is 7.4:1. --mint on --wall is 1.16:1, which is why
+     PLAN.md §2 says the accent never lands on this colour: on the band it
+     appears the one way it may, as ink on mint. */
+  --ghost:rgba(10,10,11,.10); --ink-line:rgba(10,10,11,.22); --ink-mute:#4B4842;
   --radius:4px;                 /* near-square — signwriting, not SaaS */
   --max:1240px; --nav-h:72px;
   /* Archivo carries the width axis the dimension figures need; the fallbacks
@@ -631,16 +637,6 @@ html.js .swipe-dots{display:flex}
   font-size:1.05rem;letter-spacing:.02em;margin-top:2.2rem;
 }
 
-/* The one panel on the site that advertises the other half of the company.
-   It gets its own edge and its own light so it reads as a second business —
-   the same treatment the home band will carry when it lands. */
-.gr-panel{
-  border:1px solid var(--mint-deep);border-radius:var(--radius);
-  background:linear-gradient(100deg,var(--mint-glow),transparent 55%),var(--ink-3);
-  padding:clamp(1.8rem,5vw,3.4rem);
-}
-.gr-panel .lead{color:var(--paper);opacity:.9;max-width:64ch;margin-bottom:1.4rem}
-
 /* =====================================================================
    CONTACT
 
@@ -789,3 +785,69 @@ html.motion .ba-handle:focus-visible{outline:2px solid var(--mint);outline-offse
   html.motion .ba-handle:hover .ba-grip,html.motion .ba-stage.is-live .ba-grip{transform:scale(1.06)}
   .ba-grip{transition:transform .2s var(--ease)}
 }
+
+/* =====================================================================
+   THE GRAFFITI-REMOVAL BAND AND STRIP
+
+   The other half of the business, advertised on the pages of the first —
+   the shape DroneGodMax uses for Green Flash (gf_band()/gf_strip()), with
+   this site's content and this site's palette rule.
+
+   The band is the ONE light block on a dark site: a scrubbed --wall panel
+   with near-black type and a diagonal ghost of overpaint fading out of the
+   top-left corner. That is the pitch in one image, and it is why it may
+   only happen once. Mint never sits on --wall (1.16:1), so on this panel
+   the accent appears the only way it is allowed to — ink on mint, in the
+   eyebrow pill and in the primary button, both 13.8:1.
+   ===================================================================== */
+.gr-band-wrap{padding-top:0}
+.gr-band{
+  position:relative;isolation:isolate;overflow:hidden;
+  border-radius:var(--radius);
+  background:var(--wall);color:var(--ink);
+  padding:clamp(1.8rem,5vw,3.4rem);
+  display:grid;gap:clamp(1.8rem,4vw,3rem);align-items:center;
+}
+/* The ghost of the last buff job: whoever painted this wall out did not
+   match the colour, and the patch is still there in a raking light. */
+.gr-band::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(115deg,var(--ghost),transparent 42%);
+}
+@media (min-width:960px){
+  .gr-band{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}
+  /* Words first in the document, wall first on the page. */
+  .gr-band-wall{order:-1}
+}
+.gr-band h2{margin-bottom:1rem}
+.gr-band .lead{color:var(--ink-mute);opacity:1;max-width:56ch}
+.gr-band .btn-row{margin-top:1.8rem}
+/* The eyebrow is mint everywhere else on the site; here it is the mint. */
+.gr-band .eyebrow{
+  color:var(--ink);background:var(--mint);
+  padding:.4rem .8rem;border-radius:999px;margin-bottom:1.1rem;
+}
+.gr-band .tags{margin-top:1.4rem}
+.gr-band .tags li{border-color:var(--ink-line);color:var(--ink-mute)}
+.gr-band .btn-ghost{border-color:var(--ink-line);color:var(--ink)}
+.gr-band .btn-ghost:hover{border-color:var(--ink);color:var(--ink)}
+/* The wall figure comes from wash.css, which is written for the dark canvas.
+   Three colours have to come back the other way up on this panel; nothing
+   else in that file names a colour that the light breaks. */
+.gr-band .wall-stage,.gr-band .wall-thumb{border-color:var(--ink-line)}
+.gr-band .wall-cap{color:var(--ink-mute)}
+
+/* --- the slim one-liner ------------------------------------------------ */
+/* Work, Services and About get the offer in one line, on the dark canvas
+   they already are: the light panel is Home's, once. */
+.gr-strip-wrap{padding-top:0}
+.gr-strip{
+  display:grid;gap:1.2rem;align-items:center;
+  padding:1.3rem clamp(1.2rem,3vw,1.8rem);
+  border:1px solid var(--line-2);border-radius:var(--radius);
+  background:linear-gradient(90deg,var(--mint-glow),transparent 55%),var(--ink-3);
+}
+.gr-strip p{margin:0;color:var(--muted);font-size:.98rem;line-height:1.6}
+.gr-strip p b{color:var(--paper)}
+.gr-strip-links{display:flex;gap:.5rem;flex-wrap:wrap}
+@media (min-width:860px){.gr-strip{grid-template-columns:1fr auto;gap:1.8rem}}

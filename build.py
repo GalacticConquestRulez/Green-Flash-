@@ -457,6 +457,73 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False):
 
 pages = {}
 
+# --------------------------------------------- THE OTHER HALF OF THE BUSINESS
+# Open Air Gallery paints walls and it cleans them, and the second half has to
+# be advertised on the first half's pages the way DroneGodMax advertises Green
+# Flash (build.py gf_band()/gf_strip(), which are the shape these two take).
+#
+# gr_band() is the one scrubbed-clean block on a dark site: a --wall panel with
+# near-black type and a faint diagonal ghost of overpaint fading out across the
+# top-left corner, which is the pitch in one image. Its visual is the same
+# drawn wall as /graffiti-removal, in auto mode — the compact loop, no pointer
+# handling, no sound, no washer head — so Home carries wash.css and wash.js too.
+#
+# The palette rule from PLAN.md §2 is what shapes it: mint never sits on
+# --wall. So on this panel the accent appears the only way it is allowed to,
+# as ink on mint — the eyebrow is a mint pill and the primary button is a mint
+# button — and every piece of type is ink or the muted ink beside it.
+from wall import wall_html, brick_svg
+
+# His own pitch, in his own words, verbatim from the Wix graffiti page
+# (research/wix/graffiti-removal.html). The clause after the em dash is ours
+# and reads as ours.
+GR_PITCH = ('Open Air Gallery removes unsightly graffiti &amp; stains with industrial '
+            'strength cleaning services, available in NYC &mdash; the same crew that paints '
+            'the wall knows what the surface is made of. Send a picture of the space you '
+            'want cleaned and you get a quote and a date back.')
+
+GR_CHIPS = ('Graffiti removal', 'Pressure washing', 'Commercial painting')
+
+
+def gr_band():
+    """The graffiti-removal band. Home only, after the process, before the CTA."""
+    chips = ''.join(f'<li>{c}</li>' for c in GR_CHIPS)
+    return f'''<section class="gr-band-wrap"><div class="wrap">
+  <div class="gr-band rv">
+    <div class="gr-band-words">
+      <div class="eyebrow">Also from Open Air</div>
+      <h2>We take it off, too.</h2>
+      <p class="lead">{GR_PITCH}</p>
+      <ul class="tags">{chips}</ul>
+      <div class="btn-row">
+        <a class="btn btn-mint" href="{u('/graffiti-removal')}">See graffiti removal {ICONS['arrow']}</a>
+        <a class="btn btn-ghost" href="{consult('Graffiti removal')}">Send a photo, get a quote</a>
+      </div>
+    </div>
+    <div class="gr-band-wall">{wall_html(mode='auto', id_prefix='washhome')}</div>
+  </div>
+</div></section>'''
+
+
+def gr_strip(text=None):
+    """The slim one-liner, for the pages that are not Home (PLAN.md §3a).
+
+    Same offer, one line of it: Work, Services and About each end on it, so a
+    visitor who came for the murals leaves knowing the crew cleans as well.
+    """
+    text = text or ('Graffiti removal, pressure washing and commercial painting in NYC, '
+                    'from the crew that knows what the surface is made of.')
+    return f'''<section class="gr-strip-wrap"><div class="wrap">
+  <div class="gr-strip rv">
+    <p><b>We take it off, too.</b> {text}</p>
+    <div class="gr-strip-links">
+      <a class="btn btn-mint btn-sm" href="{u('/graffiti-removal')}">See graffiti removal</a>
+      <a class="btn btn-ghost btn-sm" href="{consult('Graffiti removal')}">Send a photo, get a quote {ICONS['arrow']}</a>
+    </div>
+  </div>
+</div></section>'''
+
+
 # ---------------------------------------------------------------- HOME
 # Every number on this page is computed from projects.py. None of them is
 # typed: "Twelve walls. Over 23,000 square feet." is the roster adding itself
@@ -476,6 +543,7 @@ def stat(figure, label, mark=''):
 
 
 pages['/index'] = dict(
+  wash=True,
   title=f'{SITE_NAME} | Murals at building scale, New York and nationwide',
   desc='Open Air Gallery is a muralist and large-image company led by Ephraim. Gucci in Manhattan at 81 by 80 feet, Crown Royal in Portland at 85 by 90, John Lewis and Malcolm X in Rochester.',
   body=f'''
@@ -520,7 +588,7 @@ pages['/index'] = dict(
   {beats(PROCESS)}
 </div></section>
 
-<!-- gr_band() lands in step 12 -->
+{gr_band()}
 
 {cta()}''')
 
@@ -562,6 +630,8 @@ pages['/work'] = dict(
            f'portraits, and the two Rochester commissions.',
            crumb='Work')}
 {work_index()}
+{gr_strip('Graffiti removal, pressure washing and commercial painting in NYC. The '
+          'crew that painted these walls cleans them too.')}
 {cta()}''')
 
 
@@ -759,7 +829,7 @@ pages['/about'] = dict(
   <div class="row-end rv"><a class="btn btn-ghost" href="{u('/work')}">See all {spell(WALLS)} walls {ICONS['arrow']}</a></div>
 </div></section>
 
-<!-- gr_strip() lands in step 12 -->
+{gr_strip()}
 
 {cta(title='If you’re ready, we’re ready.',
      text='Tell us the wall, the city and roughly how big it is. We will come back with '
@@ -846,25 +916,8 @@ pages['/services'] = dict(
   </div>
 </div></section>
 
-<section class="alt"><div class="wrap">
-  <div class="gr-panel rv">
-    <div class="eyebrow">Also from Open Air</div>
-    <h2>We take it off, too.</h2>
-    <p class="lead">Open Air Gallery removes unsightly graffiti &amp; stains with industrial
-    strength cleaning services, available in NYC — the same crew that paints the wall knows
-    what the surface is made of. Send a picture of the space you want cleaned and you get a
-    quote and a date back.</p>
-    <ul class="tags">
-      <li>Graffiti removal</li><li>Pressure washing</li><li>Commercial painting</li>
-    </ul>
-    <div class="btn-row" style="margin-top:1.8rem">
-      <a class="btn btn-mint" href="{u('/graffiti-removal')}">See graffiti removal {ICONS['arrow']}</a>
-      <a class="btn btn-ghost" href="{consult('Graffiti removal')}">Send a photo, get a quote</a>
-    </div>
-  </div>
-</div></section>
-
-<!-- gr_strip() lands in step 12 -->
+{gr_strip('Graffiti removal, pressure washing and commercial painting in NYC. The '
+          'fourth thing the company sells, and it has a page of its own.')}
 
 {cta(title='Which one do you need?',
      text='Tell us the wall, the city and roughly how big it is. We will come back with '
@@ -886,7 +939,6 @@ pages['/services'] = dict(
 # ladder. The four beats of the job and the three audiences are ours and are
 # set as plain prose, not as quotations of him: beats(quoted=False) is that
 # distinction, and it matters.
-from wall import wall_html, brick_svg
 
 # His three reasons, from the line under his headline.
 GR_REASONS = ('Attract more customers', 'Increase safety', 'Beat the competition')
@@ -969,14 +1021,6 @@ GR_WHO = [
    'Business improvement districts, civic property and the blocks in between. Larger '
    'runs, scheduled, with the coating that keeps the next round cheaper than this one.'),
 ]
-
-# His own pitch, in his own words, used verbatim on this page and in the home
-# band. The em-dashed clause after it is ours and is plainly ours.
-GR_PITCH = ('Open Air Gallery removes unsightly graffiti &amp; stains with industrial '
-            'strength cleaning services, available in NYC &mdash; the same crew that paints '
-            'the wall knows what the surface is made of. Send a picture of the space you '
-            'want cleaned and you get a quote and a date back.')
-
 
 def ba_layer(kind, label, uid):
     """One half of the before/after: a drawn wall and the word for it."""
