@@ -160,26 +160,26 @@ html.motion .wall[data-wash="auto"] .wall-tag{
   -webkit-mask-position:100% 0;mask-position:100% 0;
 }
 html.motion .wall[data-wash="auto"].is-live .wall-tag{
-  animation:oaWashLoop 8s var(--ease-roll) infinite;
+  animation:oaWashLoop 10s var(--ease-roll) infinite;
 }
 html.motion .wall[data-wash="auto"].is-live .wall-glint{
-  animation:oaWashLoopGlint 8s linear infinite;
+  animation:oaWashLoopGlint 10s linear infinite;
 }
 html.motion .wall[data-wash="auto"].is-paused .wall-tag,
 html.motion .wall[data-wash="auto"].is-paused .wall-glint{animation-play-state:paused}
 @keyframes oaWashLoop{
-  0%,6%{-webkit-mask-position:100% 0;mask-position:100% 0;opacity:1}
-  46%,74%{-webkit-mask-position:0 0;mask-position:0 0;opacity:1}
-  86%{-webkit-mask-position:0 0;mask-position:0 0;opacity:0}
-  86.5%{-webkit-mask-position:100% 0;mask-position:100% 0;opacity:0}
+  0%,30%{-webkit-mask-position:100% 0;mask-position:100% 0;opacity:1}
+  58%,88%{-webkit-mask-position:0 0;mask-position:0 0;opacity:1}
+  94%{-webkit-mask-position:0 0;mask-position:0 0;opacity:0}
+  94.5%{-webkit-mask-position:100% 0;mask-position:100% 0;opacity:0}
   100%{-webkit-mask-position:100% 0;mask-position:100% 0;opacity:1}
 }
-/* One pass of light as it comes clean, then nothing for six seconds. */
+/* One pass of light as it comes clean, then nothing until the next loop. */
 @keyframes oaWashLoopGlint{
-  0%,44%{opacity:0;transform:translateX(-70%)}
-  46%{opacity:0;transform:translateX(-70%)}
-  50%{opacity:1}
-  56%,100%{opacity:0;transform:translateX(70%)}
+  0%,56%{opacity:0;transform:translateX(-70%)}
+  58%{opacity:0;transform:translateX(-70%)}
+  62%{opacity:1}
+  68%,100%{opacity:0;transform:translateX(70%)}
 }
 
 /* --- the finish: one glint, a handful of sparks ----------------------- */
