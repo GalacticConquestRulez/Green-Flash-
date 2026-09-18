@@ -605,6 +605,115 @@ for _p in PROJECTS:
       body=project_page(_p))
 
 
+# ---------------------------------------------------------------- ABOUT
+# Ephraim by name, the crew at work, his three stages at length, and the
+# cities the roster has actually put a wall in — counted from projects.py,
+# never typed.
+#
+# The name: CLAUDE.md records that the only surname anywhere on his site is
+# in one Wix alt attribute, and that it is unconfirmed. So this page says
+# Ephraim and stops there until the owner says otherwise.
+#
+# Both long paragraphs below are his, transcribed from the live site
+# (research/wix/, saved 2026-09-18) and reproduced verbatim — the studio
+# paragraph from the About page, the crew paragraph from the home page.
+STUDIO = ('At Open Air Gallery, we are driven by our passion for mural creations. '
+          'Each project we undertake is a labor of love, and we pour our hearts into '
+          'every brushstroke. Our goal is to captivate the imagination of the viewer '
+          'and create awe-inspiring murals that last a lifetime. We take great pride '
+          'in every project and strive to execute it with the utmost care, quality, '
+          'and joy.')
+
+CREW = ('Open Air Gallery is a team of skilled muralists dedicated to turning your '
+        'creative vision into a reality. No matter the size of the project, we '
+        'carefully consider the space, lighting, and intended purpose to ensure that '
+        'the final product meets your expectations. We take pride in our ability to '
+        'execute each project with precision and attention to detail, resulting in '
+        'stunning works of art. Our goal is to bring art to the world, one mural at '
+        'a time.')
+
+# Where the work has been. The rows are the roster grouping itself: most walls
+# first, then alphabetical, so the order is a ranking and still never moves on
+# its own. Nothing here is a claim about anywhere a wall has not been painted.
+CITY_WALLS = {}
+for _q in PROJECTS:
+    CITY_WALLS.setdefault((_q['city'], _q['state']), []).append(_q)
+CITY_ROWS = sorted(CITY_WALLS.items(), key=lambda kv: (-len(kv[1]), kv[0][0]))
+
+
+def city_tile(place, walls):
+    city, state = place
+    n = len(walls)
+    return (f'<li class="city rv"><b>{city}</b>'
+            f'<span>{state} &middot; {spell(n)} wall{"" if n == 1 else "s"}</span></li>')
+
+
+PORTRAIT_SIZES = '(min-width:960px) 420px, (min-width:640px) 55vw, 100vw'
+HALF_SIZES = '(min-width:960px) 640px, 100vw'
+
+pages['/about'] = dict(
+  title=f'About | {SITE_NAME}',
+  desc='Open Air Gallery is Ephraim’s studio — a muralist and large-image company '
+       'painting at building scale, out of New York and nationwide. His crew, his '
+       'three stages, and every city the work has reached.',
+  body=f'''
+{page_hero('About Open Air Gallery', 'Ephraim and the crew',
+           f'A muralist and large-image company: murals, banners and signs painted at '
+           f'building scale. Ephraim leads it, the crew goes up on the lift, and the '
+           f'walls stand in {spell(len(CITIES))} cities so far.',
+           crumb='About')}
+
+<section><div class="wrap">
+  <div class="duo">
+    <div class="portrait rv">{pic('ephraim-portrait', 'Ephraim, the muralist who leads Open Air Gallery', PORTRAIT_SIZES)}</div>
+    <div class="rv rv-d1">
+      <div class="eyebrow">The muralist</div>
+      <h2>Ephraim</h2>
+      <p class="lead">Ephraim is the muralist behind Open Air Gallery. The company paints
+      brand walls at building scale — Gucci, Crown Royal, Uber — and painted portraits,
+      including the two civil-rights walls in Rochester. In his own words:</p>
+      <blockquote class="pull"><p>{STUDIO}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
+    </div>
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <div class="duo wide">
+    <div class="rv">
+      <div class="eyebrow">The crew</div>
+      <h2>Nobody paints eighty feet alone</h2>
+      <blockquote class="pull"><p>{CREW}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
+    </div>
+    <figure class="figframe rv rv-d1">{pic('about-team', 'An Open Air Gallery painter working from a lift platform, mask on, part way through a wall', HALF_SIZES)}
+      <figcaption class="figcap">On the lift, mid-wall.</figcaption></figure>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">How a wall gets painted</div>
+  <h2>Prep, paint, preservation</h2>
+  <p class="lead">Ephraim’s three stages, in full and in his own words — the same three
+  he has published since the first version of this company’s site.</p></div>
+  {beats(PROCESS, 'beats-full')}
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">Where we work</div>
+  <h2>New York, and wherever the wall is</h2>
+  <p class="lead">Open Air Gallery is based in New York and paints nationwide. The
+  {spell(WALLS)} walls on the Work page stand in {spell(len(CITIES))} cities, coast to
+  coast — {SQ_FT:,} square feet of painted surface between them.</p></div>
+  <ul class="cities">{''.join(city_tile(place, walls) for place, walls in CITY_ROWS)}</ul>
+  <div class="row-end rv"><a class="btn btn-ghost" href="{u('/work')}">See all {spell(WALLS)} walls {ICONS['arrow']}</a></div>
+</div></section>
+
+<!-- gr_strip() lands in step 12 -->
+
+{cta(title='If you’re ready, we’re ready.',
+     text='Tell us the wall, the city and roughly how big it is. We will come back with '
+          'a plan and a price.')}''')
+
+
 # ---------------------------------------------------------------- write
 os.makedirs(OUT, exist_ok=True)
 
