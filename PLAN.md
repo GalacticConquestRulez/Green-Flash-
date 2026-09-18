@@ -50,7 +50,7 @@ assets/               originals, gitignored        out/img/{,t/}  ffmpeg output,
 fetch-wix.py  wix-sources.json  process.sh  publish-preview.sh  deploy.sh
 deploy/nginx/ephraim-site.conf   .gitignore   CLAUDE.md
 ```
-**Copy from DGM `build.py`:** `ext()` 133-135, `img()` 171-173, `asset_v()` 628-631,
+**Copy from DGM `build.py`:** `ext()` 135, `img()` 171-173, `asset_v()` 668-671,
 `layout()` 673-707 (rewrite head: site name, theme-color `#0A0A0B`, fonts), `nav_html()`
 200-224, `footer_html()` 226-256, `page_hero()` 636-646, `cta()` 630-634, `swipe()` 613-627,
 the `pages` dict + write/sitemap/robots loop 1370-1394, and `gf_band()`/`gf_strip()` 137-169 as
@@ -97,7 +97,8 @@ email · Work (top six) · Company (Services, Graffiti Removal, About, Contact) 
 **Home** — hero: full-bleed Gucci, headline `MURALS THAT CAPTURE THE GAZE` (his line), sub
 naming Ephraim and three walls ("81 feet of Gucci in Manhattan, 85 feet of Crown Royal in
 Portland, John Lewis and Malcolm X in Rochester"). Then: a **scale statement** band ("Twelve
-walls. Over 19,000 square feet." — computed from `projects.py`, never typed); **featured
+walls. Over 23,000 square feet." — the roster computes to 23,294 sq ft; always from
+`projects.py:total_sq_ft()`, never typed); **featured
 projects** (Gucci, Crown Royal, John Lewis, Uber, Malcolm X, Upendo); the **Rochester civic
 beat** as its own section — John Lewis and Malcolm X side by side, 53′ × 50′ each; the
 **process** in three beats, verbatim source: *"it starts from a small image and explodes onto a
@@ -145,7 +146,9 @@ location, service (select, pre-filled from `?service=`), budget, message, `_gotc
 sidebar with email, `@openairmurals`, response expectation.
 
 ## 4. Mechanics — motion vocabulary **Roll · Scale · Cure · Wash**
-- **Roll** — reveals arrive like a roller pass: `.rv` clip-path wipe left→right + 18px rise.
+- **Roll** — reveals arrive like a roller pass: `.rv` **mask-size wipe** left→right + 18px rise.
+  (Not clip-path: a fully clipped element reports intersectionRatio 0 and never crosses the
+  observer threshold — measured in step 4. Paint-only masking keeps the observer honest.)
 - **Scale** — the figure (§4a); `.dims` grow `wdth 100→125` on entry.
 - **Cure** — the settle: one slow mint sheen across a `.dims` rule when it lands, never repeated.
 - **Wash** — the graffiti wall (§4b).
@@ -256,7 +259,7 @@ Per page at 1440 and 390: screenshot; `errors: []` from the console collector; a
 `javaScriptEnabled:false` context screenshot showing every section; a reduced-motion context
 matching the static render; `curl -sI` showing `X-Content-Type-Options`, `X-Frame-Options`,
 `Referrer-Policy`, `Cache-Control: …immutable` on `/assets/`; an HTML-parser spot-check;
-`curl -s <url> | grep -c "81′"` proving real text for crawlers; `xmllint --noout site/sitemap.xml`;
+`curl -s <url> | python3 -c 'import sys,re,html;print("81′" in html.unescape(re.sub(r"<[^>]+>","",sys.stdin.read())))'` proving real text for crawlers (the `.dims` markup splits `81` and `′` into spans, so a raw grep can never match); `xmllint --noout site/sitemap.xml`;
 the Wash and Scale mechanics driven by playwright pointer sequences; the preview URL returning
 `X-Robots-Tag: noindex`.
 
@@ -272,3 +275,14 @@ the mint rules. (f) **Scope creep** — Shop and Media stay dead; Phase 2 if ask
 A photo of himself and a short bio; the original mural photos (people in frame for scale);
 real before/after graffiti photos if he has them; which email is correct; a Formspree form id
 (or we create one on the Green Flash account); later, the Wix DNS change.
+
+## Corrections found in the build (2026-09-18, steps 1–5)
+- Roll is a `mask-size` wipe, not `clip-path` (observer threshold — see §4).
+- The crawler-text check must strip tags before matching `81′`.
+- Square footage computes to 23,294, not "over 19,000"; `projects.py:total_sq_ft()` is the only source.
+- `asset_v()` is at DGM build.py 668-671; `ext()` at 135. DGM's `img()` had a precedence bug — rewritten.
+- `build.py` symlinks `out/img` → `site/assets/img` for local serving; `site/assets/` is gitignored;
+  `deploy.sh` excludes `assets/` from the `site/` rsync as planned.
+- Judgment calls to confirm with Ephraim at review: I Am A Man → `portrait`, Upendo → `brand`;
+  "Victoria's Secret" (his Work page) vs "Pink" (his Home page) for the Austin wall — both facts
+  kept in the story; `client` is None for the three civic/portrait walls; `credit` None for all.
