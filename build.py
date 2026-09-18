@@ -17,6 +17,7 @@ Every root-absolute link in the output goes through u() and every image through
 img(), so the same build runs at the domain root and under a preview prefix.
 """
 import os, sys, html, json, struct, hashlib
+from urllib.parse import quote as _urlq
 
 SRC = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(SRC, 'site')
@@ -315,6 +316,30 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
   <div class="wrap"><div class="hero-inner">{crumbs}<div class="eyebrow">{eyebrow}</div><h1>{title}</h1><p class="lead">{lead}</p></div></div></section>'''
 
 
+# The six things a visitor can ask for. The Contact form's <select> is built
+# from this same tuple, so a link that pre-selects a service can never name one
+# the form does not offer.
+SERVICE_OPTIONS = ('Murals', 'Banners and signs', 'Graffiti removal',
+                   'Pressure washing', 'Commercial painting', 'Something else')
+
+
+def consult_path(service=None):
+    """The contact-form path, with the service already chosen — unprefixed.
+
+    cta() puts its two hrefs through u(), so it needs the bare path; every
+    other caller wants the finished link and uses consult().
+    """
+    if service is None:
+        return '/contact'
+    assert service in SERVICE_OPTIONS, f'consult({service!r}): not in SERVICE_OPTIONS'
+    return f'/contact?service={_urlq(service)}'
+
+
+def consult(service=None):
+    """A link to the contact form, with the service already chosen."""
+    return u(consult_path(service))
+
+
 def cta(title='Ready when you are.',
         text='Tell us the wall, the city and roughly how big it is. We will come back with a plan and a price.',
         primary=('Book a free consultation', '/contact'),
@@ -351,11 +376,19 @@ PROCESS = [
 ]
 
 
-def beats(items, cls=''):
-    """His stages as quoted blocks — the stage name, then his own sentences."""
+def beats(items, cls='', quoted=True):
+    """A row of stages: the stage name, then the sentences under it.
+
+    `quoted` is not decoration. Where the words are Ephraim's they are set in
+    a <blockquote>, because that is what they are; where they are ours — the
+    four beats of a graffiti job, who the service is for — they are ordinary
+    paragraphs. Marking our own prose as a quotation of his would be the one
+    kind of lie this site cannot afford.
+    """
+    body = ('<blockquote><p>{0}</p></blockquote>' if quoted else '<p>{0}</p>')
     li = ''.join(
         f'<li class="beat rv{" rv-d" + str(i) if i else ""}">'
-        f'<h3>{stage}</h3><blockquote><p>{words}</p></blockquote></li>'
+        f'<h3>{stage}</h3>{body.format(words)}</li>'
         for i, (stage, words) in enumerate(items))
     return f'<ol class="{("beats " + cls).strip()}">{li}</ol>'
 
@@ -377,10 +410,20 @@ def swipe(slides, label, cls=''):
 </div>'''
 
 
-def layout(path, title, desc, body, ld=None, noindex=False):
+def layout(path, title, desc, body, ld=None, noindex=False, wash=False):
+    """The document around a page body.
+
+    `wash` carries the two Wash assets — css/wash.css and js/wash.js — and it
+    is opt-in per page on purpose (wall.py's docstring says so): only Home and
+    /graffiti-removal hold a drawn wall, and on every other page the pair
+    would be two requests for a file that binds nothing.
+    """
     canonical = BASE_URL + (path if path != '/index' else '/')
     robots = '<meta name="robots" content="noindex,nofollow">' if noindex else ''
     ldjson = f'<script type="application/ld+json">{json.dumps(ld)}</script>' if ld else ''
+    washer = (f'<link rel="stylesheet" href="{u("/css/wash.css")}?v={asset_v("css/wash.css")}">'
+              f'\n<script src="{u("/js/wash.js")}?v={asset_v("js/wash.js")}" defer></script>'
+              if wash else '')
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -398,6 +441,7 @@ def layout(path, title, desc, body, ld=None, noindex=False):
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="{FONTS}" rel="stylesheet">
 <link rel="stylesheet" href="{u('/css/site.css')}?v={asset_v("css/site.css")}">
+{washer}
 {ldjson}
 </head>
 <body>
@@ -733,24 +777,8 @@ pages['/about'] = dict(
 # shows no picture: a sign roster with invented artwork would be worse than a
 # list. Move an entry into `extras` in wix-sources.json and re-run fetch-wix.py
 # the day the photographs are wanted here.
-from urllib.parse import quote as _urlq
-
-# The six things a visitor can ask for. The Contact form's <select> is built
-# from this same tuple (step 13), so a link that pre-selects a service can
-# never name one the form does not offer.
-SERVICE_OPTIONS = ('Murals', 'Banners and signs', 'Graffiti removal',
-                   'Pressure washing', 'Commercial painting', 'Something else')
-
 SIGN_ROSTER = ('Heineken', 'Jack Daniels', 'Corona', 'Black Crow',
                'House of Pizza & Calzones')
-
-
-def consult(service=None):
-    """A link to the contact form, with the service already chosen."""
-    if service is None:
-        return u('/contact')
-    assert service in SERVICE_OPTIONS, f'consult({service!r}): not in SERVICE_OPTIONS'
-    return f"{u('/contact')}?service={_urlq(service)}"
 
 
 pages['/services'] = dict(
@@ -841,6 +869,212 @@ pages['/services'] = dict(
 {cta(title='Which one do you need?',
      text='Tell us the wall, the city and roughly how big it is. We will come back with '
           'a plan and a price.')}''')
+
+
+# ---------------------------------------------------------------- GRAFFITI REMOVAL
+# The other half of the business, and the page the owner asked to look awesome.
+#
+# The mechanic is the hero. Not a photograph with a widget under it: the thing
+# a visitor meets at the top of this page is a tagged brick wall that comes
+# clean under their own hand (wall.py, css/wash.css, js/wash.js). Everything
+# else on the page is the argument for why they should not have to do it
+# themselves.
+#
+# Every paragraph set as a quotation below is Ephraim's, transcribed from
+# research/wix/graffiti-removal.html (saved 2026-09-18) and reproduced
+# verbatim — his three reasons, his three services, his three-step booking
+# ladder. The four beats of the job and the three audiences are ours and are
+# set as plain prose, not as quotations of him: beats(quoted=False) is that
+# distinction, and it matters.
+from wall import wall_html, brick_svg
+
+# His three reasons, from the line under his headline.
+GR_REASONS = ('Attract more customers', 'Increase safety', 'Beat the competition')
+
+# His three services, each with his own paragraph, exactly as he wrote them
+# (including "services analyzes", "Whether its wood" and "techniques creates" —
+# they are his sentences and they are not ours to tidy).
+GR_SERVICES = [
+  ('Graffiti removal',
+   'Our graffiti removal services analyzes the surface material that the graffiti '
+   'is on and utilizes the proper paint stripping techniques to remove all graffiti '
+   'on the designated area. With industrial strength processes, we make the space '
+   'look like new. Send us a picture of the space you want cleaned and we&rsquo;ll send '
+   'you a no hassle quote and date of completion.'),
+  ('Pressure washing',
+   'Our pressure washing services not only serve as a technique for graffiti removal, '
+   'but it also serves as a technique for stain removal. Remove stains, moss, and dirt '
+   'from various surfaces with professional pressure washing. We clean sidewalks, '
+   'stairs, windows, and the exterior of buildings. Whether its wood, concrete, or '
+   'metal, we will clean it.'),
+  ('Commercial painting',
+   'Once the graffiti is removed or the surface is cleaned, you may need a fresh coat '
+   'of paint. With a team of professional muralists, we will apply a fresh coat of '
+   'paint that not only brings your space to life but maintains its vibrancy over '
+   'time from various environmental effects. Our proprietary techniques creates paint '
+   'mixtures that can weather the storm.'),
+]
+
+# The booking ladder he already publishes. His headings, his sentences.
+GR_LADDER = [
+  ('Take a picture',
+   'Take a picture of the areas that you want us to come and remove graffiti, clean, '
+   'or paint.'),
+  ('Send us an email',
+   'Send us a text message with the images of the spaces that need graffiti removal, '
+   'cleaning, or painting.'),
+  ('Pay a 50% deposit',
+   'We will reply to your message with a date that we can come and complete the job '
+   'and a quote for the cost of the job. You will only need to pay a 50% deposit to '
+   'secure your spot.'),
+]
+
+# What happens at the wall once the date is booked — the four beats PLAN.md §3
+# asks for. Ours, so plain prose, and every claim in them is one his own copy
+# already makes: surface analysis and the proper stripping technique are from
+# the graffiti page, the environmentally friendly coating from his mural
+# process (PROCESS[2]).
+GR_PROCESS = [
+  ('Assessment',
+   'The job starts with the surface, not with the tag. What the paint is sitting on '
+   'decides what will take it off without taking the wall with it, so the material is '
+   'read first &mdash; brick, block, stone, render, timber or metal &mdash; and everything '
+   'after that follows from it.'),
+  ('Removal matched to the substrate',
+   'Then the proper stripping technique for that material, at industrial strength: '
+   'chemical stripping where the surface will take it, pressure washing where it will '
+   'not, and a fresh coat from the same crew where removal alone would leave a shadow '
+   'of the piece behind.'),
+  ('Anti-graffiti coating',
+   'The same environmentally friendly coating the murals get. Ephraim&rsquo;s third stage '
+   'is written for a painted wall, and it is exactly what a cleaned one wants: a '
+   'finish that makes the next tag wipe off instead of soak in.'),
+  ('Maintenance',
+   'A wall that has been hit once tends to be hit again. Once it is coated the next '
+   'one comes off without another strip &mdash; send a picture when it happens and the '
+   'same crew comes back.'),
+]
+
+# Who the service is for. Three audiences, described as audiences: none of
+# these is a claim that a particular client has been served.
+GR_WHO = [
+  ('Property managers',
+   'Storefronts, lobbies, loading bays, roller shutters and the back of the building. '
+   'One picture gets a quote and a date, and the crew works around the tenants.'),
+  ('Brands and franchises',
+   'A location that has to look the same in every city. The team that paints brand '
+   'walls at building scale is the team cleaning this one, so the repaint matches '
+   'rather than patches.'),
+  ('Cities and BIDs',
+   'Business improvement districts, civic property and the blocks in between. Larger '
+   'runs, scheduled, with the coating that keeps the next round cheaper than this one.'),
+]
+
+# His own pitch, in his own words, used verbatim on this page and in the home
+# band. The em-dashed clause after it is ours and is plainly ours.
+GR_PITCH = ('Open Air Gallery removes unsightly graffiti &amp; stains with industrial '
+            'strength cleaning services, available in NYC &mdash; the same crew that paints '
+            'the wall knows what the surface is made of. Send a picture of the space you '
+            'want cleaned and you get a quote and a date back.')
+
+
+def ba_layer(kind, label, uid):
+    """One half of the before/after: a drawn wall and the word for it."""
+    return (f'<div class="ba-layer ba-{kind}">{brick_svg(kind == "before", uid)}'
+            f'<span class="ba-lab">{label}</span></div>')
+
+
+def before_after():
+    """The before/after presentation (PLAN.md §3).
+
+    With no script it is what it says: two pictures side by side, each of them
+    labelled, both of them real content in the server HTML. With the script it
+    becomes one picture under a mint divider you drag across it — the same two
+    layers, stacked instead of paired.
+
+    The pictures are the drawn wall from wall.py, both layers of it, because
+    Ephraim has not sent a real before-and-after yet. When he does, this is the
+    one function that changes: two pic() calls in place of the two brick_svg()
+    calls, and nothing else on the page or in the stylesheet moves.
+    """
+    return f"""<figure class="ba rv" data-ba>
+  <div class="ba-stage" data-ba-stage>
+    {ba_layer('after', 'After', 'ba-a')}
+    {ba_layer('before', 'Before', 'ba-b')}
+    <button class="ba-handle" type="button" data-ba-handle
+            aria-label="Drag to compare the wall before and after"><span class="ba-grip" aria-hidden="true">{ICONS['chevL']}{ICONS['chevR']}</span></button>
+  </div>
+  <figcaption class="ba-cap">The same brick, tagged and cleaned.<span class="ba-hint"> Drag the divider across it.</span></figcaption>
+</figure>"""
+
+
+pages['/graffiti-removal'] = dict(
+  wash=True,
+  title=f'Commercial graffiti removal, New York | {SITE_NAME}',
+  desc='Graffiti removal, pressure washing and commercial painting in NYC from Open Air '
+       'Gallery — the muralists who know what the surface is made of. Send a picture of '
+       'the space and get a quote and a date back.',
+  body=f'''
+<section class="page-hero gr-hero">
+  <div class="wrap"><div class="gr-hero-grid">
+    <div class="hero-inner">
+      <div class="crumbs"><a href="{u('/')}">Home</a><span>/</span><span>Graffiti removal</span></div>
+      <div class="eyebrow">Commercial</div>
+      <h1>Graffiti removal</h1>
+      <p class="lead">{' &middot; '.join(GR_REASONS)}.</p>
+      <div class="btn-row"><a class="btn btn-mint" href="{consult('Graffiti removal')}">Send a photo, get a quote {ICONS['arrow']}</a><a class="btn btn-ghost" href="#gr-services">The three services</a></div>
+    </div>
+    <div class="gr-hero-wall">{wall_html(mode='interactive', id_prefix='wash')}</div>
+  </div></div>
+</section>
+
+<section id="gr-services"><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">In his own words</div>
+  <h2>Graffiti removal &amp; cleaning services</h2>
+  <p class="lead">{GR_PITCH}</p></div>
+  {beats(GR_SERVICES)}
+  <div class="row-end rv btn-row">
+    <a class="btn btn-mint" href="{consult('Graffiti removal')}">Send a photo, get a quote {ICONS['arrow']}</a>
+    <a class="btn btn-ghost" href="{consult('Pressure washing')}">Ask about pressure washing</a>
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">Before and after</div>
+  <h2>What comes off</h2>
+  <p class="lead">Ephraim&rsquo;s own before-and-after photographs go here the day he sends
+  them. Until then this is the wall at the top of the page, drawn, with every tag on
+  it and then none of them.</p></div>
+  {before_after()}
+</div></section>
+
+<section><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">His three step process</div>
+  <h2>Take a picture. Send us an email. Pay a 50% deposit.</h2>
+  <p class="lead">The booking ladder Open Air Gallery has published since the first
+  version of this site, unchanged.</p></div>
+  {beats(GR_LADDER)}
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">At the wall</div>
+  <h2>Four beats, once the date is set</h2>
+  <p class="lead">What the crew actually does between the deposit and the wall you get
+  back.</p></div>
+  {beats(GR_PROCESS, 'beats-4', quoted=False)}
+</div></section>
+
+<section><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">Who it&rsquo;s for</div>
+  <h2>Whose wall this is</h2></div>
+  {beats(GR_WHO, quoted=False)}
+</div></section>
+
+{cta(title='Send a photo, get a quote',
+     text='A picture of the space is enough to start. You get a no hassle quote and a '
+          'date of completion back &mdash; and the deposit is half.',
+     primary=('Send a photo, get a quote', consult_path('Graffiti removal')),
+     secondary=('See the murals', '/work'))}''')
 
 
 # ---------------------------------------------------------------- CONTACT
@@ -959,7 +1193,8 @@ for path, p in pages.items():
     fn = os.path.join(OUT, path.strip('/') + '.html')
     os.makedirs(os.path.dirname(fn), exist_ok=True)
     with open(fn, 'w') as f:
-        f.write(layout(path, p['title'], p['desc'], p['body'], p.get('ld'), p.get('noindex', False)))
+        f.write(layout(path, p['title'], p['desc'], p['body'], p.get('ld'),
+                       p.get('noindex', False), p.get('wash', False)))
     print('wrote', fn)
 
 # sitemap + robots

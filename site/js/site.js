@@ -256,3 +256,70 @@
     say(`Your email app should open with the brief ready to send. If it did not, write to <a href="mailto:${TO}">${TO}</a> directly.`);
   });
 })();
+
+/* =====================================================================
+   Before / after — the mint divider.
+
+   The component is complete without this: two labelled pictures side by
+   side in the server HTML (css/site.css, ".ba"). Everything here does is
+   turn that pair into one frame with a divider across it, so it is gated
+   on html.motion exactly like the Wash mechanic on the same page — a
+   visitor who has asked for reduced motion, or whose script never
+   arrived, reads the two walls side by side instead, which is the same
+   information with nothing hidden.
+
+   One pointer handler, one rAF, one custom property. The divider is a
+   real <button>: the arrow keys walk it, Home and End take it to the
+   ends, and setPointerCapture means a drag that leaves the frame keeps
+   working until the finger or the mouse comes up. No number is ever
+   shown — the wall does the talking.
+   ===================================================================== */
+(function () {
+  const root = document.documentElement;
+  if (!root.classList.contains('motion')) return;
+  let reduced = false;
+  try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  if (reduced) return;
+
+  const clamp = (n) => Math.min(1, Math.max(0, n));
+
+  [...document.querySelectorAll('[data-ba]')].forEach(ba => {
+    const stage = ba.querySelector('[data-ba-stage]');
+    const handle = ba.querySelector('[data-ba-handle]');
+    if (!stage || !handle) return;
+
+    let x = 0.5, raf = 0;
+    const paint = () => { raf = 0; stage.style.setProperty('--bx', (x * 100).toFixed(2) + '%'); };
+    const set = (v) => { x = clamp(v); if (!raf) raf = requestAnimationFrame(paint); };
+    const fromEvent = (e) => {
+      const r = stage.getBoundingClientRect();
+      if (r.width) set((e.clientX - r.left) / r.width);
+    };
+
+    let dragging = false;
+    stage.addEventListener('pointerdown', e => {
+      if (e.button) return;
+      dragging = true;
+      stage.classList.add('is-live');
+      try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+      fromEvent(e);
+      e.preventDefault();          // no text selection, no image drag
+    });
+    stage.addEventListener('pointermove', e => { if (dragging) fromEvent(e); });
+    const stop = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      stage.classList.remove('is-live');
+      try { stage.releasePointerCapture(e.pointerId); } catch (_) {}
+    };
+    stage.addEventListener('pointerup', stop);
+    stage.addEventListener('pointercancel', stop);
+
+    handle.addEventListener('keydown', e => {
+      const step = { ArrowLeft: -0.02, ArrowRight: 0.02, Home: -1, End: 1 }[e.key];
+      if (step === undefined) return;
+      e.preventDefault();
+      set(Math.abs(step) === 1 ? (step + 1) / 2 : x + step);
+    });
+  });
+})();

@@ -693,3 +693,99 @@ a.contact-card:hover,a.contact-card:focus-visible{border-color:var(--mint)}
 .contact-card .ic svg{width:20px;height:20px}
 .contact-card b{display:block;margin-bottom:.25rem;font-size:.95rem}
 .contact-card span{display:block;color:var(--muted);font-size:.9rem;line-height:1.6;word-break:break-word}
+
+/* =====================================================================
+   GRAFFITI REMOVAL
+
+   The other half of the business. The mechanic from wall.py is the hero —
+   the words sit beside it rather than over a photograph — and the rest of
+   the page is the components Home and Services already use, with one new
+   one: the before/after.
+   ===================================================================== */
+/* No photograph behind these words, so no shade and no text-shadow: the
+   hero is the dark canvas with the wall standing on it. */
+.gr-hero{padding-bottom:clamp(3rem,7vw,5rem)}
+.gr-hero-grid{display:grid;gap:clamp(2rem,5vw,3.2rem);align-items:center}
+.gr-hero .hero-inner{max-width:38ch}
+.gr-hero .lead{color:var(--paper);opacity:.86}
+.gr-hero .btn-row{margin-top:1.8rem}
+/* The wall is the widest thing in the hero, and on a phone it comes after
+   the sentence that explains why it is there. */
+.gr-hero-wall{min-width:0}
+@media (min-width:960px){
+  .gr-hero-grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+}
+
+/* The four beats of a job want four columns where the three stages take
+   three, and two before that rather than one. */
+@media (min-width:640px){.beats-4{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:960px){.beats-4{grid-template-columns:repeat(4,1fr);gap:1.6rem}}
+
+/* --- before / after ---------------------------------------------------- */
+/* Two pictures, side by side and labelled. That is the whole component with
+   no script, and it is honest: both walls are real content in the server
+   HTML and both are readable at once.
+   With a script the pair stacks into one frame under a mint divider — the
+   same two layers, one on top of the other. Everything that does the
+   stacking is scoped to html.motion, so the reduced-motion render and the
+   no-script render are the same page, and the drag is never the only way to
+   see either state. */
+.ba{margin:0}
+.ba-stage{display:grid;gap:1rem;grid-template-columns:1fr}
+@media (min-width:640px){.ba-stage{grid-template-columns:1fr 1fr}}
+/* The after layer is first in the DOM because the before has to stack on top
+   of it under html.motion. Side by side, the pair reads the other way round —
+   before, then after — so the grid puts it back. */
+.ba-before{order:-1}
+.ba-layer{
+  position:relative;overflow:hidden;line-height:0;
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-3);
+}
+.ba-layer svg{display:block;width:100%;height:auto;aspect-ratio:16/9}
+.ba-lab{
+  position:absolute;left:.7rem;bottom:.7rem;z-index:2;
+  padding:.3rem .7rem;border-radius:999px;
+  background:var(--scrim);border:1px solid var(--line-2);
+  font-family:var(--font-body);font-size:.7rem;font-weight:700;line-height:1.4;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--paper);
+}
+.ba-handle{display:none}
+.ba-cap{margin-top:.85rem;font-size:.86rem;line-height:1.5;color:var(--muted)}
+.ba-hint{display:none;color:var(--paper)}
+
+html.motion .ba-stage{
+  display:block;position:relative;aspect-ratio:16/9;overflow:hidden;
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-3);
+  touch-action:pan-y;cursor:ew-resize;
+}
+html.motion .ba-layer{position:absolute;inset:0;border:0;border-radius:0;background:none}
+html.motion .ba-layer svg{width:100%;height:100%;aspect-ratio:auto}
+/* The before is clipped, not moved: a clip is paint-only, so the divider can
+   sit anywhere without either picture ever changing size. --bx is written by
+   site.js in one rAF and starts, in the stylesheet, at half way. */
+html.motion .ba-before{clip-path:inset(0 calc(100% - var(--bx,50%)) 0 0)}
+html.motion .ba-after .ba-lab{left:auto;right:.7rem}
+html.motion .ba-hint{display:inline}
+html.motion .ba-handle{
+  display:block;position:absolute;top:0;bottom:0;z-index:3;
+  left:var(--bx,50%);translate:-50% 0;width:44px;padding:0;
+  background:none;border:0;cursor:ew-resize;touch-action:none;
+}
+/* The mint line itself, drawn inside the button so the grab area is a finger
+   wide and the divider is one pixel. */
+html.motion .ba-handle::before{
+  content:"";position:absolute;top:0;bottom:0;left:calc(50% - 1px);width:2px;
+  background:var(--mint);box-shadow:0 0 0 1px var(--shade);
+}
+html.motion .ba-handle:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:var(--radius)}
+.ba-grip{
+  position:absolute;top:50%;left:50%;translate:-50% -50%;
+  display:flex;align-items:center;justify-content:center;
+  width:44px;height:44px;border-radius:50%;
+  background:var(--mint);color:var(--ink);
+}
+.ba-grip svg{width:15px;height:15px;margin:0 -3px}
+@media (prefers-reduced-motion:no-preference){
+  html.motion .ba-handle:hover .ba-grip,html.motion .ba-stage.is-live .ba-grip{transform:scale(1.06)}
+  .ba-grip{transition:transform .2s var(--ease)}
+}
