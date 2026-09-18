@@ -596,3 +596,47 @@ html.js .swipe-dots{display:flex}
 .city{border-top:1px solid var(--line-2);padding-top:.9rem}
 .city b{display:block;font-family:var(--font-display);text-transform:uppercase;font-variation-settings:'wdth' 100,'wght' 800;font-size:1.05rem;letter-spacing:.01em;font-weight:400}
 .city span{display:block;margin-top:.3rem;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+
+/* =====================================================================
+   SERVICES
+
+   Four blocks: the walls, the signs, the paint, and the cleaning side of
+   the business that has a page of its own. Nothing new is invented here —
+   the quotation, the stat row and the two-column split are the components
+   Home and About already use — except the roster of sign jobs, which is a
+   list of names because not one photograph of them has been fetched.
+   ===================================================================== */
+/* The stat row sits in half a page here rather than the full width, so it
+   stays two across at every size instead of opening out to four. */
+@media (min-width:960px){.stats-2{grid-template-columns:repeat(2,1fr)}}
+
+.roster{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem}
+@media (min-width:640px){.roster{grid-template-columns:repeat(3,1fr)}}
+@media (min-width:960px){.roster{grid-template-columns:repeat(5,1fr)}}
+.roster li{
+  display:flex;align-items:center;min-height:5.2rem;
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-3);
+  padding:1rem;font-family:var(--font-display);text-transform:uppercase;
+  font-variation-settings:'wdth' 90,'wght' 800;font-size:1rem;line-height:1.1;
+}
+
+.tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.4rem}
+.tags li{border:1px solid var(--line-2);border-radius:999px;padding:.45rem .95rem;font-size:.86rem;font-weight:600;color:var(--muted)}
+
+/* A label over a quotation, in the display face so it reads as a stage name
+   rather than as a sentence. */
+.svc-h{
+  font-family:var(--font-display);text-transform:uppercase;font-weight:400;
+  font-variation-settings:'wdth' 100,'wght' 800;
+  font-size:1.05rem;letter-spacing:.02em;margin-top:2.2rem;
+}
+
+/* The one panel on the site that advertises the other half of the company.
+   It gets its own edge and its own light so it reads as a second business —
+   the same treatment the home band will carry when it lands. */
+.gr-panel{
+  border:1px solid var(--mint-deep);border-radius:var(--radius);
+  background:linear-gradient(100deg,var(--mint-glow),transparent 55%),var(--ink-3);
+  padding:clamp(1.8rem,5vw,3.4rem);
+}
+.gr-panel .lead{color:var(--paper);opacity:.9;max-width:64ch;margin-bottom:1.4rem}

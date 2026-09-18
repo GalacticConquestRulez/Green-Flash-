@@ -714,6 +714,127 @@ pages['/about'] = dict(
           'a plan and a price.')}''')
 
 
+# ---------------------------------------------------------------- SERVICES
+# What the company sells, in the order it sells it: the walls, the signs, the
+# paint itself, and the cleaning side of the business that has its own page.
+#
+# Every paragraph set as a quotation is Ephraim's, transcribed from the live
+# site. The sign roster is his too — the lower half of his Work page is a grid
+# of hand-painted signs (wix-sources.json, not_fetched.signs_and_banners). Not
+# one of those photographs has been fetched, so this page names the jobs and
+# shows no picture: a sign roster with invented artwork would be worse than a
+# list. Move an entry into `extras` in wix-sources.json and re-run fetch-wix.py
+# the day the photographs are wanted here.
+from urllib.parse import quote as _urlq
+
+# The six things a visitor can ask for. The Contact form's <select> is built
+# from this same tuple (step 13), so a link that pre-selects a service can
+# never name one the form does not offer.
+SERVICE_OPTIONS = ('Murals', 'Banners and signs', 'Graffiti removal',
+                   'Pressure washing', 'Commercial painting', 'Something else')
+
+SIGN_ROSTER = ('Heineken', 'Jack Daniels', 'Corona', 'Black Crow',
+               'House of Pizza & Calzones')
+
+
+def consult(service=None):
+    """A link to the contact form, with the service already chosen."""
+    if service is None:
+        return u('/contact')
+    assert service in SERVICE_OPTIONS, f'consult({service!r}): not in SERVICE_OPTIONS'
+    return f"{u('/contact')}?service={_urlq(service)}"
+
+
+pages['/services'] = dict(
+  title=f'Services | {SITE_NAME}',
+  desc='Murals at building scale, hand-painted banners and signs, and the paint '
+       'science behind both — plus graffiti removal, pressure washing and commercial '
+       'painting from the same crew.',
+  body=f'''
+{page_hero('What we do', 'Murals, banners and signs',
+           'Hand-painted work at building scale, by the crew that cleans the wall '
+           'afterwards too: murals, banners and signs, graffiti removal — and the paint '
+           'science that runs through all of it.',
+           media_slug='moncler-wide',
+           media_alt='A hand-painted wall advertisement high above a New York street, '
+                     'with traffic and pedestrians below it for scale',
+           crumb='Services')}
+
+<section><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">Murals</div>
+  <h2>A small image, exploded onto a massive canvas</h2>
+  <p class="lead">Brand walls, painted portraits and civic commissions, projected and
+  painted by hand. {spell(WALLS, cap=True)} of them so far — {SQ_FT:,} square feet in
+  {spell(len(CITIES))} cities, the largest {WIDEST['dim_w']} feet across.</p></div>
+  <div class="duo wide">
+    <div class="rv">
+      <blockquote class="pull"><p>{PROCESS[0][1]}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
+      <div class="btn-row" style="margin-top:1.8rem">
+        <a class="btn btn-mint" href="{consult('Murals')}">Start a mural {ICONS['arrow']}</a>
+        <a class="btn btn-ghost" href="{u('/work')}">See all {spell(WALLS)} walls</a>
+      </div>
+    </div>
+    <ul class="stats rv rv-d1 stats-2">
+      {stat(WALLS, 'walls painted')}
+      {stat(f'{SQ_FT:,}', 'square feet of wall')}
+      {stat(WIDEST['dim_w'], f'widest wall, {WIDEST["city"]}', mark=PRIME)}
+      {stat(len(CITIES), 'cities, coast to coast')}
+    </ul>
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">Banners and signs</div>
+  <h2>Hand-painted, at any size</h2>
+  <p class="lead">The same brushes on smaller surfaces: storefront signs, hand-painted
+  banners and interior lettering. Ephraim’s own line for the company, and it has been
+  the line since the first version of this site — murals, banners, art.</p></div>
+  <ul class="roster">{''.join(f'<li class="rv">{html.escape(n)}</li>' for n in SIGN_ROSTER)}</ul>
+  <div class="row-end rv"><a class="btn btn-ghost" href="{consult('Banners and signs')}">Ask about a sign {ICONS['arrow']}</a></div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="duo">
+    <figure class="figframe rv">{pic('about-preservation', 'Four Open Air Gallery painters on a suspended platform, finishing a painted portrait wall', HALF_SIZES)}
+      <figcaption class="figcap">A crew on a suspended platform, finishing a portrait wall.</figcaption></figure>
+    <div class="rv rv-d1">
+      <div class="eyebrow">Paint science</div>
+      <h2>There is a science to paint</h2>
+      <p class="lead">Two of Ephraim’s three stages are about what happens to the paint
+      after the crew goes home: how it will fade, and how it survives what is thrown at it.</p>
+      <h3 class="svc-h">{PROCESS[1][0]}</h3>
+      <blockquote class="pull"><p>{PROCESS[1][1]}</p></blockquote>
+      <h3 class="svc-h">{PROCESS[2][0]}</h3>
+      <blockquote class="pull"><p>{PROCESS[2][1]}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
+    </div>
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <div class="gr-panel rv">
+    <div class="eyebrow">Also from Open Air</div>
+    <h2>We take it off, too.</h2>
+    <p class="lead">Open Air Gallery removes unsightly graffiti &amp; stains with industrial
+    strength cleaning services, available in NYC — the same crew that paints the wall knows
+    what the surface is made of. Send a picture of the space you want cleaned and you get a
+    quote and a date back.</p>
+    <ul class="tags">
+      <li>Graffiti removal</li><li>Pressure washing</li><li>Commercial painting</li>
+    </ul>
+    <div class="btn-row" style="margin-top:1.8rem">
+      <a class="btn btn-mint" href="{u('/graffiti-removal')}">See graffiti removal {ICONS['arrow']}</a>
+      <a class="btn btn-ghost" href="{consult('Graffiti removal')}">Send a photo, get a quote</a>
+    </div>
+  </div>
+</div></section>
+
+<!-- gr_strip() lands in step 12 -->
+
+{cta(title='Which one do you need?',
+     text='Tell us the wall, the city and roughly how big it is. We will come back with '
+          'a plan and a price.')}''')
+
+
 # ---------------------------------------------------------------- write
 os.makedirs(OUT, exist_ok=True)
 
