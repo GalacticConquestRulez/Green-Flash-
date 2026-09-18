@@ -32,7 +32,7 @@ better than the site presenting it — that is the whole brief in one sentence.
 - Company-first (Open Air Gallery) or artist-first (Ephraim) in voice and structure?
 - Timeline.
 
-## Proposed answers (2026-09-18, pending the owner's confirmation)
+## Decisions (2026-09-18, confirmed by the owner)
 1. **Scope:** full replacement, five pages — Home · Work (page per project) · About (Ephraim,
    team, process) · Services (murals, banners, graffiti removal) · Contact (consultation).
    Media and Shop dropped (both 404 today).
@@ -51,3 +51,21 @@ better than the site presenting it — that is the whole brief in one sentence.
    within two weeks, gated only by photos and the Wix login.
 First step on "go": one-page plan, HTML mockup of Home + the Gucci project page, screenshot to
 Ephraim before any production code.
+
+## Confirmed on 2026-09-18 (supersedes the proposals above where they differ)
+- **Six pages, no shop:** Home · Work (page per project) · About · Services (murals, banners)
+  · **Graffiti Removal (its own page — "make sure it looks awesome")** · Contact.
+- **Design:** dark canvas, dimensions as the hook, mint `#71EEB8` (sampled from his site) as the
+  single accent. Company brand, artist-led story.
+- **Hosting:** preview at preview.greenflashusa.com/p/<slug>/, then **live on a Green Flash
+  subdomain (openair.greenflashusa.com) while Wix keeps serving openairgallery.art.** Nothing
+  touches Wix or the real domain until Ephraim switches DNS himself, later.
+- **Home page references graffiti removal the way Max's site advertises Green Flash** — a
+  distinct band (`gr_band()`, modelled on DGM's `gf_band()`), placed after the process.
+- **The graffiti-removal signature is an animation of a graffitied brick wall being cleaned to
+  sparkling new** — "Wash" in the motion vocabulary (Roll · Scale · Cure · Wash). Drawn wall by
+  default; his real before/after photos if he sends them.
+- The full build plan is `PLAN.md` in this repo (copied from the approved plan). Opus subagents
+  implement one step each from it; the lead session reviews each commit.
+- `research/wix/` holds the saved Wix pages and a full-page screenshot from the audit
+  (untracked) — the source for `wix-sources.json` and for quoting his own copy.

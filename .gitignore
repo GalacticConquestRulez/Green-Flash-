@@ -1,0 +1,10 @@
+site/*.html
+site/work/
+site/sitemap.xml
+site/robots.txt
+assets/
+out/
+wix-cache/
+research/
+__pycache__/
+*.bak
