@@ -50,6 +50,13 @@ contrast.check(os.path.join(OUT, 'css', 'site.css'), {'--ink': INK, '--mint': MI
 FONTS = ('https://fonts.googleapis.com/css2?'
          'family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;600;700&display=swap')
 
+# A drawn mark rather than a file: a mint frame on ink, the wall the work goes
+# on. Inline so there is no favicon request to 404 before the images land.
+FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E"
+           f"%3Crect width='64' height='64' fill='{INK.replace('#', '%23')}'/%3E"
+           f"%3Crect x='11' y='15' width='42' height='34' fill='none' "
+           f"stroke='{MINT.replace('#', '%23')}' stroke-width='6'/%3E%3C/svg%3E")
+
 
 def u(path):
     """A root-absolute link, prefixed so the preview works under /p/<slug>/."""
@@ -84,37 +91,60 @@ NAV = [
   ('Contact', '/contact'),
 ]
 
+# The six walls the footer lists, in the order PLAN.md §3 features them.
+# projects.py takes this over when the data lands.
+FOOTER_WORK = [
+  ('Gucci', '/work/gucci-new-york'),
+  ('Crown Royal \u00d7 Trail Blazers', '/work/crown-royal-trail-blazers'),
+  ('I Am Speaking: John Lewis', '/work/john-lewis-rochester'),
+  ('Uber', '/work/uber-san-francisco'),
+  ('Malcolm X', '/work/malcolm-x-rochester'),
+  ('Upendo', '/work/upendo-los-angeles'),
+]
+COMPANY = [('Services', '/services'), ('Graffiti Removal', '/graffiti-removal'),
+           ('About', '/about'), ('Contact', '/contact')]
+FOOT_LINE = ('Murals &middot; Banners &middot; Signs &middot; Graffiti removal '
+             '&middot; New York and nationwide')
+
+
+def brand(aria=''):
+    """The wordmark: two lines, set wide, the only place the name is drawn."""
+    a = f' aria-label="{aria}"' if aria else ''
+    return (f'<a class="brand" href="{u("/")}"{a}>'
+            f'<span>Open Air</span><span>Gallery</span></a>')
+
 
 def nav_html():
     items = ''.join(f'<li><a href="{u(href)}">{label}</a></li>' for label, href in NAV)
     return f'''<header class="nav">
   <div class="wrap">
-    <a class="brand" href="{u('/')}" aria-label="{SITE_NAME} home"><span>Open Air</span><b>Gallery</b></a>
-    <nav aria-label="Main"><ul class="nav-links">{items}</ul></nav>
-    <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    {brand(f'{SITE_NAME} home')}
+    <nav aria-label="Main"><ul class="nav-links" id="nav-links">{items}<li class="nav-cta"><a class="btn btn-mint btn-sm" href="{u('/contact')}">Book a free consult</a></li></ul></nav>
+    <button class="nav-toggle" type="button" aria-label="Menu" aria-controls="nav-links" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </div>
 </header>'''
 
 
 def footer_html():
+    work = ''.join(f'<li><a href="{u(href)}">{label}</a></li>' for label, href in FOOTER_WORK)
+    company = ''.join(f'<li><a href="{u(href)}">{label}</a></li>' for label, href in COMPANY)
     return f'''<footer>
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a class="brand" href="{u('/')}"><span>Open Air</span><b>Gallery</b></a>
-        <p>Murals, banners and large-image work at building scale. New York and nationwide.</p>
-        <div class="socials">
-          <a {ext(IG)} aria-label="Instagram">{ICONS['ig']}</a>
-          <a href="mailto:{EMAIL}" aria-label="Email">{ICONS['mail']}</a>
-        </div>
+        {brand()}
+        <p>Murals, banners and large-image work at building scale. Ephraim and the Open Air Gallery crew, out of New York, painting nationwide.</p>
+        <ul class="foot-contact">
+          <li><a href="mailto:{EMAIL}">{ICONS['mail']}{EMAIL}</a></li>
+          <li><a {ext(IG)}>{ICONS['ig']}{IG_HANDLE}</a></li>
+        </ul>
       </div>
-      <div><h4>Company</h4><ul>
-        {''.join(f'<li><a href="{u(href)}">{label}</a></li>' for label, href in NAV)}</ul></div>
-      <div><h4>Contact</h4><ul>
-        <li><a href="mailto:{EMAIL}">{EMAIL}</a></li><li><a {ext(IG)}>{IG_HANDLE}</a></li></ul></div>
+      <div><h4>Work</h4><ul>{work}<li><a href="{u('/work')}">All twelve walls</a></li></ul></div>
+      <div><h4>Company</h4><ul>{company}</ul></div>
     </div>
     <div class="foot-bottom">
-      <span>&copy; <span id="year">2026</span> {SITE_NAME}. All rights reserved.</span>
+      <span>{FOOT_LINE}</span>
+      <span>&copy; <span id="year">2026</span> {SITE_NAME}</span>
     </div>
   </div>
 </footer>
@@ -128,10 +158,11 @@ def asset_v(rel):
 
 
 def page_hero(eyebrow, title, lead, media_slug=None, crumb=None):
-    media = f'<div class="hero-media">{img(media_slug, "", extra="fetchpriority=high")}</div>' if media_slug else ''
+    media = (f'<div class="hero-media">{img(media_slug, "", extra="fetchpriority=high")}</div>'
+             f'<div class="hero-shade"></div>') if media_slug else ''
     crumbs = (f'<div class="crumbs"><a href="{u("/")}">Home</a><span>/</span><span>{crumb or title}</span></div>'
               if crumb is not False else '')
-    return f'''<section class="page-hero">{media}<div class="hero-shade"></div>
+    return f'''<section class="page-hero">{media}
   <div class="wrap"><div class="hero-inner">{crumbs}<div class="eyebrow">{eyebrow}</div><h1>{title}</h1><p class="lead">{lead}</p></div></div></section>'''
 
 
@@ -179,6 +210,7 @@ def layout(path, title, desc, body, ld=None, noindex=False):
 <meta property="og:type" content="website"><meta property="og:site_name" content="{SITE_NAME}"><meta property="og:title" content="{html.escape(title)}"><meta property="og:description" content="{html.escape(desc)}"><meta property="og:url" content="{canonical}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="{INK}">
+<link rel="icon" href="{FAVICON}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="{FONTS}" rel="stylesheet">
 <link rel="stylesheet" href="{u('/css/site.css')}?v={asset_v("css/site.css")}">
