@@ -1,0 +1,219 @@
+{
+  "_meta": {
+    "what": "Hand-written map from project slug to the EXACT image URLs as rendered by Ephraim's live Wix site, harvested from research/wix/{work,home,about}.html.",
+    "harvested": "2026-09-18",
+    "source_pages": [
+      "research/wix/work.html",
+      "research/wix/home.html",
+      "research/wix/about.html"
+    ],
+    "url_rule": "Every url below is byte-for-byte what the Wix page rendered - media id, ~mv2.<ext>, transform segment and trailing filename untouched. fetch-wix.py rewrites ONLY the transform segment (the part between /v1/ and the trailing filename) to ask for a large rendition, and keeps any /v1/crop/x_,y_,w_,h_/ prefix, which is the client's own framing. Never build a bare /media/<id> URL: Wix answers 403.",
+    "rendered_sizes_are_placeholders": "Most rendered URLs are the w_147 blurred lazy-load placeholder Wix ships in the HTML. That is fine - the URL is a template; only 'native' below says how much real pixel data exists behind it.",
+    "native": "[width, height] of the original upload, taken from the page's own imageData JSON. This is the ceiling: Wix does not upscale, so a fit/w_3000 request returns at most this.",
+    "status": "PLACEHOLDERS. Ephraim's originals replace these - see docs/images.md for the swap."
+  },
+
+  "projects": {
+    "gucci-new-york": {
+      "hero": "https://static.wixstatic.com/media/b79272_69ff08f56b7b4fa48ab73a80fd49822d~mv2.jpeg/v1/fill/w_147,h_125,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Gucci%20Mural%20by%20Open%20Air%20Gallery.jpeg",
+      "gallery": [],
+      "native": [1242, 1057],
+      "wix_name": "Gucci Mural by Open Air Gallery.jpeg",
+      "source": "work.html"
+    },
+    "crown-royal-trail-blazers": {
+      "hero": "https://static.wixstatic.com/media/b79272_5cea0cf15f5a49be90140bc9c881c221~mv2.jpg/v1/fill/w_147,h_115,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Crown%20Royal%20x%20Trail%20Blazers%20Mural%20by%20Open%20Air%20Gallery.jpg",
+      "gallery": [],
+      "native": [1236, 971],
+      "wix_name": "Crown Royal x Trail Blazers Mural by Open Air Gallery.jpg",
+      "source": "work.html"
+    },
+    "uber-san-francisco": {
+      "hero": "https://static.wixstatic.com/media/b79272_d7b71126410a4f5585a251dd156f5438~mv2.jpeg/v1/fill/w_147,h_122,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Uber%20Mural%20by%20Open%20Air%20Gallery.jpeg",
+      "gallery": [],
+      "native": [1242, 1028],
+      "wix_name": "Uber Mural by Open Air Gallery.jpeg",
+      "source": "work.html"
+    },
+    "victorias-secret-austin": {
+      "hero": "https://static.wixstatic.com/media/b79272_6fc1e9ef309648388d2f8500662b39e2~mv2.jpg/v1/fill/w_147,h_114,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Victoria's%20Secret%20Mural%20by%20Open%20Air%20Gallery.jpg",
+      "gallery": [],
+      "native": [1242, 966],
+      "wix_name": "Victoria's Secret Mural by Open Air Gallery.jpg",
+      "source": "work.html",
+      "note": "The filename carries a LITERAL apostrophe (rendered as &#x27; in the HTML), not %27. Kept as-is."
+    },
+    "vitamin-water-new-york": {
+      "hero": "https://static.wixstatic.com/media/b79272_b2b6fc5b324a4a74800596c343ceaf7c~mv2.jpeg/v1/fill/w_147,h_82,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Vitamin%20Water%20Mural%20by%20Open%20Air%20Gallery.jpeg",
+      "gallery": [],
+      "native": [2732, 1521],
+      "wix_name": "Vitamin Water Mural by Open Air Gallery.jpeg",
+      "source": "work.html"
+    },
+    "sprite-new-york": {
+      "hero": "https://static.wixstatic.com/media/b79272_c3ec1e0cb57a450c878164fb90399e10~mv2.jpeg/v1/fill/w_147,h_98,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/IMG_0296.jpeg",
+      "gallery": [],
+      "native": [1200, 800],
+      "wix_name": "IMG_0296.jpeg",
+      "source": "work.html",
+      "note": "The only project whose Wix file is NOT project-named - matched by position and by the Work page heading 'Sprite' sitting next to it. The same photo is uploaded a second time under media id b79272_cd332fb1e989442bbf5494d3fe3134fa~mv2.jpeg on the Home page (same name, same 1200x800); not fetched twice."
+    },
+    "ford-mustang-chicago": {
+      "hero": "https://static.wixstatic.com/media/b79272_e319a8e0a57d4d5babf329c27e35606d~mv2.jpeg/v1/fill/w_147,h_120,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Ford%20Mustang%20Mural%20by%20Open%20Air%20Gallery.jpeg",
+      "gallery": [],
+      "native": [1242, 1015],
+      "wix_name": "Ford Mustang Mural by Open Air Gallery.jpeg",
+      "source": "work.html",
+      "note": "Same media id also appears in the Home gallery at /v1/fit/w_1241,h_1014/ - same upload, nothing extra to fetch."
+    },
+    "showtime-dexter-boston": {
+      "hero": "https://static.wixstatic.com/media/b79272_83b65ee0296641828f6ea33409d70ae3~mv2.jpeg/v1/fill/w_147,h_98,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Showtime's%20Dexter%20Mural%20by%20Open%20Air%20Gallery.jpeg",
+      "gallery": [],
+      "native": [1200, 800],
+      "wix_name": "Showtime's Dexter Mural by Open Air Gallery.jpeg",
+      "source": "work.html",
+      "note": "Literal apostrophe in the filename, as with Victoria's Secret."
+    },
+    "upendo-los-angeles": {
+      "hero": "https://static.wixstatic.com/media/b79272_49aa2150af824e999fa7884f26ae8c87~mv2.jpeg/v1/fill/w_147,h_196,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Upendo%20Mural%20by%20Open%20Air%20Gallery.jpeg",
+      "gallery": [],
+      "native": [3024, 4032],
+      "wix_name": "Upendo Mural by Open Air Gallery.jpeg",
+      "source": "work.html"
+    },
+    "i-am-a-man-chicago": {
+      "hero": "https://static.wixstatic.com/media/b79272_0875247959664db094b1fcaecdf470fc~mv2.jpeg/v1/fill/w_147,h_151,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/I%20Am%20A%20Man%20Mural%20by%20Open%20Air%20Gallery.jpeg",
+      "gallery": [],
+      "native": [1242, 1273],
+      "wix_name": "I Am A Man Mural by Open Air Gallery.jpeg",
+      "source": "work.html"
+    },
+    "john-lewis-rochester": {
+      "hero": "https://static.wixstatic.com/media/b79272_797099030f7e46f0a6d80f53c4453cb1~mv2.jpeg/v1/fill/w_147,h_99,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/John%20Lewis%20Mural%20by%20Open%20Air%20Gallery.jpeg",
+      "gallery": [
+        "https://static.wixstatic.com/media/b79272_d11964498f414849a8445e2abee5cb49~mv2.jpg/v1/fill/w_147,h_98,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/IAMPROJECTLEWIS-2612.jpg"
+      ],
+      "native": [1284, 861],
+      "gallery_native": [[4762, 3175]],
+      "wix_name": "John Lewis Mural by Open Air Gallery.jpeg",
+      "source": "work.html; gallery image from about.html",
+      "note": "The only project with a second image. IAMPROJECTLEWIS-2612.jpg is a 4762x3175 shot of the same I Am Speaking commission, used on the About page to illustrate 'Mural Prep' - by far the highest-resolution project photo on the whole site."
+    },
+    "malcolm-x-rochester": {
+      "hero": "https://static.wixstatic.com/media/b79272_fbea2d0bffa44eb8b01153b0da375eef~mv2.jpeg/v1/fill/w_147,h_176,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Malcolm%20X%20Mural%20by%20Open%20Air%20Gallery.jpeg",
+      "gallery": [],
+      "native": [1284, 1536],
+      "wix_name": "Malcolm X Mural by Open Air Gallery.jpeg",
+      "source": "work.html"
+    }
+  },
+
+  "extras": {
+    "home-hero": {
+      "url": "https://static.wixstatic.com/media/b79272_9ad9849497194819ac83388cb0ee822c~mv2.jpg/v1/fill/w_147,h_167,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/1P1A7854.jpg",
+      "native": [4995, 5683],
+      "wix_name": "1P1A7854.jpg",
+      "source": "home.html",
+      "note": "Behind 'MURALS THAT CAPTURE THE GAZE' on the Wix home page. Uncropped. It is a Moncler shot - Wix reuses this one upload for the hero and for both Moncler crops below."
+    },
+    "moncler-wide": {
+      "url": "https://static.wixstatic.com/media/b79272_9ad9849497194819ac83388cb0ee822c~mv2.jpg/v1/crop/x_0,y_1654,w_4995,h_3396/fill/w_147,h_100,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/1P1A7854.jpg",
+      "native": [4995, 3396],
+      "wix_name": "1P1A7854.jpg",
+      "source": "home.html",
+      "note": "Same upload as home-hero, but with the client's own /v1/crop/ framing (a 4995x3396 landscape band). The crop prefix must survive the transform rewrite - this entry is the one that proves it does."
+    },
+    "moncler": {
+      "url": "https://static.wixstatic.com/media/b79272_a2acebc3aafa4dc188222c6d6e77642b~mv2.jpg/v1/fill/w_147,h_98,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Moncler%20Mural%20-%20Open%20Air%20Gallery%20-%20Muralists.jpg",
+      "native": [8688, 5792],
+      "wix_name": "Moncler Mural - Open Air Gallery - Muralists",
+      "source": "home.html",
+      "note": "8688x5792 - the largest original on the site. Moncler is in CLAUDE.md's project list but has no Work-page entry."
+    },
+    "red-bull": {
+      "url": "https://static.wixstatic.com/media/b79272_b5b1a4f6a88d4e0581ad2b6b4ae4b203~mv2.jpeg/v1/fill/w_147,h_83,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/IMG_4794.jpeg",
+      "native": [6922, 3894],
+      "wix_name": "IMG_4794.jpeg",
+      "source": "home.html",
+      "note": "In CLAUDE.md's project list; Home only, no Work-page entry."
+    },
+    "monkey-47": {
+      "url": "https://static.wixstatic.com/media/b79272_1f56b37042574c229d351b2b1fdc8e23~mv2.jpeg/v1/fill/w_147,h_88,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/IMG_1162.jpeg",
+      "native": [1284, 773],
+      "wix_name": "IMG_1162.jpeg",
+      "source": "home.html",
+      "note": "In CLAUDE.md's project list; Home only, no Work-page entry. Slide '04' on the Wix home page."
+    },
+    "ephraim-portrait": {
+      "url": "https://static.wixstatic.com/media/b79272_7976a1b1126e40cab564ccfbbbb22e98~mv2.png/v1/fill/w_49,h_53,al_c,q_85,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Akbar%20Portrait_edited.png",
+      "native": [1773, 1924],
+      "wix_name": "Akbar Portrait_edited.png",
+      "source": "home.html",
+      "note": "The portrait of Ephraim. Its alt text is the only place on the site that gives his surname: 'Ephraim Gebre'. The FILE is called 'Akbar Portrait_edited.png' - check with him before captioning this as Ephraim."
+    },
+    "about-team": {
+      "url": "https://static.wixstatic.com/media/b79272_8b53482710de489d858e26e0c605244e~mv2.jpeg/v1/fill/w_147,h_98,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/IMG_6222.jpeg",
+      "native": [5760, 3840],
+      "wix_name": "IMG_6222.jpeg",
+      "source": "about.html",
+      "note": "The lead image on the About page, above 'At Open Air Gallery, we are driven by our passion for mural creations.' 5760x3840."
+    },
+    "about-portrait-small": {
+      "url": "https://static.wixstatic.com/media/b79272_804f2aaeea884dc69313c92229b9b8e8~mv2.jpeg/v1/fill/w_90,h_90,al_c,q_80,usm_0.66_1.00_0.01,blur_3,enc_avif,quality_auto/b79272_804f2aaeea884dc69313c92229b9b8e8~mv2.jpeg",
+      "native": [1284, 1277],
+      "wix_name": "IMG_1167.jpeg",
+      "source": "about.html",
+      "note": "Rendered as a 90x90 round avatar beside the About page's contact block. Native is 1284x1277, so it stands up as a real portrait."
+    },
+    "about-preservation": {
+      "url": "https://static.wixstatic.com/media/b79272_dbab7f347d494b8d85b1853f1563cb3f~mv2.jpg/v1/fill/w_147,h_98,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/IMG_3389_edited.jpg",
+      "native": [1242, 824],
+      "wix_name": "IMG_3389_edited.jpg",
+      "source": "about.html",
+      "note": "Illustrates the 'Mural Preservation' process step - anti-vandalism coating. The closest thing on the saved pages to a graffiti-removal photo."
+    },
+    "contact-band": {
+      "url": "https://static.wixstatic.com/media/b79272_bd2f4aaca9c54dce8eeb29d202657b0f~mv2.jpeg/v1/fill/w_147,h_98,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/b79272_bd2f4aaca9c54dce8eeb29d202657b0f~mv2.jpeg",
+      "native": [6720, 4480],
+      "wix_name": null,
+      "source": "home.html",
+      "note": "Wide shot behind the home page's 'Let's Get to Work' form band. 6720x4480."
+    }
+  },
+
+  "not_fetched": {
+    "_why": "Harvested and recorded so nothing needs re-researching, but outside build step 15's brief. Move an entry into 'extras' and re-run fetch-wix.py to pull it.",
+
+    "graffiti_removal_page": {
+      "status": "NO IMAGES AVAILABLE",
+      "detail": "The Wix site does have a /graffiti-removal page (pageId 'bidns', titled 'Graffitti Removal' - his spelling, two Ts), but only home.html, work.html and about.html were saved, so not one graffiti-removal image URL exists in research/wix/. The page must be re-saved, or Ephraim asked for before/after photos. Until then the Graffiti Removal page's 'Wash' mechanic uses the drawn brick wall, as CLAUDE.md already plans."
+    },
+
+    "signs_and_banners": {
+      "_note": "The lower half of work.html is a Signs / Banners grid, not murals. These feed the Services page, not Work.",
+      "corona": {"url": "https://static.wixstatic.com/media/b79272_894206b6d2684d3f986e4fd261484c72~mv2.jpeg/v1/fill/w_147,h_146,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Corona%20Sign%20by%20Open%20Air%20Gallery.jpeg", "native": [1120, 1115]},
+      "jack-daniels": {"url": "https://static.wixstatic.com/media/b79272_d61b99c40a834a908865dfe828f6e12a~mv2.jpeg/v1/fill/w_147,h_196,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Jack%20Daniels%20Sign%20by%20Open%20Air%20Gallery.jpeg", "native": [3024, 4032]},
+      "g-street-loft-sign": {"url": "https://static.wixstatic.com/media/b79272_643f9e03ae41424bbc33c22a61c4ad2e~mv2.jpeg/v1/fill/w_154,h_206,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/G%20Street%20Loft%20Sign%20by%20Open%20Air%20Gallery.jpeg", "native": [857, 1145]},
+      "house-of-pizza": {"url": "https://static.wixstatic.com/media/b79272_94cb2122c3ac43f984b3bbd8e94a8ac9~mv2.jpeg/v1/fill/w_147,h_140,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/The%20House%20of%20Pizza%20%26%20Calzones%20Sign%20by%20Open%20Air%20Gallery.jpeg", "native": [1242, 1180]},
+      "marions": {"url": "https://static.wixstatic.com/media/b79272_ae37157d3fd14bd8a2ad358972453257~mv2.jpeg/v1/fill/w_147,h_99,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Marion's%20Sign%20by%20Open%20Air%20Gallery.jpeg", "native": [1124, 758]},
+      "heineken": {"url": "https://static.wixstatic.com/media/b79272_94bf9dd3d77e498aa334797410e16892~mv2.jpeg/v1/fill/w_147,h_110,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Heineken%20Sign%20by%20Open%20Air%20Gallery.jpeg", "native": [4032, 3024]},
+      "flattrack": {"url": "https://static.wixstatic.com/media/b79272_c83db32bc618485d966ceecb6befa12f~mv2.jpeg/v1/fill/w_147,h_120,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Flattrack%20Sign%20by%20Open%20Air%20Gallery.jpeg", "native": [1242, 1010]},
+      "black-crow": {"url": "https://static.wixstatic.com/media/b79272_b18e4e65ed034f50bc6d35704d4726d7~mv2.jpeg/v1/fill/w_147,h_94,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Black%20Crow%20Sign%20by%20Open%20Air%20Gallery.jpeg", "native": [1100, 702]},
+      "untitled-sign": {"url": "https://static.wixstatic.com/media/b79272_4b7a604bb26c4e2fb82287f9203661bd~mv2.jpeg/v1/fill/w_147,h_147,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/b79272_4b7a604bb26c4e2fb82287f9203661bd~mv2.jpeg", "native": [1106, 1108], "note": "No filename and no alt - ask Ephraim what it is."}
+    },
+
+    "other_home_murals": {
+      "_note": "Shown on the Wix home page under 'Check Out Some Latest Projects' but absent from CLAUDE.md's project list. Worth asking Ephraim whether they belong on Work.",
+      "snickers": {"url": "https://static.wixstatic.com/media/b79272_9510facddf1d4116b25758d0c0dd51a4~mv2.jpeg/v1/fill/w_147,h_91,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/IMG_0295.jpeg", "native": [1199, 745]},
+      "the-inn": {"url": "https://static.wixstatic.com/media/b79272_b3d2ccef56af4e39a249b7765a775fa3~mv2.jpeg/v1/fill/w_147,h_184,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/IMG_8615.jpeg", "native": [1242, 1551]},
+      "gst-loft": {"url": "https://static.wixstatic.com/media/b79272_3bff04ff3fcc424e92c506b7b15a9c3f~mv2.jpeg/v1/fill/w_154,h_206,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/IMG_6663.jpeg", "native": [857, 1145]}
+    },
+
+    "deliberately_skipped": {
+      "unsplash-stock": {"url": "https://static.wixstatic.com/media/nsplsh_34366a7544347a59315841~mv2_d_2448_3264_s_4_2.jpg/v1/fill/w_147,h_196,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/Image%20by%20David%20Pisnoy.jpg", "why": "Not Ephraim's work - an Unsplash stock photo (the nsplsh_ prefix) illustrating the About page's 'Paint Analysis' step. We do not carry stock into the new site."},
+      "og-card": {"url": "https://static.wixstatic.com/media/b79272_2838f3715a1142adb434e0edd6eb7204%7Emv2.jpg/v1/fit/w_2500,h_1330,al_c/b79272_2838f3715a1142adb434e0edd6eb7204%7Emv2.jpg", "why": "The site-wide og:image. We generate our own social card. Note the tilde is percent-encoded as %7E here and nowhere else - any URL handling must survive both forms."},
+      "ui-mockups": {"why": "Laptop.png (3470x1860) and three 1242x2208 iPhone screenshots (IMG_2017.png, IMG_2215.png, b79272_e17b5fac...) are device mockups in the Wix 'REACH NEW HEIGHTS' block. Chrome, not work."},
+      "video-posters": {"why": "b79272_98f87cd6...f000.jpg (1280x720) and b79272_da73fc08...f000.jpg (3840x2160) are poster frames for two background videos. The videos themselves are not in the saved HTML; ask Ephraim for the source files if we want motion."}
+    }
+  }
+}
