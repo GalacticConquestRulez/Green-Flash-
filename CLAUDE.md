@@ -522,3 +522,16 @@ failure. `node /root/shot/oag-paint-stills.mjs` writes the frames to judge print
 `splat-verify.mjs`, `splat-stills.mjs`, `shot-oag-gr.mjs`, `shot-oag-build.mjs` and the
 wall / spray / tip runs all still pass; splat-verify's and tip-verify's waits were moved to
 the new clock, which is the only change any of them needed.
+
+### Concept from Overall Murals' services page (owner, 2026-09-19)
+"We really enjoyed Overall Murals' checkerboard negative space and cards describing it with
+the full-page image of the murals going behind it" (their /services on desktop). The pattern:
+a three-column checkerboard where every other cell is a white card — a big brushed number
+(01…06), a short pop-coloured rule, the service title and copy, a "see more →" — and the
+other cells are **windows onto a mural photograph fixed behind the grid**, so as the page
+scrolls the mural moves behind the cards and shows through the negative space. For Ephraim:
+the Services page becomes this board (Murals · Banners & signs · Graffiti removal · Public
+works · Paint science · Commercial painting) with his walls behind the windows; the same
+window idea can carry the Work grid (cards as negative space over one wall). Photo cells use
+`background-attachment: fixed` (desktop; a scroll-linked translate on iOS where fixed is not
+honoured), never a static crop. Mockup: scratchpad `oagmock/checker.html`.
