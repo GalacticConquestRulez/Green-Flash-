@@ -1635,7 +1635,11 @@ html.motion .sp-stroke.go .sp-sweep{
    three paints the mechanics cycle include the ink that shows on it. */
 .page-hero.blank .btn-row{margin-top:1.8rem}
 
-/* --- section heads, and the small headings under them ----------------- */
+/* --- section heads, and the small headings under them -----------------
+   Anton's caps rise out of their own line box at line-height .9, so a
+   heading set tight under an aside will climb into it: the marker above a
+   section head gets the room back. */
+.section-head .eyebrow{margin-bottom:1rem}
 /* Every heading on the site is the headline face now, at the size its job
    asks for: a section head shouts, a stage name and a card title speak. */
 h3{font-family:var(--font-tall);font-weight:400;text-transform:uppercase;font-size:1.3rem;letter-spacing:.02em;line-height:1}
@@ -2084,9 +2088,13 @@ html.motion .ba-handle:focus-visible{outline:2px solid var(--mint);outline-offse
 .gr-band .lead{color:var(--ink-mute);opacity:1;max-width:56ch}
 .gr-band .btn-row{margin-top:1.8rem}
 /* The eyebrow is mint everywhere else on the site; here it is the mint. */
+/* The eyebrow was a mint pill here because mint could not carry type on
+   this panel and ink on mint could. It is the marker now, and on the
+   scrubbed panel the marker is ink: --pop on --wall is under the floor the
+   coral is allowed to carry type at, and this is the one block on the site
+   whose ground is neither the page nor the paint. */
 .gr-band .eyebrow{
-  color:var(--ink);background:var(--mint);
-  padding:.4rem .8rem;border-radius:999px;margin-bottom:1.1rem;
+  color:var(--ink);background:none;padding:0;margin-bottom:.9rem;
 }
 .gr-band .tags{margin-top:1.4rem}
 .gr-band .tags li{border-color:var(--ink-line);color:var(--ink-mute)}
