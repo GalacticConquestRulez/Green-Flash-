@@ -416,3 +416,15 @@ Ephraim wants the site "more like" **colossalmedia.com** and **overallmurals.com
   and pushed to GitHub as branch `openairgallery-live` of `GalacticConquestRulez/Green-Flash-`;
   the redesign is built on `openairgallery-redesign`. "If he doesn't like it" = check out the
   tag / the live branch and `./deploy.sh`.
+
+### Never state a wall count (owner, 2026-09-19)
+"Don't say 12 walls — he has more not on there, and wants to show more of his public works
+like Colossal did; he's been to Mexico, Brazil, teen empowerment and more, so don't limit."
+So: no "twelve walls", no "12 · walls painted" stat, no "twelve of them" — anywhere. The
+twelve in `projects.py` are the walls we *have photographs of*, not his body of work. Copy
+speaks of the work as open-ended ("walls in New York, Portland, Chicago, Rochester, Mexico,
+Brazil…"), the stats band drops the wall count (square feet stays only if phrased as "and
+counting"), and the site gets room for public works and community projects — Mexico, Brazil,
+teen-empowerment murals — as their own strand, the way Colossal shows its public art. Ask
+Ephraim for those photographs and the stories; until they arrive, leave the section framed
+for them rather than pretending the roster is complete.
