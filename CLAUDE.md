@@ -428,3 +428,12 @@ counting"), and the site gets room for public works and community projects — M
 teen-empowerment murals — as their own strand, the way Colossal shows its public art. Ask
 Ephraim for those photographs and the stories; until they arrive, leave the section framed
 for them rather than pretending the roster is complete.
+
+### Round three palette (owner, 2026-09-19): white ground, his teal, one pop colour
+Owner: "Let's do a white background — or maybe do white, his teal and another color that pops
+with it." So the redesign flips the canvas: **white** ground with **ink** type, his **mint/teal
+`#71EEB8`** as the loud band colour (the Colossal yellow role), and **one third colour that pops
+against the mint** for accents — emphasis words, the marker asides, the active nav link, the
+primary-on-mint button. Proposed: a coral-orange `#FF4F2E` (the mint's complement, and the
+warm note Overall Murals uses). Black stays for the marquee strip, the hero scrim and the
+footer only. The dark-canvas site that is live today is the restore point, not the direction.
