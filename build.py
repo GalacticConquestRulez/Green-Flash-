@@ -1170,7 +1170,26 @@ BOARD = [
 ]
 
 
+# The four cells that complete the lattice are brand cards (owner, 2026-09-19:
+# "if you need more cards, add brand cards mixed in that he's worked with, just
+# a large logo on the blanks"): a splattered white diamond carrying one big
+# mark from the brand wall — Gucci, Sprite, Ford, Heineken, the four with the
+# strongest real logos on file.
+BOARD_BRANDS = ('gucci', 'sprite', 'ford', 'heineken')
+
+
+def _brand_diamond(i, slug):
+    b = next(x for x in BRANDS if x['slug'] == slug)
+    cols = [DROP_PALETTE[0], DROP_PALETTE[1 + i % 3], DROP_PALETTE[1 + (i + 1) % 3]]
+    spat = splatter_svg(f'd{i}', cols, 4100 + i * 137)
+    return (f'<div class="dia brand"><div class="sq">{spat}'
+            f'<div class="tx"><div class="bigmark">{brand_mark(b)}</div></div></div></div>')
+
+
 def _diamond(i, row):
+    if isinstance(row, str):
+        return _brand_diamond(i, row)
+
     # The lattice positions are not here. They are per breakpoint — three
     # across at desktop, two on a tablet, one on a phone — and a position in
     # the markup would be an inline style that no media query could move.
@@ -1190,7 +1209,7 @@ def _diamond(i, row):
 def services_board(eyebrow='our services',
                    title=('There&rsquo;s a wall for everyone<br>when you choose '
                           '<em class="pop">hand-painted</em> murals.')):
-    """The board: one deep strip of walls, six diamonds floating over it.
+    """The board: one deep strip of walls under a packed diamond lattice.
 
     The strip is the only thing that moves, it moves at about half the page's
     speed, and it moves through a CSS scroll timeline rather than through a
@@ -1205,7 +1224,13 @@ def services_board(eyebrow='our services',
     walls = ''.join(
         f'<div class="dwall" style="background-image:url('
         f'{u("/assets/img/" + w + "-1600.webp")})"></div>' for w in DEEP_WALLS)
-    dias = ''.join(_diamond(i, row) for i, row in enumerate(BOARD))
+    # Ten cells in lattice order: three across, then a row on the half step
+    # with fillers at the edges, then the last card between two fillers. The
+    # positions live in the stylesheet by nth-child, per breakpoint.
+    b = BOARD_BRANDS
+    order = [BOARD[0], BOARD[1], BOARD[2], b[0], BOARD[3], BOARD[4], b[1],
+             b[2], BOARD[5], b[3]]
+    dias = ''.join(_diamond(i, row) for i, row in enumerate(order))
     return (f'<section class="sboard-head"><div class="wrap">'
             f'<p class="marker">{eyebrow}</p><h2 class="tall">{title}</h2>'
             f'</div></section>\n'
