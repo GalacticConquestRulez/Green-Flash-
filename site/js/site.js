@@ -850,7 +850,10 @@
       try { f.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); }
       finally { replay = false; }
     }, GO);
-    killer = setTimeout(clear, CLEAR);
+    // Nothing navigates on the mailto/POST path, so the paint would sit for
+    // the full teardown over the "your mail app should open" status. Lift it
+    // as soon as the pass has landed instead.
+    killer = setTimeout(clear, GO + 160);
   }, true);
 
   // A page restored from the bfcache must never come back painted.
