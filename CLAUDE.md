@@ -443,3 +443,23 @@ footer only. The dark-canvas site that is live today is the restore point, not t
   break-up on the long edges, a few drips, a degree or two of tilt. Same for the highlight
   behind the hero's mint words. Never a flat rectangle of mint, never a clean wave edge.
   Generate the strokes (seeded, like the tags and the props) so they are byte-stable.
+
+### The paint mechanics, round three (owner, 2026-09-19)
+"Add in multi-colour mixing and an on-screen effect that matches that; increase time on
+transitions so he can actually enjoy it; the paint-splatter transition should be larger;
+increase the quality of the current animations to make them high-definition and less
+emoji-like." So, for every paint verb (Splat, the sweep transition, Wall, Spray, Tip, Brush):
+- **Two paints plus white, and they mix.** Teal `#71EEB8` and the pop coral `#FF4F2E` (white on
+  the dark hero). Where paint lands on paint it mixes like paint — a multiply/mix at the overlap
+  with a wet, bleeding edge — never two flat shapes stacked. Splat alternates the two; the Wall
+  cycles through them stroke by stroke; the sweep transition carries both as lap marks in one
+  pass.
+- **Slower, so it can be watched.** The sweep is a beat, not a flash: splat pop ≈ 260 ms, the
+  sweep ≈ 900 ms, navigation at ≈ 1.3 s; nav-only strokes ≈ 1 s. Never faster than that again.
+- **Bigger.** The splat is roughly twice today's — it should own a third of the screen on
+  desktop before the sweep comes — with more satellites and longer drips.
+- **Painterly, not clip-art.** No flat vector blobs: layered colour with a darker rim, a gloss
+  highlight, grain, bleed at the wet edge, drips that bead; strokes with dry-brush breakup and
+  lap marks. Render sharp at 2× (SVG filters or DPR-aware canvas), never a scaled bitmap. The
+  same standard as the props in `art.py` and the tags in `wall.py`. If a still of the splat or
+  a stroke would look wrong printed at poster size, it is not done.
