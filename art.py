@@ -245,7 +245,7 @@ def brush_svg(uid='brush', loaded=True):
  <!-- the underbody of the bristles, so the mass reads before the hairs -->
  <path d="M76 106 h48 l6 62 q-30 12 -60 0 z" fill="#8d7a52" opacity=".9"/>
  <path d="M78 136 l44 0 l6 32 q-28 12 -56 0 z" fill="{MINT_DEEP}"/>
- {''.join(hairs)}
+ <g fill="none" stroke-linecap="round">{''.join(hairs)}</g>
  <path d="M74 106 h52 v9 h-52 z" fill="#000" opacity=".28" filter="url(#{uid}-soft)"/>
  <!-- gloss on the wet load -->
  <path d="M86 140 q14 -4 28 0" stroke="#fff" stroke-width="3" opacity=".22" stroke-linecap="round" fill="none" filter="url(#{uid}-soft)"/>
@@ -264,3 +264,75 @@ body{{margin:0;background:{INK};display:grid;grid-template-columns:1fr 1fr 1fr;g
 </style><div class="cell">{can_svg()}</div><div class="cell">{roller_svg()}</div><div class="cell">{brush_svg()}</div>'''
     out = sys.argv[1] if len(sys.argv) > 1 else 'research/props.html'
     open(out, 'w').write(html); print('wrote', out, len(html), 'bytes')
+
+
+# ------------------------------------------------- the brush that rides a rule
+def brush_rule_svg(uid='brushrule', loaded=True):
+    """The same brush, laid over to paint a horizontal line left to right.
+
+    `brush_svg()` is the upright display piece: 200 x 200, the brush stood on
+    end with the stroke it just laid underneath it. A brush riding a rule is a
+    different shape — it has to meet the line at a working angle, put its
+    bristles *on* the line, and carry nothing below the line to be clipped —
+    so this is that brush, same wood, same ferrule, same loaded bristles,
+    turned 48 degrees and anchored on the point where the leading hairs touch.
+
+    The contact point is at (52, 166) of the 200 x 200 viewBox — 26% across and
+    83% down — and site.css positions the element by those two fractions so the
+    bristles sit on the rule whatever size the brush is drawn at. Everything
+    else is above and behind that point: the handle leans forward over the wet
+    end of the rule, the hairs drag back over the paint just laid. The hair
+    count is lower than the display piece's 220 because this is drawn at 44-64
+    px and 90 hairs is already more than a retina screen can resolve there.
+    """
+    r = _rng(11)
+    hairs = []
+    for i in range(70):
+        x0 = 76 + r.uniform(0, 48)
+        curve = r.uniform(-4, 4) + (x0 - 100) * .2
+        ln = r.uniform(58, 70)
+        w = r.uniform(.8, 1.5)
+        tan = r.choice(['#e3d2ab', '#c9b07e', '#b0945e', '#f0e3c4'])
+        hairs.append(f'<path d="M{x0:.0f} 106q{curve*.5:.0f} {ln*.55:.0f} {curve:.0f} {ln:.0f}" stroke="{tan}" stroke-width="{w:.1f}"/>')
+        if loaded:
+            col = r.choice([MINT, MINT, MINT_LO, MINT_HI])
+            hairs.append(f'<path d="M{x0+curve*.45:.0f} {106+ln*.45:.0f}q{curve*.3:.0f} {ln*.3:.0f} {curve*.55:.0f} {ln*.55:.0f}" stroke="{col}" stroke-width="{w*1.3:.1f}"/>')
+        if r.random() < .3:
+            hairs.append(f'<path d="M{x0+curve:.0f} {106+ln:.0f}l{r.uniform(-1.5,1.5):.0f} {r.uniform(2,3.5):.0f}" stroke="{MINT_LO if loaded else tan}" stroke-width="{w*.6:.1f}"/>')
+    grain = ''.join(f'<path d="M{86+i*5.5:.1f} 8 q{r.uniform(-2,2):.1f} 36 {r.uniform(-1,1):.1f} 70" stroke="#3a1e08" stroke-width="{r.uniform(.4,.9):.2f}" fill="none" opacity="{r.uniform(.18,.4):.2f}"/>' for i in range(6))
+    # The hairs that are actually touching: after the turn they lie along the
+    # rule, dragging back over the paint just laid.
+    drag = ''.join(
+        f'<path d="M{50-r.uniform(0,3):.0f} {163+i*1.5:.0f}q-{12+r.uniform(0,10):.0f} {r.uniform(-1.2,1.2):.0f} -{22+r.uniform(0,16):.0f} {r.uniform(-1,1):.0f}" '
+        f'stroke="{r.choice([MINT, MINT, MINT_HI, MINT_LO])}" stroke-width="{r.uniform(.5,1.2):.1f}" opacity="{r.uniform(.35,.85):.1f}"/>'
+        for i in range(7))
+    defs = f'''<defs>
+<linearGradient id="{uid}-wood" x1="0" y1="0" x2="1" y2="0">
+ <stop offset="0" stop-color="#5a3316"/><stop offset=".22" stop-color="#b5732f"/><stop offset=".45" stop-color="#e9b374"/>
+ <stop offset=".62" stop-color="#d0924e"/><stop offset=".85" stop-color="#8a4f1f"/><stop offset="1" stop-color="#4a2a10"/></linearGradient>
+<linearGradient id="{uid}-ferrule" x1="0" y1="0" x2="1" y2="0">
+ <stop offset="0" stop-color="#6a6d73"/><stop offset=".3" stop-color="#d9dce1"/><stop offset=".5" stop-color="#f3f4f6"/><stop offset=".7" stop-color="#a5a9b0"/><stop offset="1" stop-color="#4b4e53"/></linearGradient>
+<clipPath id="{uid}-handleclip"><path d="M84 6 q16 -7 32 0 l5 74 q-21 7 -42 0 z"/></clipPath>
+<filter id="{uid}-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.2"/></filter>
+</defs>'''
+    body = f'''
+<g transform="translate(-76 -8) rotate(48 128 174)">
+ <path d="M84 6 q16 -7 32 0 l5 74 q-21 7 -42 0 z" fill="url(#{uid}-wood)"/>
+ <g clip-path="url(#{uid}-handleclip)">{grain}
+  <path d="M90 10 q2 36 4 68" stroke="#fff" stroke-width="2.4" opacity=".3" stroke-linecap="round" fill="none"/></g>
+ <circle cx="100" cy="16" r="3" fill="{INK}"/><circle cx="100" cy="16" r="3" fill="none" stroke="#fff" stroke-width=".6" opacity=".5"/>
+ <path d="M73 78 h54 v30 h-54 z" fill="url(#{uid}-ferrule)"/>
+ <g stroke="#2b2d31" stroke-width="1" opacity=".55"><path d="M73 84 h54 M73 102 h54"/></g>
+ <g stroke="#fff" stroke-width=".8" opacity=".5"><path d="M73 85.2 h54 M73 103.2 h54"/></g>
+ <circle cx="83" cy="93" r="2.4" fill="#2b2d31"/><circle cx="82.4" cy="92.4" r="1" fill="#c9ccd2"/>
+ <circle cx="117" cy="93" r="2.4" fill="#2b2d31"/><circle cx="116.4" cy="92.4" r="1" fill="#c9ccd2"/>
+ <path d="M76 106 h48 l6 62 q-30 12 -60 0 z" fill="#8d7a52" opacity=".9"/>
+ <path d="M78 136 l44 0 l6 32 q-28 12 -56 0 z" fill="{MINT_DEEP}"/>
+ <g fill="none" stroke-linecap="round">{''.join(hairs)}</g>
+ <path d="M74 106 h52 v9 h-52 z" fill="#000" opacity=".28" filter="url(#{uid}-soft)"/>
+ <path d="M86 140 q14 -4 28 0" stroke="#fff" stroke-width="3" opacity=".22" stroke-linecap="round" fill="none" filter="url(#{uid}-soft)"/>
+</g>
+<g fill="none" stroke-linecap="round">{drag}</g>
+<ellipse cx="50" cy="166" rx="4.2" ry="2.4" fill="{MINT_HI}" opacity=".55"/>'''
+    return (f'<svg class="prop prop-brush-rule" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true" focusable="false">'
+            f'{defs}{body}</svg>')
