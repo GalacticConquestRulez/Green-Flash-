@@ -449,3 +449,150 @@
     }
   });
 })();
+
+/* =====================================================================
+   Splat — paint thrown from a Home-page button (the fifth verb).
+
+   The owner asked for it in one sentence: "a paintbrush paints the screen
+   or splatters on the screen when you click buttons on home page." This is
+   the splatter half — a mint burst out of the exact point the pointer hit,
+   drawn as inline SVG under a turbulence displacement so no two edges are
+   the same shape, in one of three variants so two clicks never match.
+
+   Nothing here is load-bearing, and it is deliberately narrow:
+
+     html.motion only      reduced motion, or no script, and a button is a
+                           plain link that navigates the way links do.
+     [data-splat] only     build.py marks Home and nothing else.
+     plain left clicks     middle-click, ctrl/cmd/shift/alt-click, target
+                           _blank, downloads, mailto:, tel: and anything
+                           off-origin are never touched.
+
+   The overlay is fixed, pointer-events:none, aria-hidden and built once;
+   it is emptied on pageshow (a bfcache back must not land on a painted
+   page) and 1.5s after a click that went nowhere.
+   ===================================================================== */
+(function () {
+  const root = document.documentElement;
+  if (!root.classList.contains('motion')) return;
+  if (!document.body || !document.body.hasAttribute('data-splat')) return;
+  let reduced = false;
+  try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  if (reduced) return;
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const CLEAR = 1500;                    // never leave the page painted over
+  const SEEDS = [11, 5, 23];             // three turbulence seeds ...
+  const TURNS = [0, 40, -70];            // ... and three turns to go with them
+
+  const el = (n, a) => {
+    const e = document.createElementNS(NS, n);
+    for (const k in a) e.setAttribute(k, String(a[k]));
+    return e;
+  };
+
+  /* The blob, in the coordinates the mock was drawn in: the click point is
+     the origin, so the whole thing is placed by one translate. */
+  const BLOB = [
+    ['ellipse', { cx: 0, cy: 0, rx: 72, ry: 58, transform: 'rotate(-18)' }],
+    ['ellipse', { cx: 95, cy: -30, rx: 24, ry: 18, transform: 'rotate(20 95 -30)' }],
+    ['ellipse', { cx: -88, cy: 24, rx: 20, ry: 14 }],
+    ['ellipse', { cx: 40, cy: 78, rx: 16, ry: 22 }],
+    ['ellipse', { cx: -50, cy: -70, rx: 14, ry: 12 }],
+    ['circle', { cx: 130, cy: 30, r: 6 }],
+    ['circle', { cx: -120, cy: -30, r: 5 }],
+    ['circle', { cx: 70, cy: -90, r: 8 }],
+    ['circle', { cx: 150, cy: -70, r: 4 }],
+    ['circle', { cx: -30, cy: 110, r: 7 }],
+    ['circle', { cx: -140, cy: 60, r: 5 }],
+  ];
+  // d, stroke width, path length (the dash is wound back over this).
+  const DRIPS = [
+    ['M-8 50 q4 60 0 120', 9, 122],
+    ['M42 96 q3 40 -2 70', 6, 71],
+  ];
+
+  let layer = null, shot = 0, killer = 0;
+
+  const deck = () => {
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.className = 'splat-layer';
+      layer.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(layer);
+    }
+    return layer;
+  };
+
+  const clear = () => {
+    if (killer) { clearTimeout(killer); killer = 0; }
+    if (layer) layer.textContent = '';
+  };
+
+  function splat(x, y, v) {
+    const W = innerWidth, H = innerHeight;
+    const s = W < 640 ? 0.7 : 1;         // a phone gets a smaller throw
+    const id = 'oaSplatF' + (++shot);
+
+    const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, class: 'sp-splat' });
+    const f = el('filter', { id, x: '-30%', y: '-30%', width: '160%', height: '160%' });
+    f.appendChild(el('feTurbulence', {
+      type: 'fractalNoise', baseFrequency: '0.035', numOctaves: '3',
+      seed: SEEDS[v], result: 'n',
+    }));
+    f.appendChild(el('feDisplacementMap', {
+      in: 'SourceGraphic', in2: 'n', scale: '26',
+      xChannelSelector: 'R', yChannelSelector: 'G',
+    }));
+    const defs = el('defs', {});
+    defs.appendChild(f);
+    svg.appendChild(defs);
+
+    const g = el('g', { class: 'sp-pop', filter: `url(#${id})` });
+    g.setAttribute('style',
+      `--sx:${x.toFixed(1)}px;--sy:${y.toFixed(1)}px;--sr:${TURNS[v]}deg;` +
+      `--s0:${(s * 0.3).toFixed(3)};--s1:${s}`);
+    BLOB.forEach(([n, a]) => g.appendChild(el(n, Object.assign({ class: 'sp-ink' }, a))));
+    DRIPS.forEach(([d, w, len]) => {
+      const p = el('path', { class: 'sp-drip', d, 'stroke-width': w });
+      p.style.setProperty('--dl', len);
+      g.appendChild(p);
+    });
+    svg.appendChild(g);
+    deck().appendChild(svg);
+    return svg;
+  }
+
+  /* --- who gets one -------------------------------------------------- */
+  document.addEventListener('click', (e) => {
+    if (e.defaultPrevented || e.button) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target && e.target.closest && e.target.closest('a.btn');
+    if (!a) return;
+    const t = (a.getAttribute('target') || '').trim();
+    if (t && t !== '_self') return;
+    if (a.hasAttribute('download')) return;
+
+    let url;
+    try { url = new URL(a.href, location.href); } catch (_) { return; }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return;   // mailto:, tel:
+    if (url.origin !== location.origin) return;                          // off-site
+
+    // A keyboard Enter on a focused link arrives as a click with no pointer
+    // behind it (detail 0, coordinates 0): throw it from the link instead.
+    let x = e.clientX, y = e.clientY;
+    if (!e.detail || (!x && !y)) {
+      const r = a.getBoundingClientRect();
+      x = r.left + r.width / 2;
+      y = r.top + r.height / 2;
+    }
+
+    if (killer) { clearTimeout(killer); killer = 0; }
+    clear();
+    splat(x, y, shot % SEEDS.length);
+    killer = setTimeout(clear, CLEAR);
+  });
+
+  // A page restored from the bfcache must never come back painted.
+  addEventListener('pageshow', clear);
+})();

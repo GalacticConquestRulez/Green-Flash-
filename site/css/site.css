@@ -17,6 +17,10 @@
   --ink:#0A0A0B; --ink-2:#121214; --ink-3:#1A1A1D;
   --paper:#F4F3EF; --muted:#A6A49E; --dim:#6E6C67;
   --mint:#71EEB8; --mint-deep:#55B38A; --wall:#E9E7E2;
+  /* One step between the two mints, for the places where mint has to be
+     shaded against itself rather than against the ink: the roller lap
+     marks and the bristle tones in Splat. It never carries type. */
+  --mint-mid:#63D0A0;
   --line:rgba(244,243,239,.10); --line-2:rgba(244,243,239,.20);
   --mint-glow:rgba(113,238,184,.14); --shade:rgba(10,10,11,.72);
   --scrim:rgba(10,10,11,.88); --scrim-soft:rgba(10,10,11,.45);
@@ -278,6 +282,56 @@ html.motion .dims.in::before{
   html.motion .dims{font-variation-settings:'wdth' 125,'wght' 800;transition:none;animation:none}
   html.motion .dims.in::before{content:none;animation:none}
   html{scroll-behavior:auto}
+}
+
+/* =====================================================================
+   SPLAT — paint thrown from a Home-page button
+
+   The fifth verb, and the only one a visitor sets off on purpose: a click on
+   a button-styled link on Home bursts a mint splat out of the exact point
+   the pointer hit. Nothing here is load-bearing. The overlay does not exist
+   in the server HTML; site.js builds it, only under html.motion, only on the
+   page build.py marked with data-splat, and only for a plain left click on a
+   same-origin link — every other click is an ordinary click on an ordinary
+   link, and with no script, or with reduced motion asked for, so is every
+   click. The layer is pointer-events:none and aria-hidden, so nothing here
+   is ever in the way of the page or of a screen reader.
+
+   Mint and nothing else. No sound, no counter, no label.
+   ===================================================================== */
+html.motion .splat-layer{
+  position:fixed;inset:0;z-index:2000;pointer-events:none;overflow:hidden;
+}
+html.motion .splat-layer svg{position:absolute;left:0;top:0}
+html.motion .sp-ink{fill:var(--mint)}
+
+/* The burst. The whole group is placed, turned and scaled in one transform,
+   so there is one animated property and the origin is the top-left of the
+   viewBox — unambiguous, unlike a transform-origin inside a translated <g>.
+   --sx/--sy are the click point, --sr the variant's turn, --s0/--s1 the
+   scale it pops between (0.7-based on a phone). */
+html.motion .sp-pop{
+  transform-box:view-box;transform-origin:0 0;
+  transform:translate(var(--sx),var(--sy)) rotate(var(--sr)) scale(var(--s0));
+  animation:oaSplatPop .12s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes oaSplatPop{
+  from{transform:translate(var(--sx),var(--sy)) rotate(var(--sr)) scale(var(--s0));opacity:.45}
+  to{transform:translate(var(--sx),var(--sy)) rotate(var(--sr)) scale(var(--s1));opacity:1}
+}
+/* The two drips run out of the blob rather than arriving with it: the dash
+   is the whole path length, offset by it, wound back to nothing in 300ms. */
+html.motion .sp-drip{
+  fill:none;stroke:var(--mint);stroke-linecap:round;
+  stroke-dasharray:var(--dl);stroke-dashoffset:var(--dl);
+  animation:oaSplatDrip .3s var(--ease-roll) both;
+}
+@keyframes oaSplatDrip{to{stroke-dashoffset:0}}
+
+/* The second lock, as everywhere else in this file: if html.motion ever
+   arrives on a machine asking for reduced motion, there is no paint. */
+@media (prefers-reduced-motion:reduce){
+  html.motion .splat-layer{display:none}
 }
 
 /* =====================================================================

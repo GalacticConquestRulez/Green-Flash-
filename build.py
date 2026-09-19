@@ -427,13 +427,19 @@ def ld_json(ld):
     return f'<script type="application/ld+json">{body}</script>'
 
 
-def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None):
+def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None,
+           splat=False):
     """The document around a page body.
 
     `wash` carries the two Wash assets — css/wash.css and js/wash.js — and it
     is opt-in per page on purpose (wall.py's docstring says so): only Home and
     /graffiti-removal hold a drawn wall, and on every other page the pair
     would be two requests for a file that binds nothing.
+
+    `splat` writes `data-splat` on <body>. Splat is the one mechanic a visitor
+    sets off on purpose — a mint burst out of the click point on a button —
+    and the owner asked for it on the home page, so the attribute is the whole
+    of its scope: site.js binds nothing on a page that does not carry it.
     """
     canonical = BASE_URL + (path if path != '/index' else '/')
     robots = '<meta name="robots" content="noindex,nofollow">' if noindex else ''
@@ -471,7 +477,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None)
 {washer}
 {ldjson}
 </head>
-<body>
+<body{' data-splat' if splat else ''}>
 <a class="skip" href="#main">Skip to content</a>
 {nav_html()}
 <main id="main">
@@ -571,6 +577,7 @@ def stat(figure, label, mark=''):
 
 pages['/index'] = dict(
   wash=True,
+  splat=True,
   title=f'{SITE_NAME} | Murals at building scale, New York and nationwide',
   desc='Open Air Gallery is a muralist and large-image company led by Ephraim. Gucci in Manhattan at 81 by 80 feet, Crown Royal in Portland at 85 by 90, John Lewis and Malcolm X in Rochester.',
   body=f'''
@@ -1425,7 +1432,8 @@ for path, p in pages.items():
     os.makedirs(os.path.dirname(fn), exist_ok=True)
     with open(fn, 'w') as f:
         f.write(layout(path, p['title'], p['desc'], p['body'], p.get('ld'),
-                       p.get('noindex', False), p.get('wash', False), p.get('og')))
+                       p.get('noindex', False), p.get('wash', False), p.get('og'),
+                       p.get('splat', False)))
     print('wrote', fn)
 
 # sitemap + robots
