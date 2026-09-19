@@ -2252,3 +2252,123 @@ html.motion .tiprule.curing::after{
   .pw-words{padding:38px 18px 44px}
   .pw-words p.serif{font-size:16px}
 }
+
+/* --- the round-three dress on the inner pages ------------------------
+   Only the classes these pages own. The nav, the footer, the hero and
+   Home are the skin agent's; nothing below reaches them.               */
+
+/* /work — the filter chips. Square, ruled, set in the wide face: a
+   Colossal-style control rather than a pill, and no counts on them.    */
+.work .filters{gap:8px;margin-bottom:clamp(26px,4vw,40px)}
+.work .filters .chip{
+  border-radius:0;border:1px solid var(--ink,#0A0A0B);background:transparent;
+  color:var(--ink,#0A0A0B);padding:.62rem 1.05rem;
+  font-family:var(--face-wide,ArchivoW),Archivo,sans-serif;font-weight:900;font-stretch:125%;
+  text-transform:uppercase;font-size:12.5px;letter-spacing:.07em;
+}
+.work .filters .chip:hover{background:var(--ink,#0A0A0B);color:var(--paper,#fff);border-color:var(--ink,#0A0A0B)}
+.chip[href="#f-all"],
+#f-brand:target ~ .filters .chip[href="#f-brand"],
+#f-portrait:target ~ .filters .chip[href="#f-portrait"],
+#f-civic:target ~ .filters .chip[href="#f-civic"]{border-color:var(--ink,#0A0A0B)}
+#f-brand:target ~ .filters .chip[href="#f-all"],
+#f-portrait:target ~ .filters .chip[href="#f-all"],
+#f-civic:target ~ .filters .chip[href="#f-all"]{border-color:var(--ink,#0A0A0B);color:var(--ink,#0A0A0B)}
+
+/* A wall's measurements — the hook, set physically wide, with the prime
+   marks and the times sign in the pop colour and nothing else.          */
+/* The face, the width axis and the sizes are the component's own and are
+   left alone — Scale and Stencil animate them. What changes on white is
+   the colour: ink figures, and the prime marks and the times sign in the
+   pop colour rather than the mint, which is the one accent the round-three
+   palette gives this hook.                                              */
+.pintro .dims{color:var(--ink,#0A0A0B)}
+.pintro .dims .f,.pintro .dims .x,
+.pgrid .pcard-body .dims .f,.pgrid .pcard-body .dims .x{color:var(--pop,#FF4F2E)}
+.pintro .dims::after{background:var(--rule-ink,rgba(10,10,11,.18))}
+
+/* A project page's words: the title tall, the story in the serif, the
+   facts in the wide face underneath.                                    */
+.pintro h1{font-size:clamp(52px,8vw,128px);margin:.1em 0 0;color:var(--ink,#0A0A0B)}
+.pintro .pstory{font-size:19px;line-height:1.6;max-width:58ch}
+.pintro .pmeta dt{font-family:var(--face-wide,ArchivoW),Archivo,sans-serif;font-weight:900;
+  font-stretch:125%;text-transform:uppercase;font-size:11.5px;letter-spacing:.09em;color:var(--pop,#FF4F2E)}
+.pintro .pmeta dd{font-family:var(--face-serif,Fraunces),Georgia,serif;font-size:17px}
+
+/* The stage lists on /about and /graffiti-removal: stage names tall, the
+   sentences under them in the serif whether they are his or ours.       */
+.beats-full .beat h3,.beats-4 .beat h3,.beats-gr .beat h3{
+  font-family:var(--face-tall,Anton),Impact,sans-serif;text-transform:uppercase;
+  line-height:.95;letter-spacing:.01em;font-size:clamp(24px,2.4vw,34px);font-weight:400;
+}
+.beats-full .beat p,.beats-4 .beat p,.beats-gr .beat p{
+  font-family:var(--face-serif,Fraunces),Georgia,serif;font-size:17px;line-height:1.55}
+
+/* /about — the cities, and /services — the sign roster. Both are lists of
+   names and both read as the wide face on a ruled row.                  */
+.cities .city b,.roster li{
+  font-family:var(--face-wide,ArchivoW),Archivo,sans-serif;font-weight:900;font-stretch:125%;
+  text-transform:uppercase;letter-spacing:.03em}
+.cities .city span{font-family:var(--face-serif,Fraunces),Georgia,serif;font-style:italic}
+
+/* /graffiti-removal — the before/after caption, in his hand.            */
+.ba-cap{font-family:var(--face-serif,Fraunces),Georgia,serif;font-size:16px}
+.ba-cap .ba-hint{font-family:var(--face-marker,Marker),cursive;color:var(--pop,#FF4F2E);font-size:19px}
+
+/* /contact — the form on white, with the aside in marker beside it.     */
+.contact-aside{font-size:clamp(19px,2vw,26px);color:var(--pop,#FF4F2E);
+  margin:-.2em 0 1.4rem;transform:rotate(-1.6deg);transform-origin:left center}
+.form label{font-family:var(--face-wide,ArchivoW),Archivo,sans-serif;font-weight:900;
+  font-stretch:125%;text-transform:uppercase;font-size:11.5px;letter-spacing:.09em;color:var(--ink,#0A0A0B)}
+.form input,.form textarea,.form select{
+  background:var(--paper,#fff);color:var(--ink,#0A0A0B);
+  border:1px solid var(--ink,#0A0A0B);border-radius:0}
+.form input::placeholder,.form textarea::placeholder{color:var(--dim,#6E6C67)}
+.form input:focus,.form textarea:focus,.form select:focus{outline:3px solid var(--mint,#71EEB8);outline-offset:1px}
+.form .hint,.form-note{font-family:var(--face-serif,Fraunces),Georgia,serif;font-size:15px}
+.contact-side .contact-card{background:var(--paper,#fff);border:1px solid var(--ink,#0A0A0B);border-radius:0}
+.contact-side .contact-card b{font-family:var(--face-tall,Anton),Impact,sans-serif;font-weight:400;
+  text-transform:uppercase;font-size:21px;letter-spacing:.03em;color:var(--ink,#0A0A0B)}
+.contact-side .contact-card span{font-family:var(--face-serif,Fraunces),Georgia,serif;font-size:15.5px}
+.contact-card-cta{background:var(--mint,#71EEB8)}
+
+/* /404 — a blank wall, and the copy says so.                            */
+.page-hero.blank .hero-inner .lead{font-family:var(--face-serif,Fraunces),Georgia,serif}
+
+/* The inner pages' own surfaces on the white ground. Every one of these
+   is a panel the dark canvas lifted off the page with --ink-2; on white a
+   panel is white with an ink hairline round it, and the type in it is ink.
+   Only selectors that exist on /work, a project page, /about, /services,
+   /graffiti-removal, /contact and /404 are listed — the sitewide .alt,
+   the nav, the footer and Home stay the skin agent's.                   */
+.pnav a,.figframe,.figcap,.form-status,.roster li,.swipe-arw,.ba,.ba-stage{
+  background:var(--paper,#fff);border-color:var(--rule-ink,rgba(10,10,11,.18));color:var(--ink,#0A0A0B)}
+.pnav a{color:var(--ink,#0A0A0B)}
+.pnav a:hover{border-color:var(--pop,#FF4F2E)}
+.pnav .pnav-k{color:var(--pop,#FF4F2E)}
+.pnav .pnav-t{color:var(--ink,#0A0A0B)}
+.pnav .pnav-d{color:var(--ink,#0A0A0B)}
+.figcap{color:var(--dim,#6E6C67);border-top-color:var(--rule-ink,rgba(10,10,11,.18))}
+.pintro .pull p,.beats-full .beat blockquote p,.beats-4 .beat blockquote p,
+.beats-gr .beat blockquote p,.duo .pull p{color:var(--ink,#0A0A0B);opacity:1}
+.contact-side .contact-card .ic{background:var(--paper,#fff);border-color:var(--rule-ink,rgba(10,10,11,.18));color:var(--ink,#0A0A0B)}
+.contact-card-cta,.contact-card-cta .ic{background:var(--mint,#71EEB8)}
+.field option{background:var(--paper,#fff);color:var(--ink,#0A0A0B)}
+.cities .city{border-color:var(--rule-ink,rgba(10,10,11,.18))}
+.ba-lab{color:var(--ink,#0A0A0B)}
+.swipe-dot{background:var(--rule-ink,rgba(10,10,11,.18))}
+.swipe-dot[aria-current="true"]{background:var(--ink,#0A0A0B)}
+
+/* `.wide` is the round-three type utility (the expanded face), and the
+   layout modifier on a two-column row used to be called the same thing —
+   so `<div class="duo wide">` was setting a whole column of serif copy in
+   the display face and shouting it in capitals. The modifier is renamed
+   `duo-wide` in the markup; this is its rule, unchanged.                */
+@media (min-width:860px){.duo.duo-wide{grid-template-columns:7fr 5fr}}
+
+/* The graffiti-removal one-liner, which is on /work, /services and
+   /about. Ink on white with a rule round it, not a lifted dark panel.   */
+.gr-strip{background:var(--paper,#fff);border-color:var(--rule-ink,rgba(10,10,11,.18))}
+.gr-strip p{color:var(--ink,#0A0A0B)}
+.gr-strip p b{color:var(--pop,#FF4F2E);font-family:var(--face-wide,ArchivoW),Archivo,sans-serif;
+  font-weight:900;font-stretch:125%;text-transform:uppercase;letter-spacing:.04em;font-size:.92em}
