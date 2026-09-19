@@ -65,6 +65,25 @@ Ephraim before any production code.
 - **The graffiti-removal signature is an animation of a graffitied brick wall being cleaned to
   sparkling new** — "Wash" in the motion vocabulary (Roll · Scale · Cure · Wash). Drawn wall by
   default; his real before/after photos if he sends them.
+- **Splat — the fifth verb (owner, 2026-09-19), and Home only.** He asked for it in one
+  sentence: *"Add a painting animation where a paintbrush paints the screen or splatters on the
+  screen when you click buttons on home page."* So the vocabulary is now **Roll · Scale · Cure ·
+  Wash · Splat**, and Splat is the only one a visitor sets off on purpose. Clicking any
+  button-styled link on Home — every `.btn`, including the nav's mint "Book a free consult" pill
+  — throws a mint SVG blob (turbulence-displaced, three seeds and three turns in rotation, drips
+  running out over 300ms) from the exact click point; 120ms later a roller pass sweeps in from
+  the side the button is on, covers the viewport in 420ms behind a bristled leading edge with
+  lap marks down it, and the link is followed at 555ms. It is **Home only because that is what
+  he asked for**: `build.py` writes `data-splat` on Home's `<body>` and `site.js` binds nothing
+  on a page without it — do not spread it to the other five pages without asking. It only ever
+  touches a plain left click, with no modifier key, on a same-origin http(s) link: middle-click,
+  ctrl/cmd/shift/alt-click, `target=_blank`, downloads, `mailto:` and `tel:` all go through as
+  ordinary links, a same-page `#` anchor gets the splat and no stroke, and a second click during
+  a pass does nothing. It lives entirely under `html.motion`, so reduced motion and a page whose
+  script never arrived get plain links — the contract in PLAN.md §4 is unchanged. The overlay is
+  fixed, `pointer-events:none`, `aria-hidden`, and is torn down on `pageshow` and 1.5s after a
+  click that went nowhere, so a bfcache back never lands on a painted page. Mint only; no sound,
+  no counter, no label.
 - **The graffiti has to read as a real tagged wall — never cartoon bubble letters.** The first
   drawn version was three bubble-letter pieces in magenta, blue and amber, evenly spaced, all
   plainly painted the same afternoon by the same hand; the owner's verdict was *"that graffiti

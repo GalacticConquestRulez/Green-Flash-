@@ -454,10 +454,13 @@
    Splat — paint thrown from a Home-page button (the fifth verb).
 
    The owner asked for it in one sentence: "a paintbrush paints the screen
-   or splatters on the screen when you click buttons on home page." This is
-   the splatter half — a mint burst out of the exact point the pointer hit,
-   drawn as inline SVG under a turbulence displacement so no two edges are
-   the same shape, in one of three variants so two clicks never match.
+   or splatters on the screen when you click buttons on home page." Both
+   halves are here. First the splatter: a mint burst out of the exact point
+   the pointer hit, drawn as inline SVG under a turbulence displacement so
+   no two edges are the same shape, in one of three variants so two clicks
+   never match. Then, 120ms later, the brush — a roller pass in from the
+   side the button was on that covers the viewport in 420ms, at which point
+   the link is followed. Click to navigation is 555ms.
 
    Nothing here is load-bearing, and it is deliberately narrow:
 
@@ -467,6 +470,10 @@
      plain left clicks     middle-click, ctrl/cmd/shift/alt-click, target
                            _blank, downloads, mailto:, tel: and anything
                            off-origin are never touched.
+
+   A same-page #anchor gets the splat and nothing else: there is nothing to
+   navigate to, so there is nothing to paint over. A second click while the
+   pass is running does nothing at all.
 
    The overlay is fixed, pointer-events:none, aria-hidden and built once;
    it is emptied on pageshow (a bfcache back must not land on a painted
@@ -481,9 +488,14 @@
   if (reduced) return;
 
   const NS = 'http://www.w3.org/2000/svg';
+  const POP = 120;                       // the blob lands, then the brush comes
+  const SWEEP = 420;                     // and covers the screen
+  const GO = POP + SWEEP + 15;           // 555ms, click to location.assign
   const CLEAR = 1500;                    // never leave the page painted over
   const SEEDS = [11, 5, 23];             // three turbulence seeds ...
   const TURNS = [0, 40, -70];            // ... and three turns to go with them
+  const LEAD = 270;                      // how far the flung drops run ahead
+  const TAIL = 340;                      // slack behind, so no far edge shows
 
   const el = (n, a) => {
     const e = document.createElementNS(NS, n);
@@ -512,7 +524,38 @@
     ['M42 96 q3 40 -2 70', 6, 71],
   ];
 
-  let layer = null, shot = 0, killer = 0;
+  /* The roller's lap marks: [% of the stroke's height, which mint]. a is the
+     mint itself, b one step down, c --mint-deep. Four faint bands is what a
+     roller leaves when the nap reloads. */
+  const LAP = [
+    [0, 'a'], [7, 'a'], [8, 'b'], [12, 'b'], [13, 'a'],
+    [30, 'a'], [31, 'c'], [37, 'c'], [38, 'a'],
+    [61, 'a'], [62, 'b'], [68, 'b'], [69, 'a'],
+    [87, 'a'], [88, 'c'], [93, 'c'], [94, 'a'], [100, 'a'],
+  ];
+  // Thrown off the bristles, ahead of the edge. x is past the longest finger.
+  const FLUNG = [
+    ['ellipse', 170, 0.19, { rx: 29, ry: 13 }],
+    ['circle', 212, 0.44, { r: 8 }],
+    ['ellipse', 158, 0.67, { rx: 26, ry: 12 }],
+    ['circle', 196, 0.88, { r: 6 }],
+  ];
+
+  /* The bristles are generated rather than written out, and a seeded
+     generator is the point: the same fingers every run, so the file stays
+     byte-identical build to build. mulberry32. */
+  const rng = (seed) => {
+    let t = seed >>> 0;
+    return () => {
+      t = (t + 0x6D2B79F5) >>> 0;
+      let r = Math.imul(t ^ (t >>> 15), 1 | t);
+      r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+      return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+    };
+  };
+
+  let layer = null, shot = 0, killer = 0, running = false;
+  let brush = null, brushW = 0, brushH = 0;
 
   const deck = () => {
     if (!layer) {
@@ -526,7 +569,9 @@
 
   const clear = () => {
     if (killer) { clearTimeout(killer); killer = 0; }
-    if (layer) layer.textContent = '';
+    running = false;
+    if (brush) brush.classList.remove('go');
+    if (layer) layer.textContent = '';   // the brush stays cached, detached
   };
 
   function splat(x, y, v) {
@@ -563,6 +608,72 @@
     return svg;
   }
 
+  /* --- the brush ------------------------------------------------------ */
+  /* Built once and kept, because the fingers are ~150 rects and nothing
+     about them depends on the click: only the side does, and that is one
+     attribute on the wrapper. Rebuilt when the viewport changes size. */
+  function build(W, H) {
+    const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, class: 'sp-stroke' });
+
+    const defs = el('defs', {});
+    const lap = el('linearGradient', { id: 'oaLap', x1: 0, y1: 0, x2: 0, y2: 1 });
+    LAP.forEach(([o, k]) => lap.appendChild(el('stop', { offset: o + '%', class: 'sp-lap-' + k })));
+    defs.appendChild(lap);
+    const bf = el('filter', { id: 'oaBristle', x: '-20%', y: '-6%', width: '150%', height: '112%' });
+    bf.appendChild(el('feTurbulence', {
+      type: 'fractalNoise', baseFrequency: '0.02 0.4', numOctaves: 2, seed: 7, result: 'n',
+    }));
+    bf.appendChild(el('feDisplacementMap', {
+      in: 'SourceGraphic', in2: 'n', scale: 10, xChannelSelector: 'R', yChannelSelector: 'G',
+    }));
+    defs.appendChild(bf);
+    svg.appendChild(defs);
+
+    const mirror = el('g', { class: 'sp-mirror' });
+    const sweep = el('g', { class: 'sp-sweep' });
+    sweep.setAttribute('style', `--tx0:${-LEAD}px;--tx1:${W + 40}px`);
+
+    // The body. One rect, no filter: this is the thing that covers the screen.
+    sweep.appendChild(el('rect', {
+      class: 'sp-body', x: -(W + TAIL), y: -2, width: W + TAIL, height: H + 4,
+    }));
+
+    // The leading edge: rounded bristle fingers, each overlapping the one
+    // above it by 55-90% of its height, all the way down. Three tones.
+    const edge = el('g', { class: 'sp-edge', filter: 'url(#oaBristle)' });
+    const r = rng(0x5AA5);
+    let y = -16, i = 0;
+    while (y < H + 8) {
+      const h = 10 + r() * 20, len = 20 + r() * 120;
+      edge.appendChild(el('rect', {
+        class: 'sp-t' + (i % 3), x: 0, y: y.toFixed(1),
+        width: len.toFixed(1), height: h.toFixed(1), rx: (h / 2).toFixed(2),
+      }));
+      y += h * (1 - (0.55 + r() * 0.35));
+      i++;
+    }
+    FLUNG.forEach(([n, x, f, a]) => edge.appendChild(
+      el(n, Object.assign({ class: 'sp-t' + (n === 'circle' ? 2 : 1), cx: x, cy: Math.round(H * f) }, a))));
+    sweep.appendChild(edge);
+
+    mirror.appendChild(sweep);
+    svg.appendChild(mirror);
+    return svg;
+  }
+
+  function paint(side, W, H) {
+    if (!brush || brushW !== W || brushH !== H) {
+      brush = build(W, H); brushW = W; brushH = H;
+    }
+    brush.classList.remove('go');
+    const mirror = brush.querySelector('.sp-mirror');
+    // The right-hand pass is the same brush, flipped about the viewport.
+    if (side === 'right') mirror.setAttribute('transform', `translate(${W},0) scale(-1,1)`);
+    else mirror.removeAttribute('transform');
+    deck().appendChild(brush);
+    return brush;
+  }
+
   /* --- who gets one -------------------------------------------------- */
   document.addEventListener('click', (e) => {
     if (e.defaultPrevented || e.button) return;
@@ -587,9 +698,24 @@
       y = r.top + r.height / 2;
     }
 
-    if (killer) { clearTimeout(killer); killer = 0; }
+    // A pass already running owns the page: a second click does nothing.
+    if (running) { e.preventDefault(); return; }
     clear();
     splat(x, y, shot % SEEDS.length);
+
+    // A jump to an anchor on this page paints nothing over it: there is no
+    // page coming to hide behind the stroke. The splat, and the link works.
+    if (url.hash && url.pathname === location.pathname && url.search === location.search) {
+      killer = setTimeout(clear, CLEAR);
+      return;
+    }
+
+    e.preventDefault();
+    running = true;
+    const W = innerWidth, H = innerHeight;
+    const st = paint(x < W / 2 ? 'left' : 'right', W, H);
+    setTimeout(() => st.classList.add('go'), POP);
+    setTimeout(() => location.assign(a.href), GO);
     killer = setTimeout(clear, CLEAR);
   });
 

@@ -328,6 +328,33 @@ html.motion .sp-drip{
 }
 @keyframes oaSplatDrip{to{stroke-dashoffset:0}}
 
+/* The stroke. A roller pass across the whole viewport, from the side the
+   button was on, and the only thing that moves is one translateX — the body
+   is a plain rect with a vertical lap-mark gradient and carries no filter at
+   all, because a filter on a full-viewport rect is a full-viewport repaint
+   every frame. The displacement is spent where it shows: on the bristle
+   fingers at the leading edge and the drops flung off them.
+   will-change is set only while the pass is running. */
+html.motion .sp-body{fill:url(#oaLap)}
+html.motion .sp-lap-a{stop-color:var(--mint)}
+html.motion .sp-lap-b{stop-color:var(--mint-mid)}
+html.motion .sp-lap-c{stop-color:var(--mint-deep)}
+html.motion .sp-t0{fill:var(--mint)}
+html.motion .sp-t1{fill:var(--mint-mid)}
+html.motion .sp-t2{fill:var(--mint-deep)}
+html.motion .sp-sweep{
+  transform-box:view-box;transform-origin:0 0;
+  transform:translateX(var(--tx0));
+}
+html.motion .sp-stroke.go .sp-sweep{
+  will-change:transform;
+  animation:oaSplatSweep .42s cubic-bezier(.55,.06,.68,.19) both;
+}
+@keyframes oaSplatSweep{
+  from{transform:translateX(var(--tx0))}
+  to{transform:translateX(var(--tx1))}
+}
+
 /* The second lock, as everywhere else in this file: if html.motion ever
    arrives on a machine asking for reduced motion, there is no paint. */
 @media (prefers-reduced-motion:reduce){
