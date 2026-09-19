@@ -52,6 +52,12 @@
      stroke it disappears, which is what happens to a highlight when more
      paint goes over it. */
   --gloss:rgba(255,255,255,.55); --gloss-0:rgba(255,255,255,0);
+  /* The vein. Two wet paints dragged through each other do not average to a
+     third colour — they marble, and the lightest thing in a marbled edge is
+     the thin cream line where the two have pulled apart and the ground is
+     showing through the film. That is this, and it is warm rather than
+     white because it is paint and not light. */
+  --cream:#FFF1E4;
   --pop-wet:rgba(255,170,146,.72); --pop-wet-0:rgba(255,170,146,0);
   --mix:#714A21;
   --line:rgba(244,243,239,.10); --line-2:rgba(244,243,239,.20);
@@ -1078,12 +1084,8 @@ html.motion .sp-gloss-b{stop-color:var(--gloss-0)}
 
    Round three: 260ms, not 120. "Increase time on transitions so he can
    actually enjoy it." */
-/* The splat sits over the stroke and multiplies into it: paint on paint,
-   not two flat shapes stacked. Where there is no stroke under it yet the
-   backdrop is transparent and a multiply against nothing is the source
-   colour, so the blob is its own paint until the roller reaches it. */
 html.motion .sp-splat{
-  z-index:2;mix-blend-mode:multiply;
+  z-index:2;
   transform-origin:var(--ox) var(--oy);will-change:transform;
   transform:rotate(var(--sr)) scale(var(--s0));
   animation:oaSplatPop .26s cubic-bezier(.34,1.42,.64,1) both;
@@ -1093,6 +1095,50 @@ html.motion .sp-splat{
   to{transform:rotate(var(--sr)) scale(var(--s1));opacity:1}
 }
 html.motion .sp-stroke{z-index:1}
+/* The leading edge, on its own sheet over the mix zone. Same keyframes,
+   same timeline, so it is the same stroke — and the ragged thing is what
+   the visitor sees at the boundary rather than the clip that made it. */
+html.motion .sp-stroke-top{z-index:4;pointer-events:none}
+html.motion .sp-stroke-top.go .sp-sweep{
+  will-change:transform;
+  animation:oaSplatSweep .9s cubic-bezier(.42,.02,.48,.98) both;
+}
+
+/* --- the mix zone: where the stroke has gone over the throw ----------
+   Round three, second pass (owner): "mixing must marble, not multiply."
+   A multiply is physically true and visually dead — two paints average to
+   one flat brown and the frame loses both of them. Wet paint dragged
+   through wet paint does not average: it marbles, the two colours stay
+   themselves in interleaved swirls, and the lightest thing in it is the
+   thin cream vein where they have pulled apart.
+
+   So there is no blend mode anywhere in this block. The mix zone is a
+   third copy of the throw, painted in a gradient that runs pnt / oth /
+   pnt / cream / oth across it and then pushed about by turbulence at low
+   frequency and high scale — which is what turns a banded gradient into
+   swirls — masked back to the throw's own silhouette and given the same
+   rim. It sits over the plain throw and is revealed exactly as far as the
+   stroke has travelled.
+
+   The reveal is an inset clip rather than a mask or a blend, and it can be
+   because the stroke's leading edge is affine in the animation's eased
+   progress and so is the inset: site.js computes the two ends of it,
+   --i0 and --i1, from the side the stroke comes in on, and the clip is
+   interpolated on the same timeline with the same easing. Nothing here is
+   re-filtered as it travels: the art is static and only the clip moves. */
+html.motion .sp-marble{
+  z-index:3;
+  transform-origin:var(--ox) var(--oy);
+  clip-path:var(--i0);
+}
+html.motion .sp-marble.go{animation:oaSplatMix .9s cubic-bezier(.42,.02,.48,.98) both}
+@keyframes oaSplatMix{from{clip-path:var(--i0)}to{clip-path:var(--i1)}}
+html.motion .sp-mmask{mask-type:alpha}
+html.motion .sp-mp{stop-color:var(--pnt)}
+html.motion .sp-mo{stop-color:var(--oth)}
+html.motion .sp-mc{stop-color:var(--cream)}
+html.motion .sp-vein{fill:none;stroke:var(--cream);stroke-linecap:round;opacity:.52}
+html.motion .sp-vein-2{fill:none;stroke:var(--mix);stroke-linecap:round;opacity:.28}
 
 /* The bleed: a blurred copy of the whole throw under its own edge, at a
    quarter. It is the halo of thinner paint a wet edge leaves in the wall,
@@ -1138,16 +1184,17 @@ html.motion .sp-body{fill:url(#oaLap)}
 html.motion .sp-lap-a{stop-color:var(--pnt)}
 html.motion .sp-lap-b{stop-color:var(--pnt-mid)}
 html.motion .sp-lap-c{stop-color:var(--pnt-deep)}
-/* The other paint, carried across in the same pass as lap marks. Two
-   copies of one gradient: the first laid on normally, so the coral (or the
-   mint) reads as itself at the soft edges of the band, and the second
-   multiplied, so the core of the band is the two paints mixed rather than
-   one paint lying on the other. That is the whole of "bleeding into the
-   body" — a lap mark where the roller reloaded with the wrong tin. */
+/* The other paint, carried across in the same pass as lap marks: the band
+   itself in that colour, and a narrower core of the two paints mixed where
+   the reload dragged through what was already on the nap. Both are laid on
+   normally — there is no blend mode left anywhere in this file, because a
+   multiply is what made the overlaps flat. */
 html.motion .sp-lapo-a{stop-color:var(--oth)}
 html.motion .sp-lapo-0{stop-color:var(--oth-0)}
+html.motion .sp-lapm-a{stop-color:var(--mix)}
+html.motion .sp-lapm-0{stop-color:var(--oth-0)}
 html.motion .sp-lapo{fill:url(#oaLapO);opacity:.34}
-html.motion .sp-lapo-mix{fill:url(#oaLapO);opacity:.62;mix-blend-mode:multiply}
+html.motion .sp-lapo-mix{fill:url(#oaLapM);opacity:.42}
 /* Dry brush: the streaks the nap leaves behind the leading edge once the
    load starts to go. Deep paint and pale paint, both at low alpha, so the
    body is broken up without a hole in it — a hole would be the page

@@ -1557,6 +1557,20 @@
       'C' + (xe + w1) + ' ' + n + ' ' + (x + w0 + wob * 0.35) + ' ' + m + ' ' + (x + w0) + ' ' + y + 'Z';
   };
 
+  /* The veins in the mix zone: where two wet paints have been dragged
+     through each other and pulled apart, the film goes thin and a line of
+     the cream ground shows through it. Three cream and two of the mix
+     itself, wandering across the body of the throw; the marble filter
+     swirls them along with everything else, so these are the drawn hint
+     and the turbulence does the rest. */
+  const VEINS = [
+    ['M-230 -40 C-120 -110 40 -90 150 -30 C210 0 250 40 280 60', 7, 'sp-vein'],
+    ['M-200 90 C-90 40 30 70 130 130 C180 160 215 175 250 180', 5, 'sp-vein'],
+    ['M-120 -150 C-40 -95 60 -110 160 -160', 4, 'sp-vein'],
+    ['M-250 20 C-140 -30 -10 -10 110 50', 9, 'sp-vein-2'],
+    ['M-60 160 C20 120 110 130 190 90', 6, 'sp-vein-2'],
+  ];
+
   /* The roller's lap marks: [% of the stroke's height, which tone]. a is the
      paint itself, b one step down; each band is a narrow line with a 1%
      feather either side. Four faint lines is what a roller leaves when the
@@ -1591,9 +1605,9 @@
      bristles come out of too. */
   const rng = window.oagKit.rng;
 
-  let layer = null, shot = 0, killer = 0, running = false;
+  let layer = null, shot = 0, killer = 0, running = false, mrb = null;
   let pass = 0;             // which paint is in the tin this time
-  let brush = null, brushW = 0, brushH = 0, brushV = false;
+  let brush = null, brushTop = null, brushW = 0, brushH = 0, brushV = false;
   let pt = null;            // where the last plain click on a submit button fell
   let replay = false;       // the form's own submit, let back through
 
@@ -1610,7 +1624,9 @@
   const clear = () => {
     if (killer) { clearTimeout(killer); killer = 0; }
     running = false;
+    mrb = null;
     if (brush) brush.classList.remove('go');
+    if (brushTop) brushTop.classList.remove('go');
     if (layer) layer.textContent = '';   // the brush stays cached, detached
   };
 
@@ -1636,8 +1652,7 @@
      same broken edge it always was, and none of them is inside anything
      that animates: the pop is on the <svg> element, which is a box the
      compositor rasters once and moves. `c` is which paint. */
-  function splat(x, y, v, c) {
-    const W = innerWidth, H = innerHeight;
+  function splat(x, y, v, c, side, W, H) {
     const s = W < 640 ? PHONE : 1;       // a phone gets a smaller throw
     const k = ++shot;
     const fid = 'oaSpF' + k, hid = 'oaSpH' + k, rid = 'oaSpR' + k,
@@ -1737,6 +1752,128 @@
     art.appendChild(runs);
     svg.appendChild(art);
     deck().appendChild(svg);
+    if (side) mrb = mix(x, y, v, c, side, W, H, s, k, fid, rid);
+    return svg;
+  }
+
+  /* --- the mix zone ---------------------------------------------------
+     Where the stroke has gone over the throw, the two paints marble: they
+     stay themselves in interleaved swirls with a cream vein where they
+     have pulled apart, rather than averaging to one flat brown. Nothing
+     here blends; this is a third copy of the throw with marbled paint in
+     it, revealed exactly as far as the stroke has travelled.
+
+     The swirl is the brief's: a gradient that runs pnt / oth / pnt /
+     cream / oth across the throw, displaced by turbulence at low
+     frequency and high scale — a banded gradient pushed about far enough
+     stops being bands and becomes swirls. It is painted on a rect rather
+     than on the shapes, because a displacement that big would tear the
+     shapes apart; the silhouette comes back from a mask built out of the
+     same shapes under the same edge turbulence the throw itself wears, so
+     the marbled copy lands exactly on the plain one. The rim goes round
+     the outside of the mask, which is why it is on the group above it —
+     a filter sees its input before the mask, not after.
+
+     The reveal: the stroke's leading edge is affine in the animation's
+     eased progress, so an inset clip with the same duration and easing
+     tracks it exactly. --i0 and --i1 are the two ends of that inset,
+     worked out here from which side the stroke comes in on. */
+  function mix(x, y, v, c, side, W, H, s, k, fid, rid) {
+    const mid = 'oaSpMG' + k, dfid = 'oaSpMD' + k, mkid = 'oaSpMK' + k;
+    const bx = x - BOX_X, by = y - BOX_Y;
+    const run = side === 'top' ? H : W;
+    /* AHEAD is why the cut is never seen: the clip runs a little past the
+       body's own leading edge, so the line it leaves falls under the
+       bristle fingers and the wet edge on the sheet above rather than
+       beside them. */
+    const AHEAD = 34;
+    const t0 = -LEAD + AHEAD, t1 = run + 40 + AHEAD;
+    const pc = (n) => n.toFixed(2) + '%';
+    let i0, i1;
+    if (side === 'top') {                       // down the screen: reveal from the top
+      i0 = `inset(0% 0% ${pc((by + BOX_H - t0) / BOX_H * 100)} 0%)`;
+      i1 = `inset(0% 0% ${pc((by + BOX_H - t1) / BOX_H * 100)} 0%)`;
+    } else if (side === 'right') {              // in from the right: reveal from the right
+      i0 = `inset(0% 0% 0% ${pc((W - t0 - bx) / BOX_W * 100)})`;
+      i1 = `inset(0% 0% 0% ${pc((W - t1 - bx) / BOX_W * 100)})`;
+    } else {                                    // in from the left
+      i0 = `inset(0% ${pc((bx + BOX_W - t0) / BOX_W * 100)} 0% 0%)`;
+      i1 = `inset(0% ${pc((bx + BOX_W - t1) / BOX_W * 100)} 0% 0%)`;
+    }
+
+    const svg = el('svg', {
+      width: BOX_W, height: BOX_H,
+      viewBox: `${-BOX_X} ${-BOX_Y} ${BOX_W} ${BOX_H}`,
+      class: 'sp-marble ' + tone(c),
+    });
+    svg.setAttribute('style',
+      `left:${bx.toFixed(1)}px;top:${by.toFixed(1)}px;` +
+      `--ox:${BOX_X}px;--oy:${BOX_Y}px;--i0:${i0};--i1:${i1}`);
+
+    const defs = el('defs', {});
+    const grad = el('linearGradient', {
+      id: mid, gradientUnits: 'userSpaceOnUse', x1: -300, y1: -250, x2: 290, y2: 260,
+    });
+    /* Ribbons, not a wash. The stops sit in pairs so each band holds its
+       colour and the crossing between two is three or four per cent wide:
+       a gradient that ramps the whole way from one paint to the other
+       comes out of the turbulence as an airbrushed pearl, and what is
+       wanted is two paints dragged through each other. The cream bands
+       are the narrowest of the three, because a vein is a line and not a
+       third paint. */
+    [[0, 'p'], [7, 'p'], [10, 'o'], [16, 'o'], [18, 'c'], [20, 'c'], [22, 'o'],
+     [28, 'o'], [31, 'p'], [39, 'p'], [42, 'o'], [47, 'o'], [49, 'c'], [51, 'c'],
+     [53, 'o'], [59, 'o'], [62, 'p'], [70, 'p'], [73, 'o'], [79, 'o'],
+     [82, 'p'], [90, 'p'], [93, 'o'], [100, 'o']]
+      .forEach(([o, t]) => grad.appendChild(el('stop', { offset: o + '%', class: 'sp-m' + t })));
+    defs.appendChild(grad);
+
+    const df = el('filter', { id: dfid, x: '-12%', y: '-12%', width: '124%', height: '124%' });
+    df.appendChild(el('feTurbulence', {
+      type: 'fractalNoise', baseFrequency: '0.0062', numOctaves: '3',
+      seed: SEEDS[v] + 13, result: 'n',
+    }));
+    df.appendChild(el('feDisplacementMap', {
+      in: 'SourceGraphic', in2: 'n', scale: '96',
+      xChannelSelector: 'R', yChannelSelector: 'G',
+    }));
+    defs.appendChild(df);
+
+    // The silhouette, out of the same shapes under the throw's own edge.
+    const mask = el('mask', {
+      id: mkid, class: 'sp-mmask', maskUnits: 'userSpaceOnUse',
+      x: -BOX_X, y: -BOX_Y, width: BOX_W, height: BOX_H,
+    });
+    const mg = el('g', { filter: `url(#${fid})` });
+    BLOB.forEach(([n, a]) => mg.appendChild(el(n, Object.assign({ class: 'sp-ink' }, a))));
+    DRIPS.forEach(([dx, dy, len, w0, w1, wob]) => {
+      mg.appendChild(el('path', { class: 'sp-ink', d: dripPath(dx, dy, len, w0, w1, wob) }));
+      mg.appendChild(el('circle', {
+        class: 'sp-ink', cx: (dx + wob).toFixed(1),
+        cy: (dy + len + w1 * 0.55).toFixed(1), r: (w1 * 1.5).toFixed(1),
+      }));
+    });
+    mask.appendChild(mg);
+    defs.appendChild(mask);
+    svg.appendChild(defs);
+
+    const art = el('g', { transform: `rotate(${TURNS[v]}) scale(${s})` });
+    const rim = el('g', { filter: `url(#${rid})` });
+    const inside = el('g', { mask: `url(#${mkid})` });
+    const swirl = el('g', { filter: `url(#${dfid})` });
+    swirl.appendChild(el('rect', {
+      x: -340, y: -320, width: 680, height: 640, fill: `url(#${mid})`,
+    }));
+    // And the veins: where two wet paints have pulled apart, the film is
+    // thin and the cream of the ground shows in a line. Three of them,
+    // swirled by the same turbulence as everything else in here.
+    VEINS.forEach(([d, w, cls]) => swirl.appendChild(
+      el('path', { class: cls, d, 'stroke-width': w })));
+    inside.appendChild(swirl);
+    rim.appendChild(inside);
+    art.appendChild(rim);
+    svg.appendChild(art);
+    deck().appendChild(svg);
     return svg;
   }
 
@@ -1755,6 +1892,13 @@
     const run = vert ? H : W;            // how far the pass travels
     const across = vert ? W : H;         // and how wide it is
     const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, class: 'sp-stroke' });
+    /* The leading edge travels on a second sheet, over the mix zone. The
+       mix zone is revealed by a clip, and a clip is a straight line; the
+       bristles and the wet edge are what a boundary between wet paints
+       actually looks like, so they are drawn on top of it rather than
+       under it. Two <svg>s with the same keyframes on the same timeline
+       are the same stroke: nothing here is measured against a clock. */
+    const top = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, class: 'sp-stroke-top' });
 
     const defs = el('defs', {});
     const lap = el('linearGradient', { id: 'oaLap', x1: 0, y1: 0, x2: 0, y2: 1 });
@@ -1763,6 +1907,9 @@
     const lapo = el('linearGradient', { id: 'oaLapO', x1: 0, y1: 0, x2: 0, y2: 1 });
     LAPO.forEach(([o, k]) => lapo.appendChild(el('stop', { offset: o + '%', class: 'sp-lapo-' + k })));
     defs.appendChild(lapo);
+    const lapm = el('linearGradient', { id: 'oaLapM', x1: 0, y1: 0, x2: 0, y2: 1 });
+    LAPO.forEach(([o, k]) => lapm.appendChild(el('stop', { offset: o + '%', class: 'sp-lapm-' + k })));
+    defs.appendChild(lapm);
 
     const bf = el('filter', { id: 'oaBristle', x: '-20%', y: '-6%', width: '150%', height: '112%' });
     bf.appendChild(el('feTurbulence', {
@@ -1820,11 +1967,6 @@
     }
     sweep.appendChild(drys);
 
-    const wetg = el('g', { class: 'sp-wetg', filter: 'url(#oaWetEdge)' });
-    wetg.appendChild(el('rect', {
-      class: 'sp-wet', x: -52, y: -4, width: 58, height: across + 8,
-    }));
-    sweep.appendChild(wetg);
 
     // The leading edge: rounded bristle fingers, each overlapping the one
     // above it by 55-90% of its height, all the way down. Three tones.
@@ -1842,30 +1984,57 @@
     }
     FLUNG.forEach(([n, x, f, a]) => edge.appendChild(
       el(n, Object.assign({ class: 'sp-t' + (n === 'circle' ? 2 : 1), cx: x, cy: Math.round(across * f) }, a))));
-    sweep.appendChild(edge);
 
     mirror.appendChild(sweep);
     svg.appendChild(mirror);
-    return svg;
+
+    // The second sheet: the same defs by reference, the same animation, and
+    // only the wet edge and the bristles on it.
+    const tMirror = el('g', { class: 'sp-mirror' });
+    const tSweep = el('g', { class: 'sp-sweep' });
+    tSweep.setAttribute('style', `--tx0:${-LEAD}px;--tx1:${run + 40}px`);
+    const wetg = el('g', { class: 'sp-wetg', filter: 'url(#oaWetEdge)' });
+    wetg.appendChild(el('rect', {
+      class: 'sp-wet', x: -52, y: -4, width: 58, height: across + 8,
+    }));
+    tSweep.appendChild(wetg);
+    tSweep.appendChild(edge);
+    tMirror.appendChild(tSweep);
+    top.appendChild(tMirror);
+    return [svg, top];
   }
 
   function paint(side, W, H, c) {
     const vert = side === 'top';
     if (!brush || brushW !== W || brushH !== H || brushV !== vert) {
-      brush = build(W, H, vert); brushW = W; brushH = H; brushV = vert;
+      const built = build(W, H, vert);
+      brush = built[0]; brushTop = built[1];
+      brushW = W; brushH = H; brushV = vert;
     }
     brush.classList.remove('go');
+    brushTop.classList.remove('go');
     brush.setAttribute('class', 'sp-stroke ' + tone(c));
-    const mirror = brush.querySelector('.sp-mirror');
+    brushTop.setAttribute('class', 'sp-stroke-top ' + tone(c));
     // Down the screen: the side-on brush turned a quarter and slid over, so
     // its own +x runs down the page and its width covers the page's.
-    if (vert) mirror.setAttribute('transform', `translate(${W},0) rotate(90)`);
     // The right-hand pass is the same brush, flipped about the viewport.
-    else if (side === 'right') mirror.setAttribute('transform', `translate(${W},0) scale(-1,1)`);
-    else mirror.removeAttribute('transform');
+    const t = vert ? `translate(${W},0) rotate(90)`
+      : (side === 'right' ? `translate(${W},0) scale(-1,1)` : null);
+    [brush, brushTop].forEach((sheet) => {
+      const m = sheet.querySelector('.sp-mirror');
+      if (t) m.setAttribute('transform', t); else m.removeAttribute('transform');
+    });
     deck().appendChild(brush);
     return brush;
   }
+
+  /* The second sheet goes on last, over the mix zone, and is told to go in
+     the same breath as the first. */
+  const go = (st) => {
+    st.classList.add('go');
+    if (mrb) mrb.classList.add('go');
+    if (brushTop) { deck().appendChild(brushTop); brushTop.classList.add('go'); }
+  };
 
   /* --- who gets one -------------------------------------------------- */
   /* The path of a URL as this site compares them: resolved against the
@@ -1945,22 +2114,22 @@
        where they overlap. A pass with no blob just takes its turn. */
     const hit = kind === 'btn';
     const c = pass++ % 2;
-    if (hit) splat(x, y, shot % SEEDS.length, c);
-
     // A jump to an anchor on this page paints nothing over it: there is no
-    // page coming to hide behind the stroke. The splat, and the link works.
-    if (url.hash && url.pathname === location.pathname && url.search === location.search) {
-      killer = setTimeout(clear, CLEAR);
-      return;
-    }
+    // page coming to hide behind the stroke, and so no mix zone either.
+    const anchor = !!(url.hash && url.pathname === location.pathname &&
+                      url.search === location.search);
+    if (hit) splat(x, y, shot % SEEDS.length, c, anchor ? null : side, W, H);
+    if (anchor) { killer = setTimeout(clear, CLEAR); return; }
 
     e.preventDefault();
     running = true;
     const st = paint(side, W, H, hit ? 1 - c : c);
     // The blob goes first when there is one; otherwise the roller starts on
     // the next frame, which is the only rAF in this block.
-    if (hit) setTimeout(() => st.classList.add('go'), POP);
-    else requestAnimationFrame(() => st.classList.add('go'));
+    // The mix zone travels on the stroke's own clock, and is told to go in
+    // the same breath, so the clip and the leading edge never part company.
+    if (hit) setTimeout(() => go(st), POP);
+    else requestAnimationFrame(() => go(st));
     setTimeout(() => location.assign(a.href), hit ? GO : GO_S);
     killer = setTimeout(clear, CLEAR);
   });
@@ -1990,10 +2159,11 @@
     e.stopPropagation();                 // the form's own listener, in a moment
     clear();
     const c = pass++ % 2;
-    splat(x, y, shot % SEEDS.length, c);
+    const side = sideOf(x, W);
+    splat(x, y, shot % SEEDS.length, c, side, W, H);
     running = true;
-    const st = paint(sideOf(x, W), W, H, 1 - c);
-    setTimeout(() => st.classList.add('go'), POP);
+    const st = paint(side, W, H, 1 - c);
+    setTimeout(() => go(st), POP);
     setTimeout(() => {
       replay = true;
       try { f.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); }
@@ -2023,9 +2193,11 @@
    cycles his mint, the coral and ink stroke by stroke -- a stroke being
    from the brush arriving to it leaving, or resting on the wall for a
    second -- and where a stroke crosses one already laid down the two
-   multiply, so the crossing is a third colour and not the newer stroke
-   lying on top of the older one. How that is done without a stroke
-   darkening against itself is written up in build(), three canvases down.
+   marble: interleaved ribbons of both paints with a cream vein along the
+   edges where they have pulled apart, never a blend to a third flat
+   colour. The ribbons are under merge(); the three canvases that let a
+   stroke cross another without darkening against its own stamps are
+   written up in build().
 
    What a stroke is. A bristled stamp every 6px along the pointer's path,
    the hairs generated once from the kit's seeded random the way Splat's
@@ -2098,6 +2270,9 @@
     [pick('--pop', MINT), pick('--pop-mid', MID)],
     [pick('--ink', MINT), pick('--ink-3', MID)]
   ];
+  // The vein: the line of thin film where two wet paints have been dragged
+  // through each other and pulled apart. It is the stylesheet's --cream.
+  var CREAM = pick('--cream', MINT);
 
   var STEP = 6;                 // px of travel between stamps
   var DPR_CAP = 2;              // min(devicePixelRatio, 2): the note's number
@@ -2146,6 +2321,7 @@
     this.base = null; this.bg = null;      // the strokes that are laid down
     this.lay = null; this.lg = null;       // and the one still under the brush
     this.hue = 0;                          // which paint is in the bristles
+    this.bands = null;                     // the marbling ribbons, once
     this.wantMerge = false;                // the stroke is over; its runs are not
     this.laid = false;                     // ... and there is something to lay down
     this.dirty = false;                    // something was painted this frame
@@ -2219,36 +2395,105 @@
     // ever blitted whole, so they stay in device pixels.
     this.lg.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.lg.lineCap = 'round';
+    this.bands = null;                  // the ribbons are in device pixels
     this.drips.length = 0;
     this.last = null;
     this.dirty = true;
   };
 
-  /* The wall as it is shown: the paint that is laid down, with the stroke
-     still under the brush multiplied over it. Multiply onto a transparent
-     destination is the source colour, so a first stroke on a blank wall is
-     simply itself, and a stroke crossing another is the two mixed. */
+  /* --- marbling ---------------------------------------------------------
+     Owner, second pass: "mixing must marble, not multiply." A multiply is
+     what paint does in a physics engine; what paint does on a wall is
+     marble — the two colours stay themselves in interleaved ribbons and a
+     thin cream vein shows where they have pulled apart.
+
+     So the crossing is not a blend at all, it is a division of the
+     surface. One set of wandering diagonal ribbons, generated once from
+     the kit's seeded random the way every other texture on this site is,
+     and the new stroke takes the ribbons while the paint already there
+     keeps the gaps. Where the wall was bare the new stroke simply lands,
+     which is the destination-over pass; a stroke on a blank wall is
+     therefore itself and nothing else, and only a crossing marbles. */
+  Wall.prototype.ribbons = function () {
+    if (this.bands) return this.bands;
+    var p = new Path2D(), d = this.dpr, W = this.base.width, H = this.base.height;
+    var r = kit.rng(0x4B1D), x, y, w, amp, ph, fr;
+    for (x = -H; x < W + H * 0.6; x += 30 * d) {
+      w = (9 + r() * 9) * d;
+      amp = (9 + r() * 17) * d; ph = r() * 6.2832; fr = (0.9 + r() * 1.1) / (90 * d);
+      p.moveTo(x + Math.sin(ph) * amp, -4);
+      for (y = 0; y <= H + 12 * d; y += 14 * d) {
+        p.lineTo(x + y * 0.5 + Math.sin(y * fr + ph) * amp, y);
+      }
+      for (y = H + 12 * d; y >= 0; y -= 14 * d) {
+        p.lineTo(x + w + y * 0.5 + Math.sin(y * fr + ph) * amp, y);
+      }
+      p.closePath();
+    }
+    this.bands = p;
+    return p;
+  };
+
+  /* The wall as it is shown: the paint that is laid down, and the stroke
+     still under the brush marbled into it — the ribbons on top, the gaps
+     left to whatever was there, and the bare wall taken by the new paint. */
   Wall.prototype.compose = function () {
-    var g = this.g, W = this.cv.width, H = this.cv.height;
+    var g = this.g, W = this.cv.width, H = this.cv.height, bands = this.ribbons();
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.globalCompositeOperation = 'source-over';
     g.clearRect(0, 0, W, H);
     g.drawImage(this.base, 0, 0);
-    g.globalCompositeOperation = 'multiply';
+    g.save();
+    g.beginPath();
+    g.clip(bands);
+    g.drawImage(this.lay, 0, 0);
+    g.restore();
+    g.globalCompositeOperation = 'destination-over';
     g.drawImage(this.lay, 0, 0);
     g.globalCompositeOperation = 'source-over';
     this.dirty = false;
   };
 
-  /* The stroke is over and its runs have finished: lay it down, mixing it
-     into whatever it crossed, and put the next paint in the bristles. */
+  /* The stroke is over and its runs have finished: lay it down, marbling it
+     into whatever it crossed, and put the next paint in the bristles.
+
+     The vein needs to know where the two paints actually meet, and the
+     visible canvas is the scratch that answers it: the new stroke with the
+     laid-down paint punched through it by destination-in is exactly the
+     overlap, and a cream line stroked along the ribbon edges with
+     source-in lands only inside it. Nothing else on the wall gets a vein,
+     which is the point — a vein is the mark of a crossing. compose()
+     rebuilds the canvas on the next frame regardless. */
   Wall.prototype.merge = function () {
     this.wantMerge = false;
-    var b = this.bg;
+    var b = this.bg, g = this.g, L = this.lay, bands = this.ribbons();
+
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalCompositeOperation = 'source-over';
+    g.clearRect(0, 0, this.cv.width, this.cv.height);
+    g.drawImage(L, 0, 0);
+    g.globalCompositeOperation = 'destination-in';
+    g.drawImage(this.base, 0, 0);           // what is left is the crossing
+    g.globalCompositeOperation = 'source-in';
+    g.strokeStyle = CREAM;
+    g.lineWidth = 2.4 * this.dpr;
+    g.globalAlpha = 0.62;
+    g.stroke(bands);
+    g.globalAlpha = 1;
+    g.globalCompositeOperation = 'source-over';
+
     b.setTransform(1, 0, 0, 1, 0, 0);
-    b.globalCompositeOperation = 'multiply';
-    b.drawImage(this.lay, 0, 0);
+    b.globalCompositeOperation = 'destination-over';
+    b.drawImage(L, 0, 0);                   // the bare wall takes the new paint
+    b.save();
+    b.beginPath();
+    b.clip(bands);
     b.globalCompositeOperation = 'source-over';
+    b.drawImage(L, 0, 0);                   // and the ribbons take it over paint
+    b.restore();
+    b.globalCompositeOperation = 'source-over';
+    b.drawImage(this.cv, 0, 0);             // the veins go on last
+
     this.lg.save();
     this.lg.setTransform(1, 0, 0, 1, 0, 0);
     this.lg.clearRect(0, 0, this.lay.width, this.lay.height);
