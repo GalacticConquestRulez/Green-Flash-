@@ -437,3 +437,9 @@ against the mint** for accents — emphasis words, the marker asides, the active
 primary-on-mint button. Proposed: a coral-orange `#FF4F2E` (the mint's complement, and the
 warm note Overall Murals uses). Black stays for the marquee strip, the hero scrim and the
 footer only. The dark-canvas site that is live today is the restore point, not the direction.
+- **The teal is paint, not a fill (owner, 2026-09-19):** "Maybe make the teal a brush stroke —
+  so it looks like he painted on the screen." Every teal band on the redesign is a swept brush
+  stroke: tapered, loaded start and feathered end, dry-brush streaks along the stroke, bristle
+  break-up on the long edges, a few drips, a degree or two of tilt. Same for the highlight
+  behind the hero's mint words. Never a flat rectangle of mint, never a clean wave edge.
+  Generate the strokes (seeded, like the tags and the props) so they are byte-stable.
