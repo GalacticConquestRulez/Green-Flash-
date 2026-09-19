@@ -239,9 +239,9 @@ footer .foot-grid ul a:hover{color:var(--paper)}
      Roll   a reveal arrives like a roller pass — a clip-path wipe
             left-to-right with the last 18px of rise.
      Roll it in
-            the same pass, laid down by the visitor: a card's photograph
-            waits under primer and is rolled in on hover (desktop, the
-            pointer wearing the roller) or as it arrives (a phone), and
+            the same pass, over a card's photograph: it waits under
+            primer and is rolled in as it arrives, one card 120ms behind
+            the last, or at once if the pointer reaches it first. It
             stays painted. See ROLL IT IN, below.
      Scale  the dimension figures widen into place, wdth 100 -> 125.
      Cure   one slow mint sheen down the rule under a figure as it lands,
@@ -529,9 +529,13 @@ html.motion .pintro .glow{--gx:74%;--gy:20%}
                   the two margins are art.py's contact point — and the wet
                   sheen is the strip immediately behind it.
 
-   Desktop rolls a card in on hover (the pointer is wearing the roller);
-   a phone rolls them in as they arrive, one after another. Either way it
-   is once and for good: nothing here un-paints on the way back up.     */
+   Every card rolls itself in as it arrives, desktop and phone alike, 120ms
+   behind the one before it and the first of a run after a 350ms grace: a
+   portfolio can never sit whitewashed waiting for a hover. The hover is the
+   shortcut — a card the pointer reaches before the stagger does paints at
+   once, under the roller cursor — which also means the cursor is a passing
+   thing, handed back as soon as the last card lands. Either way it is once
+   and for good: nothing here un-paints on the way back up.              */
 html.motion .pcard{--rw:96px;--roll-t:.6s}
 @media (max-width:700px){html.motion .pcard{--rw:68px}}
 

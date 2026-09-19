@@ -162,15 +162,20 @@ Ephraim before any production code.
   `.pcard` photograph waits under **primer** — a whitewashed wall: the photograph at 12% of its
   colour, the contrast almost flat and the whole thing lifted toward `--wall` (`--primer`, a CSS
   filter on the `<img>` and only while the card is unpainted, so no filter is ever left on a page
-  element). **Desktop:** over the grids the pointer *is* the roller — `art.py`'s
-  `roller_pass_svg()` serialised at 40px into a `cursor:url(data:…)` with the hotspot on the nap
-  — and hovering a card rolls its mural in under a single 600ms pass: a mask wipe left to right,
-  the same mechanism as Roll and for the same reason (a mask is paint-only, a clip-path would
-  collapse the observer's rectangle), with the roller riding the leading edge and a faint wet
-  sheen immediately behind the nap. It stays `.painted`, and **once every card on the page is
-  painted the pointer is handed back**. **Mobile:** no pointer to hover with, so the cards roll in
-  as they arrive, 120ms apart, off the same observer. Either way it is **once and for good** —
-  this is Roll, which runs one way, not Live, which runs both. It composes with Live rather than
+  element). **Every card rolls itself in as it arrives — desktop as much as phone.** The
+  stagger is what paints the wall, 120ms between cards and a 350ms grace before the first of a
+  run, off the same observer: *a portfolio can never sit whitewashed waiting for a hover that may
+  never come* (owner, 2026-09-19, on review). Each pass is 600ms — a mask wipe left to right, the
+  same mechanism as Roll and for the same reason (a mask is paint-only, a clip-path would collapse
+  the observer's rectangle), with `art.py`'s `roller_pass_svg()` riding the leading edge and a
+  faint wet sheen immediately behind the nap. **The hover is the shortcut, not the trigger:** over
+  the grids the pointer *is* the roller (the same symbol serialised at 40px into a
+  `cursor:url(data:…)`, hotspot on the nap), and a card the pointer reaches before the stagger
+  does paints at once — the grace is there so a pointer already resting on a card when the grid
+  arrives paints that one first, under the roller. Because everything gets painted in the end the
+  **roller cursor is a passing beat**: the pointer is handed back the moment the last card lands.
+  Either way it is **once and for good** — this is Roll, which runs one way, not Live, which runs
+  both. It composes with Live rather than
   replacing any of it: the drift, the rise, the tilt, the mint hairline and the photograph to 1.04
   are all untouched, and nothing in it changes a box. **No JS / reduced motion: full-colour
   photographs, no primer, no roller** — the primer is `html.motion` only, it is on the img from

@@ -307,12 +307,22 @@
      loses the primer the moment the pass is over and the clone goes in
      the same frame, which is the same pixels either side of the swap.
 
-     Desktop paints on hover — the pointer is already wearing the roller
-     — and on focus, so the keyboard gets there too. A phone paints as
-     the cards arrive, 120ms apart, off the observer below. Once a card
-     is claimed it is never claimed again: this is Roll, which runs once,
-     and not Live, which runs both ways. */
-  const ROLL = 600, STAGGER = 120;
+     Every card rolls itself in as it arrives, on a desktop as much as on
+     a phone: a portfolio can never sit whitewashed waiting for a hover
+     that may never come, so the stagger is what paints the wall and the
+     hover is only ever a shortcut. The cards enter the queue as the
+     observer sees them and go 120ms apart, the first of a run after a
+     350ms grace — long enough that a pointer already resting on a card
+     when the grid arrives paints that one first, under the roller
+     cursor, which is the beat worth having.
+
+     Hover and focus therefore call roll() straight out, ahead of the
+     queue; the card's own timer finds it already claimed and returns.
+     Once a card is claimed it is never claimed again: this is Roll,
+     which runs once, and not Live, which runs both ways. And because
+     everything is painted in the end, the roller cursor is a passing
+     thing — the pointer is handed back the moment the last card lands. */
+  const ROLL = 600, STAGGER = 120, GRACE = 350;
   const pcards = [...document.querySelectorAll('.pcard')];
   let unpainted = pcards.length, nextAt = 0;
   if (pcards.length) {
@@ -328,12 +338,12 @@
     });
   }
 
-  const claim = (card) => {
-    if (card.dataset.rollin) return false;
-    card.dataset.rollin = '1';
-    return true;
-  };
+  // roll() is the only door, and it is one-way: hover, focus and the
+  // card's own place in the queue all come through it, and whichever
+  // arrives first is the one that paints.
   const roll = (card) => {
+    if (card.dataset.rollin) return;
+    card.dataset.rollin = '1';
     card.classList.add('rolling');
     setTimeout(() => {
       card.classList.add('painted');        // the primer comes off
@@ -345,16 +355,18 @@
     }, ROLL + 60);
   };
   const queue = (card) => {
+    if (card.dataset.rollq) return;       // already waiting its turn
+    card.dataset.rollq = '1';
     const now = performance.now();
-    const at = Math.max(now, nextAt);
+    const at = Math.max(now + GRACE, nextAt);
     nextAt = at + STAGGER;
     setTimeout(() => roll(card), at - now);
   };
   pcards.forEach(card => {
     if (fine) card.addEventListener('pointerenter', (e) => {
-      if (e.pointerType !== 'touch' && claim(card)) roll(card);
+      if (e.pointerType !== 'touch') roll(card);
     });
-    card.addEventListener('focus', () => { if (claim(card)) roll(card); });
+    card.addEventListener('focus', () => roll(card));
   });
 
   const targets = [...document.querySelectorAll('.rv,.dims')];
@@ -404,10 +416,10 @@
       // at the threshold it has always run at, and .rolled is what holds
       // it open afterwards — .in comes and goes underneath it.
       if (e.intersectionRatio >= 0.12 && el.classList.contains('rv')) el.classList.add('rolled');
-      // Roll it in, on a phone: no pointer to hover with, so a card is
-      // rolled in as it arrives and the next one 120ms behind it.
-      if (!fine && e.intersectionRatio >= 0.12 && el.classList.contains('pcard')
-          && claim(el)) queue(el);
+      // Roll it in: a card is queued as it arrives and the next one
+      // 120ms behind it, on every pointer — the wall paints itself and
+      // a hover only ever gets there first.
+      if (e.intersectionRatio >= 0.12 && el.classList.contains('pcard')) queue(el);
       el.classList.toggle('in', e.intersectionRatio >= LIVE);
       if (el.classList.contains('pcard')) {
         if (e.isIntersecting) cards.add(el); else cards.delete(el);
