@@ -463,3 +463,10 @@ emoji-like." So, for every paint verb (Splat, the sweep transition, Wall, Spray,
   lap marks. Render sharp at 2× (SVG filters or DPR-aware canvas), never a scaled bitmap. The
   same standard as the props in `art.py` and the tags in `wall.py`. If a still of the splat or
   a stroke would look wrong printed at poster size, it is not done.
+- **A logo section, like Colossal's (owner, 2026-09-19):** a "Painted for" wall of the brands
+  he has painted — Gucci, Crown Royal, Uber, Victoria's Secret, Vitamin Water, Sprite, Ford,
+  Showtime, Moncler, Red Bull, Monkey 47, Johnnie Walker, Heineken, Jack Daniel's, Corona — as a
+  monochrome grid on the home page (and the Services page). Until Ephraim supplies each brand's
+  logo file, every mark is a typographic wordmark in the display faces, ink on white; real logos
+  drop in one by one as they arrive (`brands.py`: name, optional svg). Never invent or trace a
+  brand's logo; a name set in our type is honest, a redrawn logo is not.
