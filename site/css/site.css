@@ -381,6 +381,38 @@ html.motion .hero-video{display:block;position:absolute;inset:0;width:100%;heigh
 }
 .spray-track{display:none}
 
+/* --- a band painted in one stroke -------------------------------------
+   build.py stroke_band() and highlight(); the drawing is strokes.py.
+
+   "Maybe make the teal a brush stroke — so it looks like he painted on the
+   screen" (owner, 2026-09-19). So a mint band is never a background colour
+   and never a shape with a clean edge: it is one swept stroke behind the
+   words, drawn at a viewBox the section stretches, and the section itself
+   has no background at all.
+
+   Two things follow. The stroke must not be clipped — the drips run out of
+   the bottom of the drawing and down the white page below it, which is the
+   whole point of a drip — so neither the svg nor the band clips, and the
+   band's own padding is what keeps the words off the ragged edges. And the
+   words sit above it in the ordinary .wrap: the paint is at z-index 0 and
+   aria-hidden, so a screen reader hears a section and not a stroke.        */
+.band{
+  position:relative;color:var(--ink);text-align:center;
+  padding:clamp(5rem,11vw,8.5rem) 0 clamp(5.5rem,12vw,9.5rem);
+}
+.stroke-wrap{position:absolute;inset:0;z-index:0;pointer-events:none}
+.stroke{width:100%;height:100%;display:block;transform-origin:50% 50%;overflow:visible}
+.band > .wrap{position:relative;z-index:1}
+
+/* Words on a stroke: the paint is drawn behind the letters rather than
+   under them, a little larger than the line in both directions, so it runs
+   past the ends the way a highlight laid with a brush does. The span makes
+   its own stacking context, which is what keeps a z-index of -1 inside the
+   headline instead of behind the photograph the headline is on. */
+.hl{position:relative;display:inline-block;isolation:isolate;padding:0 .12em;color:var(--ink)}
+.hl .hl-stroke{position:absolute;inset:-9% -2%;width:104%;height:118%;z-index:-1;overflow:visible}
+.hl em{position:relative;font-style:normal}
+
 /* --- closing call to action ------------------------------------------- */
 .cta{border:1px solid var(--line);border-radius:var(--radius);background:var(--paper-2);padding:clamp(1.8rem,5vw,3.4rem)}
 .cta h2{margin-bottom:.7rem}

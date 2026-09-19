@@ -19,6 +19,7 @@ img(), so the same build runs at the domain root and under a preview prefix.
 import os, sys, html, json, struct, hashlib
 from urllib.parse import quote as _urlq
 from art import brush_rule_svg, roller_pass_svg, spraycan_pass_svg, can_tipping_svg
+from strokes import stroke_svg, highlight_svg
 
 SRC = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(SRC, 'site')
@@ -518,6 +519,40 @@ def consult_path(service=None):
 def consult(service=None):
     """A link to the contact form, with the service already chosen."""
     return u(consult_path(service))
+
+
+def stroke_band(inner, uid, cls='', h=720):
+    """A section whose background is one swept stroke of mint (strokes.py).
+
+    Owner, 2026-09-19: "Maybe make the teal a brush stroke — so it looks like
+    he painted on the screen." So this is the only way a mint band happens on
+    this site. `inner` is the words; `uid` names the stroke, which is also its
+    seed — the same name is the same stroke on every build, and two bands on
+    one page are two different strokes because they are two different names.
+
+    The stroke is behind the words and aria-hidden, the words are in the
+    ordinary .wrap, and the drawing is stretched over the section with
+    preserveAspectRatio="none": a stroke over a taller section is a wider
+    brush, which is the right answer. Nothing here is gated on motion — a
+    painted band is not an animation, it is the page.
+    """
+    return f'''<section class="band{" " + cls if cls else ""}">
+  <div class="stroke-wrap">{stroke_svg(uid, h=h)}</div>
+  <div class="wrap">{inner}</div>
+</section>'''
+
+
+def highlight(text, uid):
+    """Words on a stroke of mint — the hero's second line, and its like.
+
+    The stroke is drawn behind the letters rather than under them: it sits at
+    z-index -1 inside the span's own stacking context, a little larger than
+    the words in both directions, so the paint runs past the ends of the line
+    the way a highlight laid with a brush does. The type on it is ink, which
+    is the only thing mint may carry (13.8:1).
+    """
+    return (f'<span class="hl">{highlight_svg(uid)}'
+            f'<em>{text}</em></span>')
 
 
 def cta(title='Ready when you are.',
