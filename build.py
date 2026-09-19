@@ -929,6 +929,48 @@ def faces_strand(eyebrow='and the faces', title='Painted portraits', cls=''):
 </div></section>'''
 
 
+# ------------------------------------------------------------ PUBLIC WORKS
+# The strand the owner asked for in his own words (CLAUDE.md, round three):
+# "he has more not on there, and wants to show more of his public works like
+# Colossal did; he's been to Mexico, Brazil, teen empowerment and more, so
+# don't limit."
+#
+# So this block exists to be open-ended. It names the places he has worked and
+# the kinds of work — community walls, civil-rights portraits, teen-empowerment
+# murals — and it says out loud, in marker, that more is coming as the
+# photographs arrive. It does not count anything, it does not present the
+# roster as complete, and it does not invent a project that has no photograph.
+#
+# The picture is about-team, the crew on the lift, because that photograph is
+# about the people doing the work rather than about one brand's wall — it is
+# the right placeholder for this strand and it is labelled as the crew, not as
+# a public commission. A real public-works photograph replaces it in one line.
+PW_PLACES = ('Mexico', 'Brazil', 'Rochester', 'New York')
+PW_MARKER = 'more coming as the photos arrive'
+
+
+def public_works(cls=''):
+    """Public works — the community strand, framed for the work we do not have yet."""
+    places = ' &middot; '.join(PW_PLACES)
+    sect = ('pw ' + cls).strip()
+    return f'''<section class="{sect}"><div class="pw-grid">
+  <figure class="pw-media rv">{pic('about-team',
+      'An Open Air Gallery painter working from a lift platform, mask on, part way '
+      'through a wall', PAIR_SIZES)}</figure>
+  <div class="pw-words rv rv-d1">
+    <h2 class="tall">Public <em class="pop">works</em></h2>
+    <p class="pw-places wide">{places}</p>
+    <p class="serif">Beyond the brands: community walls, civil-rights portraits and
+    teen-empowerment murals &mdash; painted with the people who live beside them, in
+    Mexico, Brazil and at home in Rochester and New York.</p>
+    <p class="serif">The two Rochester commissions are the ones we have photographs of
+    so far. They are not the extent of the work, and this page has room for the rest.</p>
+    <p class="pw-note marker">{PW_MARKER}</p>
+    <div class="row-end"><a class="btn btn-ghost" href="{u('/work')}#f-civic">See the public works {ICONS['arrow']}</a></div>
+  </div>
+</div></section>'''
+
+
 # ---------------------------------------------------------------- HOME
 # Every number on this page is computed from projects.py. None of them is
 # typed: "Twelve walls. Over 23,000 square feet." is the roster adding itself
@@ -1005,17 +1047,26 @@ pages['/index'] = dict(
 # hides what does not match. No JavaScript is involved, so the filter works in
 # a text browser, in a crawler, and on a page whose script never arrived — and
 # with nothing targeted the grid shows everything, which is the right default.
-CAT_LABEL = {'brand': 'Brands', 'portrait': 'Portraits', 'civic': 'Civic'}
+# The third chip says "Public works", not "Civic". CLAUDE.md, round three:
+# Ephraim wants the community side shown the way Colossal shows its public
+# art, and the two Rochester commissions are what we have photographs of
+# today — so the chip is named for the strand and filters on the category we
+# already have. Mexico, Brazil and the teen-empowerment murals join it as
+# their photographs arrive, and the label does not have to change again.
+#
+# The chips carry no counts. A number beside "All" is a wall count, and this
+# site does not state one (CLAUDE.md: "Don't say 12 walls — he has more not
+# on there"). The filter is a filter; it is not a tally of his career.
+CAT_LABEL = {'brand': 'Brands', 'portrait': 'Portraits', 'civic': 'Public works'}
 
 
 def work_index():
-    chips = [('#f-all', 'All', len(PROJECTS))]
-    chips += [(f'#f-{c}', CAT_LABEL[c], sum(1 for p in PROJECTS if p['category'] == c))
-              for c in CATEGORIES]
+    chips = [('#f-all', 'All')]
+    chips += [(f'#f-{c}', CAT_LABEL[c]) for c in CATEGORIES]
     targets = '<span class="ftarget" id="f-all"></span>' + ''.join(
         f'<span class="ftarget" id="f-{c}"></span>' for c in CATEGORIES)
-    bar = ''.join(f'<li><a class="chip" href="{href}">{label}'
-                  f'<span class="ct">{n}</span></a></li>' for href, label, n in chips)
+    bar = ''.join(f'<li><a class="chip" href="{href}">{label}</a></li>'
+                  for href, label in chips)
     cards = ''.join(pcard(p, f"cat-{p['category']}" + (f' rv-d{i % 3}' if i % 3 else ''))
                     for i, p in enumerate(PROJECTS))
     return f'''<section class="work"><div class="wrap">
@@ -1037,6 +1088,7 @@ pages['/work'] = dict(
            f'portraits, and the two Rochester commissions.',
            crumb='Work')}
 {work_index()}
+{public_works()}
 {faces_strand()}
 {gr_strip('Graffiti removal, pressure washing and commercial painting in NYC. The '
           'crew that painted these walls cleans them too.')}

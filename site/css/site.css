@@ -2229,3 +2229,26 @@ html.motion .tiprule.curing::after{
   .frow{gap:6px 18px}
   .frow .face:not(:nth-last-child(2))::after{margin-left:18px}
 }
+
+/* --- public works ---------------------------------------------------
+   A full-bleed pair: the crew on one side, the strand on the other. It
+   is deliberately not a grid of cards — a card implies a roster, and the
+   whole point of this block is that the roster is not the work. The
+   marker line is the promise and it is the last thing read.            */
+.pw{padding:0;background:var(--paper,#fff);border-top:2px solid var(--ink,#0A0A0B)}
+.pw-grid{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}
+.pw-media{margin:0;position:relative;min-height:clamp(340px,42vw,560px);overflow:hidden;background:var(--ink-3,#1A1A1D)}
+.pw-media picture,.pw-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pw-words{padding:clamp(40px,5vw,80px) clamp(22px,4vw,64px);display:flex;flex-direction:column;justify-content:center}
+.pw-words h2{font-size:clamp(46px,6vw,104px);margin:0 0 16px;color:var(--ink,#0A0A0B)}
+.pw-words h2 em{font-style:normal;color:var(--pop,#FF4F2E)}
+.pw-places{font-size:clamp(15px,1.5vw,20px);letter-spacing:.06em;color:var(--pop,#FF4F2E);margin:0 0 18px}
+.pw-words p.serif{font-size:17.5px;line-height:1.58;max-width:52ch;margin:0 0 14px;color:var(--muted-ink,#2b2a2e)}
+.pw-note{font-size:clamp(19px,2vw,26px);color:var(--pop,#FF4F2E);margin:10px 0 0;transform:rotate(-1.4deg);transform-origin:left center}
+.pw-words .row-end{margin-top:26px}
+@media (max-width:760px){
+  .pw-grid{grid-template-columns:1fr}
+  .pw-media{min-height:260px}
+  .pw-words{padding:38px 18px 44px}
+  .pw-words p.serif{font-size:16px}
+}
