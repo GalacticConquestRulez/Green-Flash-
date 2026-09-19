@@ -464,10 +464,22 @@ html.motion .beatrule-pos{
   transform:translateX(calc(var(--paint,0) * 100%));
   opacity:clamp(0,calc((1 - var(--paint,0)) * 12),1);
 }
+/* The wet edge behind the brush is the coral (owner, 2026-09-19): the rule
+   he is painting is mint, and the paint that is still wet on it carries the
+   second colour, so the one place on the page where the brush is actually
+   touching the wall has both paints in it. It is a ridge of wet paint, not
+   a glow: a 4px band with a hard right edge where the bristles are.
+
+   It is hung off the positioner's left edge and pulled back by its own
+   width, the way Roll hangs .pcard-wet off the roller -- right:0 put it at
+   the far end of a box that is itself the width of the whole rule, which
+   is a per cent of a rule past the end of the track that clips it, so the
+   wet edge was never on screen at all. It is now where the bristles are. */
 html.motion .beatrule-wet{
-  position:absolute;right:0;top:calc(var(--bh) - 1px);height:4px;
-  width:calc(var(--bw) * 1.2);border-radius:2px;
-  background:linear-gradient(90deg,var(--mint-wet-0),var(--mint-wet));
+  position:absolute;left:0;top:calc(var(--bh) - 1px);height:4px;
+  width:calc(var(--bw) * 1.2);margin-left:calc(var(--bw) * -1.2);
+  border-radius:2px;
+  background:linear-gradient(90deg,var(--pop-wet-0),var(--pop-wet));
 }
 html.motion .beatrule-brush{
   position:absolute;left:0;top:0;width:var(--bw);height:var(--bw);
@@ -692,6 +704,22 @@ html.motion .spray-halo{
 }
 html.motion .spray-band.spray-go .spray-halo{opacity:.3;transition-duration:.2s}
 html.motion .spray-band.spray-done .spray-halo{opacity:.12}
+/* And the second paint, off the same nozzle (owner, 2026-09-19): a can
+   that has had the coral in it throws a few specks of it with the mist.
+   The same clone and the same trick — what paints is the shadow, so a
+   speck can never come away from the glyph it was thrown off — but a
+   tighter, harder shadow through a coarser aerosol, so these scatter
+   rather than haloing. It settles almost to nothing when the paint dries:
+   overspray is what is left on the wall, not what is written on it. */
+html.motion .spray-halo-pop{
+  /* An outline rather than a shadow, because a shadow at no offset is a
+     filled copy of the glyph and would paint the wordmark coral. The
+     stroke straddles the edge, and the coarse aerosol tears it into the
+     specks that come off a nozzle held too close. */
+  text-shadow:none;-webkit-text-stroke:1.7px var(--pop);
+}
+html.motion .spray-band.spray-go .spray-halo-pop{opacity:.7;transition-duration:.2s}
+html.motion .spray-band.spray-done .spray-halo-pop{opacity:.2}
 
 /* The track: the width of the word, carried across it by one translate.
    Nothing in it is measured — the can is hung off the track's left edge by
@@ -1872,7 +1900,7 @@ html.motion .page-hero.has-tip.is-dragging .tip-can{
   transform:rotate(var(--tipdeg,0deg));transition:none;animation:none;
 }
 html.motion .page-hero.has-tip.tipping .tip-can{
-  animation:oaTipOver .82s cubic-bezier(.3,.7,.4,1) both;
+  animation:oaTipOver 1.15s cubic-bezier(.3,.7,.4,1) both;
 }
 html.motion .page-hero.has-tip.righting .tip-can{
   animation:oaTipUp .78s cubic-bezier(.3,.8,.35,1) both;
@@ -1908,7 +1936,7 @@ html.motion .page-hero.has-tip.tipping .tip-can .can-paint{
 }
 html.motion .page-hero.has-tip.pouring .tip-can .can-paint{
   transform:rotate(calc(var(--tip-deg) * -1)) translateX(30px) scaleX(.16);
-  opacity:.85;transition-duration:.9s;
+  opacity:.85;transition-duration:1.26s;
 }
 html.motion .page-hero.has-tip.pouring .tip-can .can-pour{opacity:1}
 
@@ -1959,10 +1987,10 @@ html.motion .tip-lip{
   background:radial-gradient(ellipse at 50% 26%,var(--mint-wet),var(--mint) 58%,var(--mint-deep));
   transform:scale(0);transform-origin:50% 36%;
 }
-html.motion .page-hero.has-tip.pouring .tip-stream{animation:oaTipFall .46s cubic-bezier(.4,0,.85,.6) both}
-html.motion .page-hero.has-tip.pouring .tip-gloss{animation:oaTipGloss .46s cubic-bezier(.4,0,.85,.6) both}
-html.motion .page-hero.has-tip.pouring .tip-head{animation:oaTipHead .46s cubic-bezier(.4,0,.85,.6) both}
-html.motion .page-hero.has-tip.pouring .tip-lip{animation:oaTipLip .3s var(--ease) both}
+html.motion .page-hero.has-tip.pouring .tip-stream{animation:oaTipFall .64s cubic-bezier(.4,0,.85,.6) both}
+html.motion .page-hero.has-tip.pouring .tip-gloss{animation:oaTipGloss .64s cubic-bezier(.4,0,.85,.6) both}
+html.motion .page-hero.has-tip.pouring .tip-head{animation:oaTipHead .64s cubic-bezier(.4,0,.85,.6) both}
+html.motion .page-hero.has-tip.pouring .tip-lip{animation:oaTipLip .42s var(--ease) both}
 @keyframes oaTipFall{
   0%{transform:scaleY(0) scaleX(.45)}
   58%{transform:scaleY(.74) scaleX(1.1)}
@@ -2023,17 +2051,24 @@ html.motion .tip-pool-body{
           mask-image:radial-gradient(140% 100% at var(--tip-x) 100%,var(--paper) 26%,var(--pool-thin) 100%);
   transform-origin:50% 100%;
   transform:rotate(calc(var(--slosh,0) * .5deg));
-  transition:height .42s var(--ease-roll),transform .3s linear;
+  transition:height .59s var(--ease-roll),transform .3s linear;
 }
 html.motion .page-hero.has-tip.pooled .tip-pool-body{height:var(--pool-h)}
 html.motion .page-hero.has-tip.righting .tip-pool-body{height:0;transition-duration:.7s}
 /* The meniscus, at the waterline and inside it: it thickens and thins
    rather than rising, because a surface that rose would be clipped — and
    a pool whose surface left its own box is the overflow story again. */
+/* Round three: the pour is mint, and the meniscus picks up the coral where
+   the pool meets the run that goes through to the rule — --tip-x is that
+   point on both boxes, so the coral is brightest exactly where the paint is
+   leaving and thins away along the surface. Two background layers: the
+   coral rim over the pale mint the surface always carried. */
 html.motion .tip-pool-lip{
-  position:absolute;left:0;right:0;top:0;height:3px;border-radius:50%;
+  position:absolute;left:0;right:0;top:0;height:4px;border-radius:50%;
   transform-origin:50% 0;
-  background:linear-gradient(90deg,var(--mint-wet-0),var(--mint-wet) 28%,
+  background:
+    radial-gradient(22% 260% at var(--tip-x) 60%,var(--pop) 0,var(--pop-wet) 34%,var(--pop-wet-0) 100%),
+    linear-gradient(90deg,var(--mint-wet-0),var(--mint-wet) 28%,
              var(--mint-wet) 72%,var(--mint-wet-0));
 }
 html.motion .page-hero.has-tip.pooled .tip-pool-lip{animation:oaTipWobble 2.6s ease-in-out infinite}
@@ -2084,7 +2119,7 @@ html.motion .tip-drop.dry .spray-bead{animation:oaTipDryBead .5s var(--ease) bot
    the primer's. */
 html.motion .tiprule-line{
   transform:scaleX(var(--tip-fill,0));
-  transition:transform .86s var(--ease-roll);
+  transition:transform 1.2s var(--ease-roll);
   animation:oaTipFail 0s linear 2.8s forwards;
 }
 @keyframes oaTipFail{to{transform:none}}

@@ -655,7 +655,17 @@
       '<feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="5" result="t"/>' +
       '<feDisplacementMap in="SourceGraphic" in2="t" scale="6" ' +
       'xChannelSelector="R" yChannelSelector="G"/>' +
-      '<feGaussianBlur stdDeviation="1.1"/></filter></svg>';
+      '<feGaussianBlur stdDeviation="1.1"/></filter>' +
+      // Round three: the second paint comes off the nozzle too, and it
+      // comes off as specks rather than as a halo -- a coarser turbulence
+      // and three times the displacement, so it scatters instead of
+      // hugging the glyph the way the mint overspray does.
+      '<filter id="oa-spray-pop" x="-45%" y="-45%" width="190%" height="190%" ' +
+      'color-interpolation-filters="sRGB">' +
+      '<feTurbulence type="fractalNoise" baseFrequency="0.19" numOctaves="2" seed="11" result="t"/>' +
+      '<feDisplacementMap in="SourceGraphic" in2="t" scale="24" ' +
+      'xChannelSelector="R" yChannelSelector="G"/>' +
+      '<feGaussianBlur stdDeviation=".4"/></filter></svg>';
     document.body.appendChild(defs.firstElementChild);
   }
 
@@ -847,6 +857,13 @@
     halo.classList.add('spray-halo');
     halo.setAttribute('aria-hidden', 'true');
     word.after(halo);
+    // ... and the coral that comes off with it. Same clone, same trick —
+    // what paints is the shadow, so the specks can never come away from
+    // the glyphs they were thrown off.
+    const spec = word.cloneNode(true);
+    spec.classList.add('spray-halo', 'spray-halo-pop');
+    spec.setAttribute('aria-hidden', 'true');
+    halo.after(spec);
     band.dataset.spBuilt = '1';
     band.style.setProperty('--sp-t', SP_T + 'ms');
     return true;
@@ -920,9 +937,11 @@
     band.classList.remove('spray-go', 'spray-done');
     void band.offsetWidth;                       // a respray starts over
     const drips = spDrips(band);
-    const halo = band.querySelector('.spray-halo');
+    const halo = band.querySelector('.spray-halo:not(.spray-halo-pop)');
+    const spec = band.querySelector('.spray-halo-pop');
     band.classList.add('spray-go');
     if (halo) halo.style.filter = 'url(#oa-spray)';
+    if (spec) spec.style.filter = 'url(#oa-spray-pop)';
     // Muted is the default and the state is the one the wall and the
     // washer already persist: this asks, it never turns anything on.
     if (spKit) spKit.sound.rattle();
@@ -934,6 +953,7 @@
       band.classList.remove('spray-go');
       band.classList.add('spray-done');          // the halo settles
       if (halo) halo.style.filter = '';          // and nothing is filtered again
+      if (spec) spec.style.filter = '';
       if (spKit) spKit.sound.canOff();
       delete band.dataset.spraying;
     }, SP_T));
@@ -1983,6 +2003,14 @@
    and there is nothing to finish. The 404 is the same wall with the copy to
    match — "Nothing on this wall yet. Paint something, or head back."
 
+   Round three (owner, 2026-09-19): three paints, and they mix. The wall
+   cycles his mint, the coral and ink stroke by stroke -- a stroke being
+   from the brush arriving to it leaving, or resting on the wall for a
+   second -- and where a stroke crosses one already laid down the two
+   multiply, so the crossing is a third colour and not the newer stroke
+   lying on top of the older one. How that is done without a stroke
+   darkening against itself is written up in build(), three canvases down.
+
    What a stroke is. A bristled stamp every 6px along the pointer's path,
    the hairs generated once from the kit's seeded random the way Splat's
    brush edge and art.py's brush_rule_svg() are, laid across the direction
@@ -1992,7 +2020,7 @@
    Pause with the brush on the wall and the paint runs: a thin mint drip,
    20 to 60px, out of the bottom of the last stamp.
 
-   Drying. Every 110ms the whole canvas is multiplied down by 5.8% with one
+   Drying. Every 110ms the whole wall is multiplied down by 5.8% with one
    destination-out fill — one rectangle, not a redraw of a stroke stack,
    which is the cheaper of the two the spec offered and the only one whose
    cost does not grow with how long the visitor has been painting. That is
@@ -2036,22 +2064,34 @@
   var heroes = document.querySelectorAll('.page-hero[data-wall]');
   if (!heroes.length) return;
 
-  /* The paint is the site's mint, read off :root rather than written here:
-     a hex outside that block is a bug in this repo, in CSS and in the script
-     that draws with it. No mint, no painting. */
+  /* The paints are read off :root rather than written here: a hex outside
+     that block is a bug in this repo, in CSS and in the script that draws
+     with it. No mint, no painting.
+
+     Round three: three of them, and the wall cycles through them stroke by
+     stroke -- his mint, the coral that pops against it, and ink. Each is a
+     pair, the paint and the shade one step down, because the bristles
+     alternate the two and a stroke of one flat green is not a brush. */
   var cs = getComputedStyle(root);
-  var MINT = (cs.getPropertyValue('--mint') || '').trim();
+  var pick = function (n, f) { return (cs.getPropertyValue(n) || '').trim() || f; };
+  var MINT = pick('--mint', '');
   if (!MINT) return;
-  var MID = (cs.getPropertyValue('--mint-mid') || '').trim() || MINT;
+  var MID = pick('--mint-mid', MINT);
+  var PAINTS = [
+    [MINT, MID],
+    [pick('--pop', MINT), pick('--pop-mid', MID)],
+    [pick('--ink', MINT), pick('--ink-3', MID)]
+  ];
 
   var STEP = 6;                 // px of travel between stamps
-  var DPR_CAP = 1.5;            // a retina phone does not get 3x of this
+  var DPR_CAP = 2;              // min(devicePixelRatio, 2): the note's number
   var FADE_MS = 110, FADE_K = 0.058;   // ~6s from wet to gone
   var STOP_MS = 6800;           // then the canvas is cleared and the loop ends
   var PAUSE_MS = 170;           // brush held still: the paint starts to run
   var DRIP_MS = 720;            // how long a run takes to reach its length
   var DRIPS_MAX = 6;
   var HISS_MS = 140;            // silence this long and the stroke is over
+  var REST_MS = 1080;           // ... and this long and the paint is laid down
   var DECIDE = 12;              // px of a touch before it is scroll or stroke
 
   var fine = false, coarse = false;
@@ -2087,6 +2127,12 @@
   function Wall(hero) {
     this.hero = hero;
     this.cv = null; this.g = null;
+    this.base = null; this.bg = null;      // the strokes that are laid down
+    this.lay = null; this.lg = null;       // and the one still under the brush
+    this.hue = 0;                          // which paint is in the bristles
+    this.wantMerge = false;                // the stroke is over; its runs are not
+    this.laid = false;                     // ... and there is something to lay down
+    this.dirty = false;                    // something was painted this frame
     this.w = 0; this.h = 0; this.dpr = 1;
     this.rect = null;
     this.queue = [];            // client-space points waiting for a frame
@@ -2109,13 +2155,32 @@
     if (this.built) return;
     this.built = true;
 
+    /* Three canvases and one of them on the page.
+
+       Paint mixes where it overlaps, and a canvas that is both the store
+       and the display cannot do that: stamping a stroke straight onto what
+       is already there with a multiply darkens the stroke against itself,
+       because every stamp overlaps the four before it. So the stroke under
+       the brush is drawn on its own layer with source-over -- one body of
+       colour, however many stamps made it -- and the wall shows the laid-
+       down paint with that layer multiplied over it. When the stroke ends
+       it is merged down the same way and the layer is cleared, and the
+       brush takes the next paint.
+
+       The two extra canvases are never in the document, so .paint-wall is
+       still one element carrying the whole wall: the composite is what a
+       screenshot sees and what getImageData reads. */
     var cv = document.createElement('canvas');
     cv.className = 'paint-wall';
     cv.setAttribute('aria-hidden', 'true');
     this.hero.insertBefore(cv, this.hero.firstChild);
     this.cv = cv;
     this.g = cv.getContext('2d');
-    this.g.lineCap = 'round';
+    this.base = document.createElement('canvas');
+    this.bg = this.base.getContext('2d');
+    this.lay = document.createElement('canvas');
+    this.lg = this.lay.getContext('2d');
+    this.lg.lineCap = 'round';
 
     // The toggle is the kit's — the tin on /services puts up the same one.
     var b = kit.sndToggle();
@@ -2131,22 +2196,63 @@
     var dpr = Math.min(DPR_CAP, window.devicePixelRatio || 1);
     if (w === this.w && h === this.h && dpr === this.dpr) return;
     this.w = w; this.h = h; this.dpr = dpr;
-    this.cv.width = Math.round(w * dpr);
-    this.cv.height = Math.round(h * dpr);
-    this.g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    this.g.lineCap = 'round';
+    var pw = Math.round(w * dpr), ph = Math.round(h * dpr), i;
+    var all = [this.cv, this.base, this.lay];
+    for (i = 0; i < 3; i++) { all[i].width = pw; all[i].height = ph; }
+    // Only the layer is drawn into in CSS pixels; the other two are only
+    // ever blitted whole, so they stay in device pixels.
+    this.lg.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.lg.lineCap = 'round';
     this.drips.length = 0;
     this.last = null;
+    this.dirty = true;
+  };
+
+  /* The wall as it is shown: the paint that is laid down, with the stroke
+     still under the brush multiplied over it. Multiply onto a transparent
+     destination is the source colour, so a first stroke on a blank wall is
+     simply itself, and a stroke crossing another is the two mixed. */
+  Wall.prototype.compose = function () {
+    var g = this.g, W = this.cv.width, H = this.cv.height;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalCompositeOperation = 'source-over';
+    g.clearRect(0, 0, W, H);
+    g.drawImage(this.base, 0, 0);
+    g.globalCompositeOperation = 'multiply';
+    g.drawImage(this.lay, 0, 0);
+    g.globalCompositeOperation = 'source-over';
+    this.dirty = false;
+  };
+
+  /* The stroke is over and its runs have finished: lay it down, mixing it
+     into whatever it crossed, and put the next paint in the bristles. */
+  Wall.prototype.merge = function () {
+    this.wantMerge = false;
+    var b = this.bg;
+    b.setTransform(1, 0, 0, 1, 0, 0);
+    b.globalCompositeOperation = 'multiply';
+    b.drawImage(this.lay, 0, 0);
+    b.globalCompositeOperation = 'source-over';
+    this.lg.save();
+    this.lg.setTransform(1, 0, 0, 1, 0, 0);
+    this.lg.clearRect(0, 0, this.lay.width, this.lay.height);
+    this.lg.restore();
+    this.hue = (this.hue + 1) % PAINTS.length;
+    this.dirty = true;
   };
 
   Wall.prototype.clear = function () {
     if (!this.g) return;
-    this.g.save();
-    this.g.setTransform(1, 0, 0, 1, 0, 0);
-    this.g.clearRect(0, 0, this.cv.width, this.cv.height);
-    this.g.restore();
+    var cs2 = [[this.g, this.cv], [this.bg, this.base], [this.lg, this.lay]], i;
+    for (i = 0; i < 3; i++) {
+      cs2[i][0].save();
+      cs2[i][0].setTransform(1, 0, 0, 1, 0, 0);
+      cs2[i][0].clearRect(0, 0, cs2[i][1].width, cs2[i][1].height);
+      cs2[i][0].restore();
+    }
     this.drips.length = 0;
     this.last = null; this.acc = 0;
+    this.wantMerge = false; this.dirty = false; this.laid = false;
   };
 
   /* --- the stamp ------------------------------------------------------
@@ -2156,7 +2262,8 @@
      the wall at all — the lightly loaded ones lift off first, which is what
      makes a fast stroke broken rather than merely faint. */
   Wall.prototype.stamp = function (x, y, ux, uy, wet) {
-    var g = this.g, px = -uy, py = ux, hw = this.width / 2, i, hr, o, bx, by, l;
+    var g = this.lg, px = -uy, py = ux, hw = this.width / 2, i, hr, o, bx, by, l;
+    var paint = PAINTS[this.hue];
     /* The load itself, under the hairs: a brush with paint still in it lays
        a body of colour and the bristles are the texture in it, not the whole
        of it. It comes in at half speed and is gone entirely by the time the
@@ -2164,7 +2271,7 @@
        a scratched one. */
     if (wet > 0.4) {
       g.globalAlpha = (wet - 0.4) * 0.58;
-      g.strokeStyle = MINT;
+      g.strokeStyle = paint[0];
       g.lineWidth = this.width * 0.74;
       g.beginPath();
       g.moveTo(x - ux * 3.2, y - uy * 3.2);
@@ -2178,7 +2285,7 @@
       bx = x + px * o; by = y + py * o;
       l = hr.l;
       g.globalAlpha = clamp(wet * hr.a, 0.02, 1);
-      g.strokeStyle = (i & 1) ? MID : MINT;
+      g.strokeStyle = (i & 1) ? paint[1] : paint[0];
       g.lineWidth = hr.w * (0.7 + wet * 0.8);
       g.beginPath();
       g.moveTo(bx - ux * l, by - uy * l);
@@ -2187,6 +2294,7 @@
     }
     g.globalAlpha = 1;
     this.paintedAt = performance.now();
+    this.laid = true; this.dirty = true;
   };
 
   /* Walk the segment between two points, stamping every STEP px and
@@ -2221,6 +2329,7 @@
   Wall.prototype.drip = function () {
     if (!this.tip || this.drips.length >= DRIPS_MAX) return;
     this.drips.push({
+      c: PAINTS[this.hue][0],
       x: this.tip.x, y: this.tip.y + this.width * 0.22,
       len: 20 + rand() * 40,
       w: 1.1 + rand() * 1.7,
@@ -2231,14 +2340,14 @@
   };
 
   Wall.prototype.runDrips = function (now) {
-    var g = this.g, i, d, to, p0, p1;
+    var g = this.lg, i, d, to, p0, p1;
     for (i = this.drips.length - 1; i >= 0; i--) {
       d = this.drips[i];
       to = Math.min(d.len, d.len * (now - d.t0) / DRIP_MS);
       if (to > d.head) {
         p0 = d.head; p1 = to;
         g.globalAlpha = d.a * (1 - p1 / d.len * 0.45);
-        g.strokeStyle = MINT;
+        g.strokeStyle = d.c;
         g.lineWidth = Math.max(0.6, d.w * (1 - p1 / d.len * 0.5));
         g.beginPath();
         g.moveTo(d.x + Math.sin(p0 / d.len * 3.1) * d.wob, d.y + p0);
@@ -2246,11 +2355,12 @@
         g.stroke();
         d.head = to;
         this.paintedAt = now;
+        this.dirty = true;
       }
       if (d.head >= d.len) {
         // the bead that gathers at the bottom of a run, and that is the end
         g.globalAlpha = d.a;
-        g.fillStyle = MINT;
+        g.fillStyle = d.c;
         g.beginPath();
         g.arc(d.x + Math.sin(3.1) * d.wob, d.y + d.len, d.w * 0.8, 0, 6.2832);
         g.fill();
@@ -2263,12 +2373,21 @@
   /* One multiply of the whole canvas. Cheap, and its cost is the same on the
      first stroke and the hundredth. */
   Wall.prototype.dry = function () {
-    var g = this.g;
-    g.globalCompositeOperation = 'destination-out';
-    g.globalAlpha = 1;
-    g.fillStyle = 'rgba(0,0,0,' + FADE_K + ')';
-    g.fillRect(0, 0, this.w, this.h);
-    g.globalCompositeOperation = 'source-over';
+    // Both stores dry at the same rate: the paint that is laid down and the
+    // stroke still under the brush. The wall is composed from the two, so
+    // drying only what is shown would be undone by the next compose.
+    var cs2 = [this.bg, this.lg], i, g;
+    for (i = 0; i < 2; i++) {
+      g = cs2[i];
+      g.save();
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.globalCompositeOperation = 'destination-out';
+      g.globalAlpha = 1;
+      g.fillStyle = 'rgba(0,0,0,' + FADE_K + ')';
+      g.fillRect(0, 0, this.base.width, this.base.height);
+      g.restore();
+    }
+    this.dirty = true;
   };
 
   Wall.prototype.schedule = function () {
@@ -2302,8 +2421,17 @@
     }
     if (this.drips.length) this.runDrips(now);
 
+    /* A brush left on the wall for a second has finished its stroke as
+       surely as one lifted off it, and that is how the wall cycles its
+       paint for a visitor who never leaves the hero. The laying-down waits
+       for the runs, though: merge a stroke whose paint is still running and
+       the run would be cut off at the frame it was cleared on. */
+    if (this.last && !this.wantMerge && now - this.last.t > REST_MS) this.endStroke();
+    if (this.wantMerge && !this.drips.length) this.merge();
+
     if (!this.fadedAt) this.fadedAt = now;
     while (now - this.fadedAt >= FADE_MS) { this.dry(); this.fadedAt += FADE_MS; }
+    if (this.dirty) this.compose();
 
     if (this.hissing && now - this.hissAt > HISS_MS) {
       this.hissing = false;
@@ -2337,6 +2465,7 @@
     this.last = null;
     this.acc = 0;
     this.dripped = true;
+    if (this.laid) { this.wantMerge = true; this.laid = false; }
     if (this.hissing) { this.hissing = false; Sound.hissOff(); }
   };
 
@@ -2509,15 +2638,22 @@
      Roll it in says the same thing with .rollin and the primer. */
   root.classList.add('tipready');
 
+  /* Round three (owner, 2026-09-19): "increase time on transitions so he
+     can actually enjoy it". The pour is 1.4x what it was, every number in
+     the chain scaled by the same factor so the sequence keeps its shape,
+     and the stylesheet's own durations for the sheet and the pool scaled
+     with them. HOLD is not the pour — it is how long the tin lies there —
+     but it moves out to keep the same beat of stillness after the rule has
+     cured before the tin springs back up. */
   var THRESH = 40;                  // degrees of drag before it goes over
-  var POUR_AT = 260;                // the rim is past the vertical by here
-  var POOL_AT = 720;                // the sheet has reached the bottom
-  var DROP_AT = 900;                // and starts through onto the section
-  var FILL_AT = 1180;               // the rule fills from where it lands
-  var CURE_AT = 2040;               // and cures once it is full
-  var HOLD = 4000;                  // then the tin rights itself
+  var POUR_AT = 364;                // the rim is past the vertical by here
+  var POOL_AT = 1008;               // the sheet has reached the bottom
+  var DROP_AT = 1260;               // and starts through onto the section
+  var FILL_AT = 1652;               // the rule fills from where it lands
+  var CURE_AT = 2856;               // and cures once it is full
+  var HOLD = 4900;                  // then the tin rights itself
   var UP = 780;                     // and this long later it is idle again
-  var DROP_MS = 460;                // how long the run takes to reach the rule
+  var DROP_MS = 644;                // how long the run takes to reach the rule
 
   var coarse = false;
   try { coarse = matchMedia('(pointer:coarse)').matches; } catch (e) {}
