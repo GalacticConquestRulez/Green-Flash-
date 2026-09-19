@@ -475,3 +475,50 @@ emoji-like." So, for every paint verb (Splat, the sweep transition, Wall, Spray,
   Antwuan (the Uber wall), Dexter (the Showtime wall), and the campaign models once Ephraim
   names them. Named people appear as painted portraits (his photographs of the walls), never as
   stock photos of the person.
+
+#### What landed, and the numbers to hold (2026-09-19)
+The mechanics went in ahead of the page skin — the white ground, the bands and the
+typefaces are a separate step, so the pages below still wear the dark canvas. These are
+the figures the build settled on; **none of them may get faster or smaller**, and the
+verification below is how that is checked.
+
+- **The tokens.** `--pop:#FF4F2E` with `--pop-mid`, `--pop-deep`, `--pop-rim`, `--pop-wet`;
+  `--mint-rim` for the mint's own wet edge; `--gloss` (white) for the highlight on fresh
+  paint; and **`--mix:#714A21`**, the channel-wise product of `--mint` and `--pop` — what a
+  multiply computes at the overlap, named so the mixing has a value that can be looked up
+  rather than only looked at. None of them carries type, so none claims a contrast pair.
+  As everywhere in this repo, a hex outside `:root` is a bug.
+- **The clock.** Splat pop **260ms**, sweep **900ms**, a button navigates at **1300ms** and a
+  nav link at **1000ms** — measured in the page (1322 and 1020 on this box), not wall clock.
+  Tip's pour is 1.4x: rim past the vertical at 364, sheet down at 1008, the run through at
+  1260, the rule filling from 1652 and curing at 2856. Wash is untouched.
+- **The size.** The throw's body is rx 151 where round two's was 72, with eleven satellites
+  and four runs of 68–132px. 470px across at 1440 on the straight variant and 632 on the
+  turned ones — a third of the screen and more. A phone gets 0.667 of the desktop, which is
+  1.4x round two: 313px on a 390.
+- **Two paints, and they mix.** The throw alternates mint and coral click by click; the
+  stroke behind it always carries the other one, as its body and as lap marks of the first
+  bleeding back in; the throw multiplies into the stroke, so the overlap is `--mix`. The
+  Wall cycles mint, coral and ink stroke by stroke and crossings multiply — mint at hue 154
+  and coral at 10 cross at hue 18, a rust that is neither. Spray writes in mint and throws
+  coral specks. Tip pours mint and the pool's meniscus picks up coral where the run leaves
+  for the rule. The brush on the beat rule paints mint with a coral wet edge.
+- **How the Wall mixes without a stroke darkening against itself.** Three canvases, one of
+  them on the page: the stroke under the brush is drawn on its own layer with source-over,
+  the wall is composed as the laid-down paint with that layer multiplied over it, and the
+  layer is merged down and cleared when the stroke ends and its runs have finished. The two
+  extra canvases are never in the document, so `.paint-wall` is still one element carrying
+  the whole wall. DPR is capped at `min(devicePixelRatio, 2)`.
+- **Unchanged and not to be broken:** everything is under `html.motion`; reduced motion and
+  no-script render exactly as before (`--reduced --compare` is true/true/true at 390 and
+  1440); the Splat interception rules; one rAF; no layout shift; no counters and no labels.
+
+**Verification** (serve the built `site/` on 8099 first):
+`node /root/shot/oag-paint-verify.mjs` asserts the timings in-page, the throw's width as a
+per cent of the viewport, the satellite and run counts, all three paints plus the mix in one
+mid-stroke frame, the Wall's three paints and the third colour where two cross, and an empty
+console on `/`, `/about`, `/graffiti-removal` and `/services`. It exits non-zero on any
+failure. `node /root/shot/oag-paint-stills.mjs` writes the frames to judge printed.
+`splat-verify.mjs`, `splat-stills.mjs`, `shot-oag-gr.mjs`, `shot-oag-build.mjs` and the
+wall / spray / tip runs all still pass; splat-verify's and tip-verify's waits were moved to
+the new clock, which is the only change any of them needed.
