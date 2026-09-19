@@ -2157,3 +2157,50 @@ html.motion .tiprule.curing::after{
   html.motion .tiprule-line{transform:none;animation:none}
   html.motion .tiprule.curing::after{content:none;animation:none}
 }
+
+/* =====================================================================
+   PAGES — the inner pages of the round-three redesign.
+
+   Everything below this line belongs to the pages agent and to the inner
+   pages only: the "Painted for" wall, the faces strand, Public works, the
+   Services diamond board, and the round-three dress on /work, the project
+   pages, /about, /graffiti-removal, /contact and /404.
+
+   The sitewide skin — the tokens, the five faces, .tall / .wide / .serif /
+   .marker / .pop, the nav, the footer, the brush-stroke bands and Home —
+   is the skin agent's and is above this line. Nothing here redefines a
+   token or a face; it only uses them. Where a rule needs a value the skin
+   has not shipped yet, it comes through a var() with a fallback, so this
+   block is correct both before and after that lands.
+   ===================================================================== */
+
+/* --- the "Painted for" wall ----------------------------------------
+   Five across and three down on a ruled grid, two across on a phone, on
+   white — the marks are the brands' own files in the brands' own colours
+   (brands.py), so nothing here paints them. The cell is a fixed 2.2:1 box
+   and the mark inside it is set to its own optical height, never to the
+   box: a wordmark that is all cap height and a two-line lockup with air
+   around it read at the same weight only if each is told its own number.  */
+.brandwall{padding:88px 0 80px;background:var(--paper,#fff);border-top:2px solid var(--ink,#0A0A0B)}
+.bhead{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px 22px;margin:0 0 34px}
+.bhead h2{font-size:clamp(40px,5.2vw,84px);margin:0;color:var(--ink,#0A0A0B)}
+.bhead .marker{color:var(--pop,#FF4F2E);font-size:clamp(20px,2.2vw,26px)}
+.bgrid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);
+  border-top:1px solid var(--ink,#0A0A0B);border-left:1px solid var(--ink,#0A0A0B)}
+.bcell{border-right:1px solid var(--ink,#0A0A0B);border-bottom:1px solid var(--ink,#0A0A0B);
+  aspect-ratio:2.2/1;display:flex;align-items:center;justify-content:center;padding:12px 16px;text-align:center}
+.bmark{height:var(--bh);width:auto;max-width:100%;max-height:calc(100% - 8px);display:block}
+.bword{line-height:1.05;font-size:15px;letter-spacing:.02em}
+.bcell .bword.serif{font-size:26px;font-style:italic;text-transform:none;letter-spacing:-.01em}
+.bcell .bword.tall{font-size:32px}
+@media (max-width:760px){
+  .brandwall{padding:56px 0 48px}
+  .bgrid{grid-template-columns:repeat(2,1fr)}
+  .bmark{height:var(--bhm,var(--bh))}
+  .bword{font-size:13px}
+  .bcell .bword.serif{font-size:20px}
+  .bcell .bword.tall{font-size:24px}
+  /* Fifteen into two columns leaves one over: give it the whole last row
+     rather than a half-empty cell with a hole beside it. */
+  .bcell:last-child{grid-column:span 2;aspect-ratio:4.4/1}
+}

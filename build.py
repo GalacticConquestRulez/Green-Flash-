@@ -840,6 +840,43 @@ def gr_strip(text=None):
 </div></section>'''
 
 
+# ------------------------------------------------------------- PAINTED FOR
+# The logo wall, and the strand of faces beside it. CLAUDE.md, round three:
+# Colossal shows who it has painted for, so Ephraim's site does too — "in each
+# brand's actual colours", which is why every mark here is the brand's own
+# file and not a drawing of it.
+#
+# brands.py holds the roster, the source URL and the licence for each mark;
+# process-brands.sh does the downloading. This is only the rendering: a ruled
+# five-by-three grid on white, two columns on a phone, every mark at the same
+# optical height rather than the same box height, each cell a real <img> with
+# its own width and height so the wall never reflows as the logos land.
+from brands import BRANDS, intrinsic
+
+
+def brand_mark(b):
+    """One mark: the brand's own SVG, or type in the brand's own colour."""
+    if b['mark'] == 'svg':
+        w, h = intrinsic(b['slug'])
+        return (f'<img class="bmark" src="{u("/assets/img/brands/" + b["slug"] + ".svg")}" '
+                f'alt="{html.escape(b["name"])}" width="{w:g}" height="{h:g}" '
+                f'style="--bh:{b["h"]}px;--bhm:{b["hm"]}px" loading="lazy" decoding="async">')
+    # No free file for this one yet. Type, in the brand's own colour, and the
+    # name is the content — a screen reader hears the same thing either way.
+    return (f'<span class="bword {b["face"]}" style="color:{b["colour"]}">'
+            f'{html.escape(b["name"])}</span>')
+
+
+def brand_wall(eyebrow='painted for', title='The brands', cls=''):
+    """The "Painted for" wall — fifteen marks, ruled, on white."""
+    cells = ''.join(f'<li class="bcell">{brand_mark(b)}</li>' for b in BRANDS)
+    sect = ('brandwall ' + cls).strip()
+    return f'''<section class="{sect}"><div class="wrap">
+  <div class="bhead rv"><span class="marker">{eyebrow}</span><h2 class="tall">{title}</h2></div>
+  <ul class="bgrid rv" aria-label="Brands Open Air Gallery has painted for">{cells}</ul>
+</div></section>'''
+
+
 # ---------------------------------------------------------------- HOME
 # Every number on this page is computed from projects.py. None of them is
 # typed: "Twelve walls. Over 23,000 square feet." is the roster adding itself
@@ -1244,6 +1281,8 @@ pages['/services'] = dict(
     </div>
   </div>
 </div></section>
+
+{brand_wall()}
 
 {gr_strip('Graffiti removal, pressure washing and commercial painting in NYC. The '
           'fourth thing the company sells, and it has a page of its own.')}
