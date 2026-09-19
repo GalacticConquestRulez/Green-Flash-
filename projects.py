@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""The twelve walls — the single source of truth for every project on the site.
+"""The walls — the single source of truth for every project on the site.
 
-Nothing about a project is typed twice. The Work index, the twelve project
+Nothing about a project is typed twice. The Work index, the project
 pages, the featured row on Home, the footer column, the square-foot total and
 the JSON-LD all read this list, and build.py refuses to finish if a row is
 malformed or its photograph is not on disk.
@@ -24,7 +24,7 @@ Two rules held while writing this file:
   imagined briefs, no invented collaborators. When he sends real stories they
   replace these, one commit, nothing else changes.
 
-`credit` is None for all twelve for the same reason: the live site credits no
+`credit` is None for every row for the same reason: the live site credits no
 photographer or collaborator, and we are not going to guess at one.
 
 Fields
@@ -106,8 +106,8 @@ PROJECTS = [
   dict(slug='showtime-dexter-boston', title='Showtime', client='Showtime',
        city='Boston', state='MA', dim_w=18, dim_h=9, year=None,
        category='brand', hero='showtime-dexter-boston-hero', gallery=[],
-       story='Showtime, Boston — 18 feet wide by 9 feet tall, the smallest of the '
-             'twelve by area.',
+       story='Showtime, Boston — 18 feet wide by 9 feet tall, and the smallest '
+             'surface on this page by area.',
        credit=None, featured=False),
 
   dict(slug='upendo-los-angeles', title='Upendo', client='Upendo',

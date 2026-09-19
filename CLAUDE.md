@@ -563,3 +563,98 @@ honoured), never a static crop. Mockup: scratchpad `oagmock/checker.html`.
   mural behind. Each card is crisp white, splattered first (teal plus a few other colours —
   coral, a yellow, a violet, the palette of a working drop cloth) and lettered after, so the
   type sits over the paint. The deep layer, the parallax and the feathered hand-over stay.
+
+### Needed from Ephraim — round three (2026-09-19)
+The brands wall and the faces strand are built to be finished by him, not by us. Each
+line below is a hole the build already has a shape for: fill it and one row changes,
+nothing else on the page moves. Nothing here is invented in the meantime.
+
+- **A photograph of the Kylie Jenner wall.** She is named in the faces strand
+  (`FACES` in build.py) because the owner asked for her, and she is the one face there
+  that links nowhere: no photograph of that wall has reached us, and linking a name to
+  somebody else's wall would be worse than linking it to nothing. Send the photograph
+  and a city and she becomes a project row like the other four.
+- **The campaign models' names.** The strand ends on a marker aside, `+ the campaign
+  models`, because Ephraim has not named them. It says there are more without inventing
+  who; name them and they join the row.
+
+### Brands and faces — where every mark came from (2026-09-19)
+The "Painted for" wall is `brands.py` + `brand_wall()`; `process-brands.sh` downloads the
+marks into `assets/brands/` and copies them to `out/img/brands/`. Both directories are
+gitignored, the way every other image on this site is, so **brands.py plus that script is
+the record** — running it on a clean clone rebuilds the wall byte for byte, and a file
+already on disk is never overwritten, so a mark Ephraim supplies by hand survives a re-run.
+
+One rule shaped all of it (round three, above): *never trace or redraw a logo by hand.* A
+mark is either the brand's own file or it is type; there is no third thing on this wall.
+
+**Eleven are the brand's own SVG**, each Public Domain on Wikimedia Commons as a wordmark
+below the threshold of originality, each still a registered trademark and used the one way
+a contractor may use a client's mark — nominatively, to say whose wall he painted,
+unaltered, not as an endorsement. The licence line and the optical height of each are in
+`brands.py`.
+
+| Brand | Commons file | Page |
+|---|---|---|
+| Gucci | `File:Gucci Logo.svg` | https://commons.wikimedia.org/wiki/File:Gucci_Logo.svg |
+| Uber | `File:Uber logo 2018.svg` | https://commons.wikimedia.org/wiki/File:Uber_logo_2018.svg |
+| Victoria's Secret | `File:Victoria's Secret.svg` | https://commons.wikimedia.org/wiki/File:Victoria%27s_Secret.svg |
+| Sprite | `File:Sprite 2022.svg` | https://commons.wikimedia.org/wiki/File:Sprite_2022.svg |
+| Ford | `File:Ford logo flat.svg` | https://commons.wikimedia.org/wiki/File:Ford_logo_flat.svg |
+| Showtime | `File:Showtime.svg` | https://commons.wikimedia.org/wiki/File:Showtime.svg |
+| Moncler | `File:Logo Moncler Group.svg` | https://commons.wikimedia.org/wiki/File:Logo_Moncler_Group.svg |
+| Red Bull | `File:Logo of Red bull.svg` | https://commons.wikimedia.org/wiki/File:Logo_of_Red_bull.svg |
+| Johnnie Walker | `File:Johnnie Walker wordmark.svg` | https://commons.wikimedia.org/wiki/File:Johnnie_Walker_wordmark.svg |
+| Heineken | `File:Heineken logo.svg` | https://commons.wikimedia.org/wiki/File:Heineken_logo.svg |
+| Corona | `File:Corona Extra text logo.svg` | https://commons.wikimedia.org/wiki/File:Corona_Extra_text_logo.svg |
+
+A logo is not its bounding box — Gucci's wordmark is all cap height and Corona's is two
+lines with air round them — so each mark carries its own rendered height (`h`, `hm`) tuned
+by eye, and the wall reads as one optical weight rather than fifteen box sizes.
+
+**Four are still typographic**, in the brand's own colour, because no free file exists:
+
+- **Crown Royal** — the wide face, `#52247F`, the purple of the bag and the bottle livery.
+  Nothing on Commons under the name but photographs.
+- **Vitamin Water** — the wide face, `#E0007A`. The mark is flavour-coloured and the master
+  brand asset has not been supplied; this magenta is approximate.
+- **Monkey 47** — the serif, ink. Commons holds only a CC BY-SA upload derived from a
+  photograph, and a share-alike obligation is not something to put on a client's site.
+- **Jack Daniel's** — the serif, ink. Old No. 7 is a drawing, not a wordmark, and everything
+  filed under the name is a photograph.
+
+**Two marks are right but not exact.** Commons has the *Moncler Group* lockup and not the
+bare MONCLER wordmark, so that cell reads MONCLER with GROUP under it; and Red Bull's free
+file is the wordmark alone — the two bulls and the sun are a drawing and are not on Commons
+free. Both are flagged below.
+
+#### What Ephraim owes on this section
+Each of these is a hole the build already has a shape for. Fill it and one row changes.
+
+- **Brand assets** for Crown Royal, Vitamin Water, Monkey 47 and Jack Daniel's — an SVG or
+  an EPS from each brand's press kit. Drop them in `assets/brands/<slug>.svg`, flip that
+  row's `mark` from `type` to `svg` in `brands.py`, and the cell stops being type.
+- **The plain Moncler wordmark and the full Red Bull mark**, if he has them from the job.
+- **A photograph of the Kylie Jenner wall** (see "Needed from Ephraim" above) — she is the
+  one face in the strand that links nowhere.
+- **The campaign models' names**, which the marker aside `+ the campaign models` stands in
+  for until he supplies them.
+- **Public-works photographs** — Mexico, Brazil, the teen-empowerment murals. `public_works()`
+  is framed for them and says in marker that more is coming; the picture there today is the
+  crew on the lift, labelled as the crew.
+
+#### The Services board (the diamond lattice)
+`services_board()` + `splatter.py`. The deep strip is five heroes from `DEEP_WALLS`, laid end
+to end and cross-faded into each other across exactly the distance they overlap, parallaxing
+at roughly half the page's speed through a **named CSS view timeline declared on the board**
+— not on the strip, because the board has `overflow:hidden` and is therefore a scroll
+container, and an anonymous `view()` inside it measures the strip against a box it never
+moves in and comes out frozen. The strip carries `data-deep` / `data-deep-rate` and the CSS
+animation stands down the moment `<html>` gains `.deep-js`, so site.js can take the motion
+over from the Live loop without the two ever fighting. With no script, or under reduced
+motion, the strip is static at its first position — the state the design is drawn for.
+
+Two measurements that must stay paired: the strip is the board **plus exactly the distance
+it travels** (`--deep-run`), and each wall overlaps the last by `--feather` and is masked in
+across exactly `--feather`. Mixing a percentage margin (which resolves against width) with a
+percentage mask (which resolves against height) puts a black band between every wall.

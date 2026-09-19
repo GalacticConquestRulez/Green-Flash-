@@ -2570,3 +2570,363 @@ html.motion .tiprule.curing::after{
   html.motion .tiprule-line{transform:none;animation:none}
   html.motion .tiprule.curing::after{content:none;animation:none}
 }
+
+/* =====================================================================
+   PAGES — the inner pages of the round-three redesign.
+
+   Everything below this line belongs to the pages agent and to the inner
+   pages only: the "Painted for" wall, the faces strand, Public works, the
+   Services diamond board, and the round-three dress on /work, the project
+   pages, /about, /graffiti-removal, /contact and /404.
+
+   The sitewide skin — the tokens, the five faces, .tall / .wide / .serif /
+   .marker / .pop, the nav, the footer, the brush-stroke bands and Home —
+   is the skin agent's and is above this line. Nothing here redefines a
+   token or a face; it only uses them. Where a rule needs a value the skin
+   has not shipped yet, it comes through a var() with a fallback, so this
+   block is correct both before and after that lands.
+   ===================================================================== */
+
+/* --- the "Painted for" wall ----------------------------------------
+   Five across and three down on a ruled grid, two across on a phone, on
+   white — the marks are the brands' own files in the brands' own colours
+   (brands.py), so nothing here paints them. The cell is a fixed 2.2:1 box
+   and the mark inside it is set to its own optical height, never to the
+   box: a wordmark that is all cap height and a two-line lockup with air
+   around it read at the same weight only if each is told its own number.  */
+.brandwall{padding:88px 0 80px;background:var(--paper,#fff);border-top:2px solid var(--ink,#0A0A0B)}
+.bhead{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px 22px;margin:0 0 34px}
+.bhead h2{font-size:clamp(40px,5.2vw,84px);margin:0;color:var(--ink,#0A0A0B)}
+.bhead .marker{color:var(--pop,#FF4F2E);font-size:clamp(20px,2.2vw,26px)}
+.bgrid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);
+  border-top:1px solid var(--ink,#0A0A0B);border-left:1px solid var(--ink,#0A0A0B)}
+.bcell{border-right:1px solid var(--ink,#0A0A0B);border-bottom:1px solid var(--ink,#0A0A0B);
+  aspect-ratio:2.2/1;display:flex;align-items:center;justify-content:center;padding:12px 16px;text-align:center}
+.bmark{height:var(--bh);width:auto;max-width:100%;max-height:calc(100% - 8px);display:block}
+.bword{line-height:1.05;font-size:15px;letter-spacing:.02em}
+.bcell .bword.serif{font-size:26px;font-style:italic;text-transform:none;letter-spacing:-.01em}
+.bcell .bword.tall{font-size:32px}
+@media (max-width:760px){
+  .brandwall{padding:56px 0 48px}
+  .bgrid{grid-template-columns:repeat(2,1fr)}
+  .bmark{height:var(--bhm,var(--bh))}
+  .bword{font-size:13px}
+  .bcell .bword.serif{font-size:20px}
+  .bcell .bword.tall{font-size:24px}
+  /* Fifteen into two columns leaves one over: give it the whole last row
+     rather than a half-empty cell with a hole beside it. */
+  .bcell:last-child{grid-column:span 2;aspect-ratio:4.4/1}
+}
+
+/* --- the faces strand ----------------------------------------------
+   Five names, set in the serif, big enough to be the section. The dot
+   between them is a separator and not content, so it is drawn by the
+   stylesheet and never read out; the last name does not get one. Kylie
+   has no wall photograph yet, so she is a span and not a link — she is
+   the same size as the others because the strand is about the people,
+   not about which pages we happen to have.                             */
+.faces{padding:78px 0 84px;background:var(--paper,#fff)}
+.faces-lead{max-width:56ch;margin:0 0 30px;font-size:18px;line-height:1.55;color:var(--muted-ink,#3a3940)}
+.frow{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 26px;
+  font-family:var(--face-serif,Fraunces),Georgia,serif;font-style:italic;
+  font-size:clamp(28px,3.4vw,52px);line-height:1.15;color:var(--ink,#0A0A0B)}
+.frow .face{color:inherit;text-decoration:none}
+.frow a.face{text-decoration:underline;text-decoration-color:transparent;text-underline-offset:.14em;
+  text-decoration-thickness:.05em;transition:text-decoration-color .18s ease,color .18s ease}
+.frow a.face:hover,.frow a.face:focus-visible{color:var(--pop,#FF4F2E);text-decoration-color:currentColor}
+.frow .face:not(:nth-last-child(2))::after{content:"\00b7";color:var(--pop,#FF4F2E);margin-left:26px}
+.frow .face-more{font-style:normal;font-size:clamp(17px,1.7vw,24px);color:var(--pop,#FF4F2E);align-self:center}
+@media (max-width:760px){
+  .faces{padding:48px 0 52px}
+  .faces-lead{font-size:16px;margin-bottom:22px}
+  .frow{gap:6px 18px}
+  .frow .face:not(:nth-last-child(2))::after{margin-left:18px}
+}
+
+/* --- public works ---------------------------------------------------
+   A full-bleed pair: the crew on one side, the strand on the other. It
+   is deliberately not a grid of cards — a card implies a roster, and the
+   whole point of this block is that the roster is not the work. The
+   marker line is the promise and it is the last thing read.            */
+.pw{padding:0;background:var(--paper,#fff);border-top:2px solid var(--ink,#0A0A0B)}
+.pw-grid{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}
+.pw-media{margin:0;position:relative;min-height:clamp(340px,42vw,560px);overflow:hidden;background:var(--ink-3,#1A1A1D)}
+.pw-media picture,.pw-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pw-words{padding:clamp(40px,5vw,80px) clamp(22px,4vw,64px);display:flex;flex-direction:column;justify-content:center}
+.pw-words h2{font-size:clamp(46px,6vw,104px);margin:0 0 16px;color:var(--ink,#0A0A0B)}
+.pw-words h2 em{font-style:normal;color:var(--pop,#FF4F2E)}
+.pw-places{font-size:clamp(15px,1.5vw,20px);letter-spacing:.06em;color:var(--pop,#FF4F2E);margin:0 0 18px}
+.pw-words p.serif{font-size:17.5px;line-height:1.58;max-width:52ch;margin:0 0 14px;color:var(--muted-ink,#2b2a2e)}
+.pw-note{font-size:clamp(19px,2vw,26px);color:var(--pop,#FF4F2E);margin:10px 0 0;transform:rotate(-1.4deg);transform-origin:left center}
+.pw-words .row-end{margin-top:26px}
+@media (max-width:760px){
+  .pw-grid{grid-template-columns:1fr}
+  .pw-media{min-height:260px}
+  .pw-words{padding:38px 18px 44px}
+  .pw-words p.serif{font-size:16px}
+}
+
+/* --- the round-three dress on the inner pages ------------------------
+   Only the classes these pages own. The nav, the footer, the hero and
+   Home are the skin agent's; nothing below reaches them.               */
+
+/* /work — the filter chips. Square, ruled, set in the wide face: a
+   Colossal-style control rather than a pill, and no counts on them.    */
+.work .filters{gap:8px;margin-bottom:clamp(26px,4vw,40px)}
+.work .filters .chip{
+  border-radius:0;border:1px solid var(--ink,#0A0A0B);background:transparent;
+  color:var(--ink,#0A0A0B);padding:.62rem 1.05rem;
+  font-family:var(--face-wide,ArchivoW),Archivo,sans-serif;font-weight:900;font-stretch:125%;
+  text-transform:uppercase;font-size:12.5px;letter-spacing:.07em;
+}
+.work .filters .chip:hover{background:var(--ink,#0A0A0B);color:var(--paper,#fff);border-color:var(--ink,#0A0A0B)}
+.chip[href="#f-all"],
+#f-brand:target ~ .filters .chip[href="#f-brand"],
+#f-portrait:target ~ .filters .chip[href="#f-portrait"],
+#f-civic:target ~ .filters .chip[href="#f-civic"]{border-color:var(--ink,#0A0A0B)}
+#f-brand:target ~ .filters .chip[href="#f-all"],
+#f-portrait:target ~ .filters .chip[href="#f-all"],
+#f-civic:target ~ .filters .chip[href="#f-all"]{border-color:var(--ink,#0A0A0B);color:var(--ink,#0A0A0B)}
+
+/* A wall's measurements — the hook, set physically wide, with the prime
+   marks and the times sign in the pop colour and nothing else.          */
+/* The face, the width axis and the sizes are the component's own and are
+   left alone — Scale and Stencil animate them. What changes on white is
+   the colour: ink figures, and the prime marks and the times sign in the
+   pop colour rather than the mint, which is the one accent the round-three
+   palette gives this hook.                                              */
+.pintro .dims{color:var(--ink,#0A0A0B)}
+.pintro .dims .f,.pintro .dims .x,
+.pgrid .pcard-body .dims .f,.pgrid .pcard-body .dims .x{color:var(--pop,#FF4F2E)}
+.pintro .dims::after{background:var(--rule-ink,rgba(10,10,11,.18))}
+
+/* A project page's words: the title tall, the story in the serif, the
+   facts in the wide face underneath.                                    */
+.pintro h1{font-size:clamp(52px,8vw,128px);margin:.1em 0 0;color:var(--ink,#0A0A0B)}
+.pintro .pstory{font-size:19px;line-height:1.6;max-width:58ch}
+.pintro .pmeta dt{font-family:var(--face-wide,ArchivoW),Archivo,sans-serif;font-weight:900;
+  font-stretch:125%;text-transform:uppercase;font-size:11.5px;letter-spacing:.09em;color:var(--pop,#FF4F2E)}
+.pintro .pmeta dd{font-family:var(--face-serif,Fraunces),Georgia,serif;font-size:17px}
+
+/* The stage lists on /about and /graffiti-removal: stage names tall, the
+   sentences under them in the serif whether they are his or ours.       */
+.beats-full .beat h3,.beats-4 .beat h3,.beats-gr .beat h3{
+  font-family:var(--face-tall,Anton),Impact,sans-serif;text-transform:uppercase;
+  line-height:.95;letter-spacing:.01em;font-size:clamp(24px,2.4vw,34px);font-weight:400;
+}
+.beats-full .beat p,.beats-4 .beat p,.beats-gr .beat p{
+  font-family:var(--face-serif,Fraunces),Georgia,serif;font-size:17px;line-height:1.55}
+
+/* /about — the cities, and /services — the sign roster. Both are lists of
+   names and both read as the wide face on a ruled row.                  */
+.cities .city b,.roster li{
+  font-family:var(--face-wide,ArchivoW),Archivo,sans-serif;font-weight:900;font-stretch:125%;
+  text-transform:uppercase;letter-spacing:.03em}
+.cities .city span{font-family:var(--face-serif,Fraunces),Georgia,serif;font-style:italic}
+
+/* /graffiti-removal — the before/after caption, in his hand.            */
+.ba-cap{font-family:var(--face-serif,Fraunces),Georgia,serif;font-size:16px}
+.ba-cap .ba-hint{font-family:var(--face-marker,Marker),cursive;color:var(--pop,#FF4F2E);font-size:19px}
+
+/* /contact — the form on white, with the aside in marker beside it.     */
+.contact-aside{font-size:clamp(19px,2vw,26px);color:var(--pop,#FF4F2E);
+  margin:-.2em 0 1.4rem;transform:rotate(-1.6deg);transform-origin:left center}
+.form label{font-family:var(--face-wide,ArchivoW),Archivo,sans-serif;font-weight:900;
+  font-stretch:125%;text-transform:uppercase;font-size:11.5px;letter-spacing:.09em;color:var(--ink,#0A0A0B)}
+.form input,.form textarea,.form select{
+  background:var(--paper,#fff);color:var(--ink,#0A0A0B);
+  border:1px solid var(--ink,#0A0A0B);border-radius:0}
+.form input::placeholder,.form textarea::placeholder{color:var(--dim,#6E6C67)}
+.form input:focus,.form textarea:focus,.form select:focus{outline:3px solid var(--mint,#71EEB8);outline-offset:1px}
+.form .hint,.form-note{font-family:var(--face-serif,Fraunces),Georgia,serif;font-size:15px}
+.contact-side .contact-card{background:var(--paper,#fff);border:1px solid var(--ink,#0A0A0B);border-radius:0}
+.contact-side .contact-card b{font-family:var(--face-tall,Anton),Impact,sans-serif;font-weight:400;
+  text-transform:uppercase;font-size:21px;letter-spacing:.03em;color:var(--ink,#0A0A0B)}
+.contact-side .contact-card span{font-family:var(--face-serif,Fraunces),Georgia,serif;font-size:15.5px}
+.contact-card-cta{background:var(--mint,#71EEB8)}
+
+/* /404 — a blank wall, and the copy says so.                            */
+.page-hero.blank .hero-inner .lead{font-family:var(--face-serif,Fraunces),Georgia,serif}
+
+/* The inner pages' own surfaces on the white ground. Every one of these
+   is a panel the dark canvas lifted off the page with --ink-2; on white a
+   panel is white with an ink hairline round it, and the type in it is ink.
+   Only selectors that exist on /work, a project page, /about, /services,
+   /graffiti-removal, /contact and /404 are listed — the sitewide .alt,
+   the nav, the footer and Home stay the skin agent's.                   */
+.pnav a,.figframe,.figcap,.form-status,.roster li,.swipe-arw,.ba,.ba-stage{
+  background:var(--paper,#fff);border-color:var(--rule-ink,rgba(10,10,11,.18));color:var(--ink,#0A0A0B)}
+.pnav a{color:var(--ink,#0A0A0B)}
+.pnav a:hover{border-color:var(--pop,#FF4F2E)}
+.pnav .pnav-k{color:var(--pop,#FF4F2E)}
+.pnav .pnav-t{color:var(--ink,#0A0A0B)}
+.pnav .pnav-d{color:var(--ink,#0A0A0B)}
+.figcap{color:var(--dim,#6E6C67);border-top-color:var(--rule-ink,rgba(10,10,11,.18))}
+.pintro .pull p,.beats-full .beat blockquote p,.beats-4 .beat blockquote p,
+.beats-gr .beat blockquote p,.duo .pull p{color:var(--ink,#0A0A0B);opacity:1}
+.contact-side .contact-card .ic{background:var(--paper,#fff);border-color:var(--rule-ink,rgba(10,10,11,.18));color:var(--ink,#0A0A0B)}
+.contact-card-cta,.contact-card-cta .ic{background:var(--mint,#71EEB8)}
+.field option{background:var(--paper,#fff);color:var(--ink,#0A0A0B)}
+.cities .city{border-color:var(--rule-ink,rgba(10,10,11,.18))}
+.ba-lab{color:var(--ink,#0A0A0B)}
+.swipe-dot{background:var(--rule-ink,rgba(10,10,11,.18))}
+.swipe-dot[aria-current="true"]{background:var(--ink,#0A0A0B)}
+
+/* `.wide` is the round-three type utility (the expanded face), and the
+   layout modifier on a two-column row used to be called the same thing —
+   so `<div class="duo wide">` was setting a whole column of serif copy in
+   the display face and shouting it in capitals. The modifier is renamed
+   `duo-wide` in the markup; this is its rule, unchanged.                */
+@media (min-width:860px){.duo.duo-wide{grid-template-columns:7fr 5fr}}
+
+/* The graffiti-removal one-liner, which is on /work, /services and
+   /about. Ink on white with a rule round it, not a lifted dark panel.   */
+.gr-strip{background:var(--paper,#fff);border-color:var(--rule-ink,rgba(10,10,11,.18))}
+.gr-strip p{color:var(--ink,#0A0A0B)}
+.gr-strip p b{color:var(--pop,#FF4F2E);font-family:var(--face-wide,ArchivoW),Archivo,sans-serif;
+  font-weight:900;font-stretch:125%;text-transform:uppercase;letter-spacing:.04em;font-size:.92em}
+
+/* --- the Services diamond board -------------------------------------
+   The drop-cloth palette. The mint and the pop are the round-three
+   tokens; the yellow and the violet are the "few other colours" the
+   owner asked for on the cards. They are paint and never type, so no
+   contrast pair is claimed for either. splatter.py carries the same
+   four hexes, because an SVG fill cannot read a custom property that
+   is only declared here — the stylesheet is still where they change.  */
+:root{--drop-yellow:#FFD23F;--drop-violet:#7B5CFF}
+
+.sboard-head{padding:clamp(56px,7vw,92px) 0 clamp(28px,4vw,44px);text-align:center;background:var(--paper,#fff)}
+.sboard-head .marker{color:var(--pop,#FF4F2E);font-size:clamp(19px,2.2vw,26px);margin:0 0 6px}
+.sboard-head h2{font-size:clamp(38px,5.6vw,84px);line-height:.95;margin:0;color:var(--ink,#0A0A0B)}
+.sboard-head h2 em{font-style:normal;color:var(--pop,#FF4F2E)}
+
+/* The board is full bleed, because the windows between the diamonds are
+   the point and a gutter would put white down both sides of the wall.  */
+.sboard-wrap{position:relative;overflow:hidden;background:var(--ink,#0A0A0B);
+  aspect-ratio:1440/1560}
+.sboard{position:absolute;inset:0;z-index:1}
+
+/* One strip, five walls, no seam. Each wall is pulled up over the one
+   before it and masked in from transparent, so the changeover happens
+   across a gradient and lands in the gaps between diamonds — which is
+   what makes it invisible.                                            */
+.sboard-wrap{--deep-run:30vw;--feather:7vw}
+.deep{position:absolute;left:0;right:0;top:0;z-index:0;will-change:transform;
+  height:calc(100% + var(--deep-run))}
+/* Five walls filling the strip exactly, each overlapping the one before
+   it by --feather and masked in across exactly that distance, so the
+   hand-over is a cross-fade with no seam and no gap. Both numbers are the
+   same length rather than two percentages: a percentage margin resolves
+   against the container's *width* and a percentage mask against the
+   element's own height, and the first version of this mixed the two — the
+   fade came out longer than the overlap and the board showed through as a
+   black band between every wall. The heights then solve for the strip:
+   five walls less four overlaps is the strip, which is the board plus
+   exactly the distance it travels.                                      */
+.dwall{height:calc((100% + 4 * var(--feather)) / 5);
+  background-size:cover;background-position:center}
+.dwall + .dwall{margin-top:calc(-1 * var(--feather));
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 var(--feather));
+  mask-image:linear-gradient(180deg,transparent 0,#000 var(--feather))}
+
+/* The parallax. A scroll timeline rather than a scroll handler: no
+   second rAF on the page, nothing to tear against the Live loop, and
+   the compositor does the moving. Where the browser has no scroll
+   timelines the strip simply stands still at its first position, which
+   is the same state reduced motion and no-script get — and the design
+   is drawn for that state, not rescued into it. data-deep and
+   data-deep-rate are on the element so site.js can take it over from
+   the Live loop; .deep-js on <html> stands this animation down.        */
+/* The timeline is named and declared on the board, not on the strip.
+   .sboard-wrap has overflow:hidden, which makes it a scroll container —
+   so an anonymous view() on the strip inside it measures the strip
+   against *that* box, where it never moves, and the parallax comes out
+   frozen at a constant offset. Declaring the view timeline on the board
+   itself measures the board against the document, which is the motion
+   the design is asking for.                                             */
+@supports (animation-timeline:view()){
+  .sboard-wrap{view-timeline:--oa-deep block}
+  @media (prefers-reduced-motion:no-preference){
+    html:not(.deep-js) .deep{
+      animation:oaDeep linear both;
+      animation-timeline:--oa-deep;
+      animation-range:cover 0% cover 100%;
+    }
+  }
+}
+@keyframes oaDeep{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,calc(-1 * var(--deep-run)),0)}}
+
+/* A diamond: a square turned forty-five degrees, its white card inset
+   inside it so the points are paint and card rather than card and
+   hairline. The type is counter-rotated into the square inscribed in
+   the diamond — 70.7% of it, which is exactly the largest upright box
+   that fits — so nothing can ever clip at a point.                     */
+.dia{position:absolute;left:var(--l);top:var(--t);width:30%;aspect-ratio:1;
+  transform:translate(-50%,0) rotate(45deg)}
+/* The lattice: three across, then two on the half step, then one. The
+   numbers are worked out from the diamond's own geometry — a square of
+   side S turned 45 degrees is S x 1.414 across its points, so the rows
+   are set 0.35 of the board apart against a 0.42 diagonal and interlock
+   by the difference, which is what leaves diamond-shaped windows.       */
+.dia:nth-child(1){--l:20%;--t:5%}
+.dia:nth-child(2){--l:50%;--t:5%}
+.dia:nth-child(3){--l:80%;--t:5%}
+.dia:nth-child(4){--l:35%;--t:40%}
+.dia:nth-child(5){--l:65%;--t:40%}
+.dia:nth-child(6){--l:50%;--t:75%}
+
+/* A tablet is too narrow for three across — the card comes out smaller
+   than a phone's and the copy has to shrink under it. So the lattice
+   drops to two across and the diamonds get bigger, not smaller.        */
+@media (min-width:861px) and (max-width:1199px){
+  .sboard-wrap{aspect-ratio:1/2}
+  .dia{width:44%}
+  .dia:nth-child(1){--l:32%;--t:5%}
+  .dia:nth-child(2){--l:68%;--t:5%}
+  .dia:nth-child(3){--l:50%;--t:27.5%}
+  .dia:nth-child(4){--l:32%;--t:50%}
+  .dia:nth-child(5){--l:68%;--t:50%}
+  .dia:nth-child(6){--l:50%;--t:72.5%}
+  .sboard-wrap{--deep-run:24vw;--feather:8vw}
+}
+.sq{position:absolute;inset:8%;container-type:size;overflow:hidden;
+  background:var(--paper,#fff);border:1px solid var(--ink,#0A0A0B);
+  box-shadow:0 18px 44px rgba(10,10,11,.22)}
+.spat{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.tx{position:absolute;left:14.65%;top:14.65%;width:70.7%;height:70.7%;z-index:1;
+  transform:rotate(-45deg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;gap:0}
+.tx .num{font-size:max(34px,17cqw);line-height:.8;color:var(--ink,#0A0A0B)}
+.tx .rule{display:block;width:13cqw;min-width:38px;height:max(3px,1.1cqw);
+  background:var(--pop,#FF4F2E);margin:max(10px,3cqw) 0 max(8px,2.4cqw)}
+.tx h3{font-size:max(19px,7.2cqw);margin:0 0 max(6px,2cqw);color:var(--ink,#0A0A0B);font-weight:400}
+.tx p{font-size:max(12.5px,3.8cqw);line-height:1.45;margin:0 0 max(10px,3.2cqw);
+  color:var(--muted-ink,#2b2a2e)}
+.tx .more{font-size:max(11.5px,3.7cqw);letter-spacing:.06em;color:var(--ink,#0A0A0B);
+  text-decoration:none;font-weight:400}
+.tx .more span{color:var(--pop,#FF4F2E)}
+.tx .more:hover{color:var(--pop,#FF4F2E)}
+
+/* A phone gets one column of diamonds, 82% of the width across the
+   points, with the strip still running behind them.                   */
+/* A phone gets one column of diamonds with the strip still running
+   behind them. The diamond is 70% of the width as a square, which is
+   99% across its points — full bleed, and nothing clipped at the sides.
+   The type floors come down with it: a diamond only offers its
+   inscribed square to a paragraph, and on a 390 that square is 160px.  */
+@media (max-width:860px){
+  .sboard-wrap{aspect-ratio:auto;padding:7vw 0;--deep-run:20vw;--feather:12vw}
+  .sboard{position:static;display:flex;flex-direction:column;align-items:center}
+  .dia,.dia:nth-child(n){position:relative;left:auto;top:auto;width:70%;margin:4.5% 0;
+    transform:rotate(45deg)}
+  .tx .num{font-size:max(22px,17cqw)}
+  .tx .rule{min-width:26px;height:max(2px,1.1cqw);margin:max(6px,3cqw) 0 max(5px,2.4cqw)}
+  .tx h3{font-size:max(15px,7.2cqw);margin-bottom:max(4px,2cqw)}
+  .tx p{font-size:max(11px,3.8cqw);line-height:1.34;margin-bottom:max(7px,3.2cqw)}
+  .tx .more{font-size:max(10px,3.7cqw)}
+}
+
+/* /services — the figures over the tin's rule, and the sign roster.    */
+.svc-rule{background:var(--paper,#fff)}
+.stats-3{display:grid;gap:1.2rem;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  list-style:none;margin:clamp(1.6rem,4vw,2.6rem) 0 0;padding:0}

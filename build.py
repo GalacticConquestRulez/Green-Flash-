@@ -16,7 +16,7 @@ Two environment variables move the whole site:
 Every root-absolute link in the output goes through u() and every image through
 img(), so the same build runs at the domain root and under a preview prefix.
 """
-import os, sys, html, json, struct, hashlib
+import os, sys, re, html, json, struct, hashlib
 from urllib.parse import quote as _urlq
 from art import brush_rule_svg, roller_pass_svg, spraycan_pass_svg, can_tipping_svg
 from strokes import stroke_svg, highlight_svg
@@ -950,20 +950,6 @@ def gr_strip(text=None):
 </div></section>'''
 
 
-# The brand wall and the faces strand are the other agent's components, and
-# Home leaves the two places the mockup puts them whether they have landed or
-# not: if brands.py is in the tree they are rendered, and if it is not the
-# page is the page without them. Nothing else on Home knows the difference.
-try:
-    from brands import brand_wall, faces_strand           # noqa: F401
-except ImportError:                                       # not built yet
-    def brand_wall():
-        return ''
-
-    def faces_strand():
-        return ''
-
-
 MARQUEE = ('Always hand painted', 'Murals', 'Banners &amp; signs', 'Graffiti removal')
 
 
@@ -993,6 +979,239 @@ def row(slug, alt, words, flip=False, sizes=PAIR_SIZES):
     body = f'<div class="rows-words rv">{words}</div>'
     inner = (body + media) if flip else (media + body)
     return f'<section class="rows{" flip" if flip else ''}">{inner}</section>'
+
+# ------------------------------------------------------------- PAINTED FOR
+# The logo wall, and the strand of faces beside it. CLAUDE.md, round three:
+# Colossal shows who it has painted for, so Ephraim's site does too — "in each
+# brand's actual colours", which is why every mark here is the brand's own
+# file and not a drawing of it.
+#
+# brands.py holds the roster, the source URL and the licence for each mark;
+# process-brands.sh does the downloading. This is only the rendering: a ruled
+# five-by-three grid on white, two columns on a phone, every mark at the same
+# optical height rather than the same box height, each cell a real <img> with
+# its own width and height so the wall never reflows as the logos land.
+from brands import BRANDS, intrinsic
+
+
+def brand_mark(b):
+    """One mark: the brand's own SVG, or type in the brand's own colour."""
+    if b['mark'] == 'svg':
+        w, h = intrinsic(b['slug'])
+        return (f'<img class="bmark" src="{u("/assets/img/brands/" + b["slug"] + ".svg")}" '
+                f'alt="{html.escape(b["name"])}" width="{w:g}" height="{h:g}" '
+                f'style="--bh:{b["h"]}px;--bhm:{b["hm"]}px" loading="lazy" decoding="async">')
+    # No free file for this one yet. Type, in the brand's own colour, and the
+    # name is the content — a screen reader hears the same thing either way.
+    return (f'<span class="bword {b["face"]}" style="color:{b["colour"]}">'
+            f'{html.escape(b["name"])}</span>')
+
+
+def brand_wall(eyebrow='painted for', title='The brands', cls=''):
+    """The "Painted for" wall — fifteen marks, ruled, on white."""
+    cells = ''.join(f'<li class="bcell">{brand_mark(b)}</li>' for b in BRANDS)
+    sect = ('brandwall ' + cls).strip()
+    return f'''<section class="{sect}"><div class="wrap">
+  <div class="bhead rv"><span class="marker">{eyebrow}</span><h2 class="tall">{title}</h2></div>
+  <ul class="bgrid rv" aria-label="Brands Open Air Gallery has painted for">{cells}</ul>
+</div></section>'''
+
+
+# The second strand. CLAUDE.md, round three: the owner asked to "add in Kylie
+# or mentioned models" — so beside the brands there are the people, and they
+# appear the one way this site will show a person: as a wall Ephraim painted
+# of them, never as a stock photograph of the person themselves.
+#
+# Four of the five have a wall on this site and each name is the link to it.
+# Kylie Jenner is the fifth and she links nowhere, because no photograph of
+# that wall has reached us — a name with no picture behind it is honest, and a
+# name linked to somebody else's wall would not be. She is a line in CLAUDE.md
+# under what Ephraim still owes, and the day the photograph lands `slug` is
+# filled in and nothing else on this page changes.
+#
+# `+ the campaign models` is a marker aside and not a name, because Ephraim has
+# not named them yet. It says there are more without inventing who.
+FACES = [
+  dict(name='Kylie Jenner', slug=None,
+       where='the mural project \u2014 no photograph of the wall yet'),
+  dict(name='John Lewis', slug='john-lewis-rochester'),
+  dict(name='Malcolm X', slug='malcolm-x-rochester'),
+  dict(name='Antwuan', slug='uber-san-francisco'),
+  dict(name='Dexter', slug='showtime-dexter-boston'),
+]
+FACES_MORE = '+ the campaign models'
+
+_BY_SLUG = {p['slug']: p for p in PROJECTS}
+for _f in FACES:
+    assert _f['slug'] is None or _f['slug'] in _BY_SLUG, \
+        f"faces: {_f['name']} points at {_f['slug']!r}, which is not a project"
+
+
+def faces_strand(eyebrow='and the faces', title='Painted portraits', cls=''):
+    """The faces row: five names set as the serif they deserve, four of them links."""
+    items = []
+    for f in FACES:
+        if f['slug']:
+            q = _BY_SLUG[f['slug']]
+            label = f"{f['name']} \u2014 the {q['title']} wall, {q['city']}, {q['state']}"
+            items.append(f'<a class="face" href="{u("/work/" + f["slug"])}" '
+                         f'aria-label="{html.escape(label)}">{html.escape(f["name"])}</a>')
+        else:
+            items.append(f'<span class="face face-unlinked">{html.escape(f["name"])}</span>')
+    items.append(f'<span class="face-more marker">{html.escape(FACES_MORE)}</span>')
+    sect = ('faces ' + cls).strip()
+    return f'''<section class="{sect}"><div class="wrap">
+  <div class="bhead rv"><span class="marker">{eyebrow}</span><h2 class="tall">{title}</h2></div>
+  <p class="faces-lead serif rv">The people on the walls, painted at building scale &mdash;
+  John Lewis and Malcolm X in Rochester, Antwuan on the Uber wall in San Francisco, Dexter on
+  the Showtime wall in Boston. Each name goes to its wall.</p>
+  <div class="frow rv">{''.join(items)}</div>
+</div></section>'''
+
+
+# ------------------------------------------------------------ PUBLIC WORKS
+# The strand the owner asked for in his own words (CLAUDE.md, round three):
+# "he has more not on there, and wants to show more of his public works like
+# Colossal did; he's been to Mexico, Brazil, teen empowerment and more, so
+# don't limit."
+#
+# So this block exists to be open-ended. It names the places he has worked and
+# the kinds of work — community walls, civil-rights portraits, teen-empowerment
+# murals — and it says out loud, in marker, that more is coming as the
+# photographs arrive. It does not count anything, it does not present the
+# roster as complete, and it does not invent a project that has no photograph.
+#
+# The picture is about-team, the crew on the lift, because that photograph is
+# about the people doing the work rather than about one brand's wall — it is
+# the right placeholder for this strand and it is labelled as the crew, not as
+# a public commission. A real public-works photograph replaces it in one line.
+PW_PLACES = ('Mexico', 'Brazil', 'Rochester', 'New York')
+PW_MARKER = 'more coming as the photos arrive'
+
+
+def public_works(cls=''):
+    """Public works — the community strand, framed for the work we do not have yet."""
+    places = ' &middot; '.join(PW_PLACES)
+    sect = ('pw ' + cls).strip()
+    return f'''<section class="{sect}"><div class="pw-grid">
+  <figure class="pw-media rv">{pic('about-team',
+      'An Open Air Gallery painter working from a lift platform, mask on, part way '
+      'through a wall', PAIR_SIZES)}</figure>
+  <div class="pw-words rv rv-d1">
+    <h2 class="tall">Public <em class="pop">works</em></h2>
+    <p class="pw-places wide">{places}</p>
+    <p class="serif">Beyond the brands: community walls, civil-rights portraits and
+    teen-empowerment murals &mdash; painted with the people who live beside them, in
+    Mexico, Brazil and at home in Rochester and New York.</p>
+    <p class="serif">The two Rochester commissions are the ones we have photographs of
+    so far. They are not the extent of the work, and this page has room for the rest.</p>
+    <p class="pw-note marker">{PW_MARKER}</p>
+    <div class="row-end"><a class="btn btn-ghost" href="{u('/work')}#f-civic">See the public works {ICONS['arrow']}</a></div>
+  </div>
+</div></section>'''
+
+
+# --------------------------------------------------------- THE DIAMOND BOARD
+# The Services page. Overall Murals' *idea* — cards as negative space over a
+# deep, parallaxing mural layer that hands over seamlessly — in Ephraim's own
+# form. The owner, 2026-09-19: "Maybe we switch ours up and use some sort of
+# diamond concept, add his teal and a few other colours as splatter on the
+# crisp white cards before we add the text — let's not copy."
+#
+# So the grid is turned forty-five degrees. The white diamonds are the cards
+# and the gaps between them are the windows: one strip of his walls laid end
+# to end behind the whole board, each wall feathered into the next with a mask
+# gradient so there is never a seam to see, moving slower than the page so the
+# wall sits behind it rather than on it.
+#
+# Every card is splattered first and lettered after (splatter.py): two or three
+# clusters of the drop-cloth palette thrown at the diamond's points, where the
+# type never goes, each with a rim, a gloss and a drip. Seeded per card, so no
+# two match and every build is byte for byte the last one.
+from splatter import splatter_svg
+
+# The drop-cloth palette. The same four hexes are declared as tokens in the
+# stylesheet's PAGES block; splatter.py needs real values rather than var()
+# names, so they are written once here and once there and nowhere else.
+DROP_PALETTE = ('#71EEB8', '#FF4F2E', '#FFD23F', '#7B5CFF')
+
+# The strip behind the board: five of his walls, in the order they hand over.
+DEEP_WALLS = ('gucci-new-york-hero', 'crown-royal-trail-blazers-hero',
+              'john-lewis-rochester-hero', 'uber-san-francisco-hero',
+              'malcolm-x-rochester-hero')
+
+# Six services, and the lattice they sit on: three across, then two on the
+# half step, then one. `l` and `t` are per cent of the board.
+BOARD = [
+  ('01', 'Murals', '20%', '5%',
+   'It starts from a small image and explodes onto a massive canvas &mdash; brand '
+   'walls, portraits and public works, painted by hand at building scale.',
+   'See the walls', '/work'),
+  ('02', 'Banners &amp; signs', '50%', '5%',
+   'Hand-lettered signage and painted banners for storefronts and campaigns, '
+   'done with the same brush as the walls.',
+   'See the signs', consult_path('Banners and signs')),
+  ('03', 'Graffiti removal', '80%', '5%',
+   'Industrial-strength cleaning for tags, stains and overspray in NYC. Send a '
+   'picture; we send back a quote and a date.',
+   'Send a photo', consult_path('Graffiti removal')),
+  ('04', 'Public works', '35%', '40%',
+   'Community walls, civil-rights portraits and teen-empowerment murals in '
+   'Mexico, Brazil, Rochester and New York.',
+   'See the public works', '/work#f-civic'),
+  ('05', 'Paint science', '65%', '40%',
+   'We analyze how the paint will decay and how the light will affect its '
+   'colour, so we use only what we need and what will last.',
+   'How a wall is preserved', '/about'),
+  ('06', 'Commercial painting', '50%', '75%',
+   'Facades, interiors and the coating that keeps a finished wall easy to '
+   'clean &mdash; the crew that paints it knows how to keep it.',
+   'Book a consult', consult_path('Commercial painting')),
+]
+
+
+def _diamond(i, row):
+    # The lattice positions are not here. They are per breakpoint — three
+    # across at desktop, two on a tablet, one on a phone — and a position in
+    # the markup would be an inline style that no media query could move.
+    num, name, _l, _t, words, more, href = row
+    # A different pair of the palette on every card, rotated so the teal he
+    # asked for is on all of them and the other three take turns beside it.
+    cols = [DROP_PALETTE[0], DROP_PALETTE[1 + i % 3], DROP_PALETTE[1 + (i + 1) % 3]]
+    spat = splatter_svg(f'd{i}', cols, 4100 + i * 137)
+    return (f'<div class="dia"><div class="sq">{spat}'
+            f'<div class="tx"><span class="num marker">{num}</span>'
+            f'<span class="rule" aria-hidden="true"></span>'
+            f'<h3 class="tall">{name}</h3><p class="serif">{words}</p>'
+            f'<a class="more tall" href="{u(href)}">{more} '
+            f'<span aria-hidden="true">&rarr;</span></a></div></div></div>')
+
+
+def services_board(eyebrow='our services',
+                   title=('There&rsquo;s a wall for everyone<br>when you choose '
+                          '<em class="pop">hand-painted</em> murals.')):
+    """The board: one deep strip of walls, six diamonds floating over it.
+
+    The strip is the only thing that moves, it moves at about half the page's
+    speed, and it moves through a CSS scroll timeline rather than through a
+    scroll handler of its own — so there is no second rAF loop on this page,
+    nothing to run on a browser that has no scroll timelines, and reduced
+    motion and no-script both get the strip standing still at its first
+    position, which is the state the design is drawn for. It carries
+    data-deep and data-deep-rate so site.js can take it over from the Live
+    loop later; the stylesheet stands the CSS animation down the moment
+    <html> gains .deep-js, so the two can never both be driving.
+    """
+    walls = ''.join(
+        f'<div class="dwall" style="background-image:url('
+        f'{u("/assets/img/" + w + "-1600.webp")})"></div>' for w in DEEP_WALLS)
+    dias = ''.join(_diamond(i, row) for i, row in enumerate(BOARD))
+    return (f'<section class="sboard-head"><div class="wrap">'
+            f'<p class="marker">{eyebrow}</p><h2 class="tall">{title}</h2>'
+            f'</div></section>\n'
+            f'<section class="sboard-wrap">'
+            f'<div class="deep" data-deep data-deep-rate="0.5" aria-hidden="true">{walls}</div>'
+            f'<div class="sboard">{dias}</div></section>')
 
 
 # ---------------------------------------------------------------- HOME
@@ -1122,17 +1341,26 @@ pages['/index'] = dict(
 # hides what does not match. No JavaScript is involved, so the filter works in
 # a text browser, in a crawler, and on a page whose script never arrived — and
 # with nothing targeted the grid shows everything, which is the right default.
-CAT_LABEL = {'brand': 'Brands', 'portrait': 'Portraits', 'civic': 'Civic'}
+# The third chip says "Public works", not "Civic". CLAUDE.md, round three:
+# Ephraim wants the community side shown the way Colossal shows its public
+# art, and the two Rochester commissions are what we have photographs of
+# today — so the chip is named for the strand and filters on the category we
+# already have. Mexico, Brazil and the teen-empowerment murals join it as
+# their photographs arrive, and the label does not have to change again.
+#
+# The chips carry no counts. A number beside "All" is a wall count, and this
+# site does not state one (CLAUDE.md: "Don't say 12 walls — he has more not
+# on there"). The filter is a filter; it is not a tally of his career.
+CAT_LABEL = {'brand': 'Brands', 'portrait': 'Portraits', 'civic': 'Public works'}
 
 
 def work_index():
-    chips = [('#f-all', 'All', len(PROJECTS))]
-    chips += [(f'#f-{c}', CAT_LABEL[c], sum(1 for p in PROJECTS if p['category'] == c))
-              for c in CATEGORIES]
+    chips = [('#f-all', 'All')]
+    chips += [(f'#f-{c}', CAT_LABEL[c]) for c in CATEGORIES]
     targets = '<span class="ftarget" id="f-all"></span>' + ''.join(
         f'<span class="ftarget" id="f-{c}"></span>' for c in CATEGORIES)
-    bar = ''.join(f'<li><a class="chip" href="{href}">{label}'
-                  f'<span class="ct">{n}</span></a></li>' for href, label, n in chips)
+    bar = ''.join(f'<li><a class="chip" href="{href}">{label}</a></li>'
+                  for href, label in chips)
     cards = ''.join(pcard(p, f"cat-{p['category']}" + (f' rv-d{i % 3}' if i % 3 else ''))
                     for i, p in enumerate(PROJECTS))
     return f'''<section class="work"><div class="wrap">
@@ -1145,15 +1373,17 @@ def work_index():
 pages['/work'] = dict(
   title=f'Work | {SITE_NAME}',
   desc=f'Walls Open Air Gallery has painted, with what each one measured — '
-       f'{SQ_FT:,} square feet across {spell(len(CITIES))} cities, from Gucci in Manhattan to '
-       f'John Lewis and Malcolm X in Rochester.',
+       f'{SQ_FT:,} square feet and counting, in {spell(len(CITIES))} cities, from Gucci in '
+       f'Manhattan to John Lewis and Malcolm X in Rochester, and public works beyond them.',
   body=f'''
-{page_hero('The roster', 'The walls',
-           f'Every wall Open Air Gallery has painted, with what it measured. '
-           f'{SQ_FT:,} square feet in {spell(len(CITIES))} cities — brand walls, painted '
-           f'portraits, and the two Rochester commissions.',
+{page_hero('<span class="marker">measured in feet</span>', 'The walls',
+           f'The walls we have photographs of, with what each one measured. '
+           f'{SQ_FT:,} square feet and counting, in {spell(len(CITIES))} cities — brand walls, '
+           f'painted portraits and public works, with more of both on the way.',
            crumb='Work')}
 {work_index()}
+{public_works()}
+{faces_strand()}
 {gr_strip('Graffiti removal, pressure washing and commercial painting in NYC. The '
           'crew that painted these walls cleans them too.')}
 {cta()}''')
@@ -1218,7 +1448,7 @@ def project_page(p):
                       '(min-width:960px) 76vw, 100vw')
                   for name in [p['hero']] + list(p['gallery'])]
         gallery = f'''<section class="alt"><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">The gallery</div><h2>{spell(len(slides), cap=True)} views of the same wall</h2></div>
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">The gallery</span></div><h2 class="tall">{spell(len(slides), cap=True)} views of the same wall</h2></div>
   {swipe(slides, f'Photographs of the {p["title"]} mural')}
 </div></section>'''
 
@@ -1233,10 +1463,10 @@ def project_page(p):
 {scale_hero(p)}
 <section class="pintro">{glow()}<div class="wrap">
   <div class="crumbs"><a href="{u('/')}">Home</a><span>/</span><a href="{u('/work')}">Work</a><span>/</span><span>{p['title']}</span></div>
-  <div class="eyebrow">{place}</div>
-  <h1>{p['title']}</h1>
+  <div class="eyebrow"><span class="marker">{place}</span></div>
+  <h1 class="tall">{p['title']}</h1>
   {dims(p['dim_w'], p['dim_h'])}
-  <p class="lead pstory">{p['story']}</p>
+  <p class="lead pstory serif">{p['story']}</p>
   <dl class="pmeta">{meta}</dl>
   {credit}
 </div></section>
@@ -1309,7 +1539,7 @@ pages['/about'] = dict(
        'painting at building scale, out of New York and nationwide. His crew, his '
        'three stages, and every city the work has reached.',
   body=f'''
-{page_hero('About Open Air Gallery', 'Ephraim and the crew',
+{page_hero('<span class="marker">the studio</span>', 'Ephraim and the crew',
            f'A muralist and large-image company: murals, banners and signs painted at '
            f'building scale. Ephraim leads it, the crew goes up on the lift, and the '
            f'walls stand in {spell(len(CITIES))} cities so far.',
@@ -1320,22 +1550,22 @@ pages['/about'] = dict(
     <div class="portrait rv">{pic('ephraim-portrait', 'Ephraim, the muralist who leads Open Air Gallery', PORTRAIT_SIZES)}
       <div class="portrait-cta">{save_number()}</div></div>
     <div class="rv rv-d1">
-      <div class="eyebrow">The muralist</div>
-      <h2>Ephraim</h2>
-      <p class="lead">Ephraim is the muralist behind Open Air Gallery. The company paints
+      <div class="eyebrow"><span class="marker">The muralist</span></div>
+      <h2 class="tall">Ephraim</h2>
+      <p class="lead serif">Ephraim is the muralist behind Open Air Gallery. The company paints
       brand walls at building scale — Gucci, Crown Royal, Uber — and painted portraits,
       including the two civil-rights walls in Rochester. In his own words:</p>
-      <blockquote class="pull"><p>{STUDIO}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
+      <blockquote class="pull serif"><p>{STUDIO}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
     </div>
   </div>
 </div></section>
 
 <section class="alt"><div class="wrap">
-  <div class="duo wide">
+  <div class="duo duo-wide">
     <div class="rv">
-      <div class="eyebrow">The crew</div>
-      <h2>Nobody paints eighty feet alone</h2>
-      <blockquote class="pull"><p>{CREW}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
+      <div class="eyebrow"><span class="marker">The crew</span></div>
+      <h2 class="tall">Nobody paints eighty feet alone</h2>
+      <blockquote class="pull serif"><p>{CREW}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
     </div>
     <figure class="figframe rv rv-d1">{pic('about-team', 'An Open Air Gallery painter working from a lift platform, mask on, part way through a wall', HALF_SIZES)}
       <figcaption class="figcap">On the lift, mid-wall.</figcaption></figure>
@@ -1343,17 +1573,17 @@ pages['/about'] = dict(
 </div></section>
 
 <section><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">How a wall gets painted</div>
-  <h2>Prep, paint, preservation</h2>
-  <p class="lead">Ephraim’s three stages, in full and in his own words — the same three
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">How a wall gets painted</span></div>
+  <h2 class="tall">Prep, paint, preservation</h2>
+  <p class="lead serif">Ephraim’s three stages, in full and in his own words — the same three
   he has published since the first version of this company’s site.</p></div>
   {beats(PROCESS, 'beats-full', rule=True)}
 </div></section>
 
 <section class="alt"><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">Where we work</div>
-  <h2>New York, and wherever the wall is</h2>
-  <p class="lead">Open Air Gallery is based in New York and paints nationwide. The
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">Where we work</span></div>
+  <h2 class="tall">New York, and wherever the wall is</h2>
+  <p class="lead serif">Open Air Gallery is based in New York and paints nationwide. The
   The walls on the Work page stand in {spell(len(CITIES))} cities, coast to
   coast — {SQ_FT:,} square feet of painted surface between them.</p></div>
   <ul class="cities">{''.join(city_tile(place, walls) for place, walls in CITY_ROWS)}</ul>
@@ -1393,7 +1623,7 @@ pages['/services'] = dict(
        'science behind both — plus graffiti removal, pressure washing and commercial '
        'painting from the same crew.',
   body=f'''
-{page_hero('What we do', 'Murals, banners and signs',
+{page_hero('<span class="marker">what we do</span>', 'Murals, banners and signs',
            'Hand-painted work at building scale, by the crew that cleans the wall '
            'afterwards too: murals, banners and signs, graffiti removal — and the paint '
            'science that runs through all of it.',
@@ -1402,54 +1632,28 @@ pages['/services'] = dict(
                      'with traffic and pedestrians below it for scale',
            crumb='Services', tip=True)}
 
-<section><div class="wrap">
+<section class="svc-rule"><div class="wrap">
   {tip_rule()}
-  <div class="section-head rv"><div class="eyebrow">Murals</div>
-  <h2>A small image, exploded onto a massive canvas</h2>
-  <p class="lead">Brand walls, painted portraits and civic commissions, projected and
-  painted by hand, in {spell(len(CITIES))} cities and counting — the largest {WIDEST['dim_w']} feet across.</p></div>
-  <div class="duo wide">
-    <div class="rv">
-      <blockquote class="pull"><p>{PROCESS[0][1]}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
-      <div class="btn-row" style="margin-top:1.8rem">
-        <a class="btn btn-mint" href="{consult('Murals')}">Start a mural {ICONS['arrow']}</a>
-        <a class="btn btn-ghost" href="{u('/work')}">See the work</a>
-      </div>
-    </div>
-    <ul class="stats rv rv-d1 stats-2">
-      {stat(f'{SQ_FT:,}', 'square feet, and counting')}
-      {stat(WIDEST['dim_w'], f'widest wall, {WIDEST["city"]}', mark=PRIME)}
-      {stat(len(CITIES), 'cities, coast to coast')}
-    </ul>
-  </div>
+  <ul class="stats rv stats-3">
+    {stat(f'{SQ_FT:,}', 'square feet, and counting')}
+    {stat(WIDEST['dim_w'], f'widest wall, {WIDEST["city"]}', mark=PRIME)}
+    {stat(len(CITIES), 'cities, coast to coast')}
+  </ul>
 </div></section>
 
+{services_board()}
+
 <section class="alt"><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">Banners and signs</div>
-  <h2>Hand-painted, at any size</h2>
-  <p class="lead">The same brushes on smaller surfaces: storefront signs, hand-painted
-  banners and interior lettering. Ephraim’s own line for the company, and it has been
-  the line since the first version of this site — murals, banners, art.</p></div>
-  <ul class="roster">{''.join(f'<li class="rv">{html.escape(n)}</li>' for n in SIGN_ROSTER)}</ul>
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">in his own words</span></div>
+  <h2 class="tall">There is a science to paint</h2>
+  <p class="lead serif">Two of Ephraim&rsquo;s three stages are about what happens to the paint
+  after the crew goes home: how it will fade, and how it survives what is thrown at it.</p></div>
+  {beats(PROCESS, 'beats-gr', rule=True)}
+  <ul class="roster rv">{''.join(f'<li>{html.escape(n)}</li>' for n in SIGN_ROSTER)}</ul>
   <div class="row-end rv"><a class="btn btn-ghost" href="{consult('Banners and signs')}">Ask about a sign {ICONS['arrow']}</a></div>
 </div></section>
 
-<section><div class="wrap">
-  <div class="duo">
-    <figure class="figframe rv">{pic('about-preservation', 'Four Open Air Gallery painters on a suspended platform, finishing a painted portrait wall', HALF_SIZES)}
-      <figcaption class="figcap">A crew on a suspended platform, finishing a portrait wall.</figcaption></figure>
-    <div class="rv rv-d1">
-      <div class="eyebrow">Paint science</div>
-      <h2>There is a science to paint</h2>
-      <p class="lead">Two of Ephraim’s three stages are about what happens to the paint
-      after the crew goes home: how it will fade, and how it survives what is thrown at it.</p>
-      <h3 class="svc-h">{PROCESS[1][0]}</h3>
-      <blockquote class="pull"><p>{PROCESS[1][1]}</p></blockquote>
-      <h3 class="svc-h">{PROCESS[2][0]}</h3>
-      <blockquote class="pull"><p>{PROCESS[2][1]}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
-    </div>
-  </div>
-</div></section>
+{brand_wall()}
 
 {gr_strip('Graffiti removal, pressure washing and commercial painting in NYC. The '
           'fourth thing the company sells, and it has a page of its own.')}
@@ -1598,9 +1802,9 @@ pages['/graffiti-removal'] = dict(
   <div class="wrap"><div class="gr-hero-grid">
     <div class="hero-inner">
       <div class="crumbs"><a href="{u('/')}">Home</a><span>/</span><span>Graffiti removal</span></div>
-      <div class="eyebrow">Commercial</div>
-      <h1>Graffiti removal</h1>
-      <p class="lead">{' &middot; '.join(GR_REASONS)}.</p>
+      <div class="eyebrow"><span class="marker">Commercial</span></div>
+      <h1 class="tall">Graffiti removal</h1>
+      <p class="lead serif">{' &middot; '.join(GR_REASONS)}.</p>
       <div class="btn-row"><a class="btn btn-mint" href="{consult('Graffiti removal')}">Send a photo, get a quote {ICONS['arrow']}</a><a class="btn btn-ghost" href="#gr-services">The three services</a></div>
     </div>
     <div class="gr-hero-wall">{wall_html(mode='interactive', id_prefix='wash')}</div>
@@ -1608,10 +1812,10 @@ pages['/graffiti-removal'] = dict(
 </section>
 
 <section id="gr-services"><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">In his own words</div>
-  <h2>Graffiti removal &amp; cleaning services</h2>
-  <p class="lead">{GR_PITCH}</p></div>
-  {beats(GR_SERVICES)}
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">In his own words</span></div>
+  <h2 class="tall">Graffiti removal &amp; cleaning services</h2>
+  <p class="lead serif">{GR_PITCH}</p></div>
+  {beats(GR_SERVICES, 'beats-gr')}
   <div class="row-end rv btn-row">
     <a class="btn btn-mint" href="{consult('Graffiti removal')}">Send a photo, get a quote {ICONS['arrow']}</a>
     <a class="btn btn-ghost" href="{consult('Pressure washing')}">Ask about pressure washing</a>
@@ -1619,34 +1823,34 @@ pages['/graffiti-removal'] = dict(
 </div></section>
 
 <section class="alt"><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">Before and after</div>
-  <h2>What comes off</h2>
-  <p class="lead">Ephraim&rsquo;s own before-and-after photographs go here the day he sends
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">Before and after</span></div>
+  <h2 class="tall">What comes off</h2>
+  <p class="lead serif">Ephraim&rsquo;s own before-and-after photographs go here the day he sends
   them. Until then this is the wall at the top of the page, drawn, with every tag on
   it and then none of them.</p></div>
   {before_after()}
 </div></section>
 
 <section><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">His three step process</div>
-  <h2>Take a picture. Send us an email. Pay a 50% deposit.</h2>
-  <p class="lead">The booking ladder Open Air Gallery has published since the first
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">His three step process</span></div>
+  <h2 class="tall">Take a picture. Send us an email. Pay a 50% deposit.</h2>
+  <p class="lead serif">The booking ladder Open Air Gallery has published since the first
   version of this site, unchanged.</p></div>
-  {beats(GR_LADDER)}
+  {beats(GR_LADDER, 'beats-gr')}
 </div></section>
 
 <section class="alt"><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">At the wall</div>
-  <h2>Four beats, once the date is set</h2>
-  <p class="lead">What the crew actually does between the deposit and the wall you get
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">At the wall</span></div>
+  <h2 class="tall">Four beats, once the date is set</h2>
+  <p class="lead serif">What the crew actually does between the deposit and the wall you get
   back.</p></div>
   {beats(GR_PROCESS, 'beats-4', quoted=False)}
 </div></section>
 
 <section><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">Who it&rsquo;s for</div>
-  <h2>Whose wall this is</h2></div>
-  {beats(GR_WHO, quoted=False)}
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">Who it&rsquo;s for</span></div>
+  <h2 class="tall">Whose wall this is</h2></div>
+  {beats(GR_WHO, 'beats-gr', quoted=False)}
 </div></section>
 
 {cta(title='Send a photo, get a quote',
@@ -1688,7 +1892,7 @@ pages['/contact'] = dict(
   desc=f'Book a free consultation with Open Air Gallery. Tell us the wall, the city and '
        f'roughly how big it is, or email {EMAIL} directly.',
   body=f'''
-{page_hero('Book a free consultation', 'Let’s get to work',
+{page_hero('<span class="marker">book a free consultation</span>', 'Let’s get to work',
            'Fill out the form and we’ll connect with you shortly. Tell us the wall, the '
            'city and roughly how big it is, and you get a plan and a price back.',
            media_slug='contact-band',
@@ -1699,8 +1903,9 @@ pages['/contact'] = dict(
 <section><div class="wrap">
   <div class="contact-grid">
     <div class="rv">
-      <div class="eyebrow">The brief</div>
-      <h2>Tell us about the wall</h2>
+      <div class="eyebrow"><span class="marker">the brief</span></div>
+      <h2 class="tall">Tell us about the wall</h2>
+      <p class="contact-aside marker">a photo of the wall is enough to start</p>
       <form id="contact-form" class="form" method="post">
         <div class="row">
           <div class="field"><label for="name">Name</label>
@@ -1773,7 +1978,7 @@ pages['/404'] = dict(
   title=f'Page not found | {SITE_NAME}',
   desc='That page is not here. Head back to the work, or to the front.',
   body=f'''
-{page_hero('404', 'Nothing on this wall yet.',
+{page_hero('<span class="marker">404</span>', 'Nothing on this wall yet.',
            'Paint something, or head back.',
            crumb=False, cls='blank', wall=True,
            extra=f'''<div class="btn-row"><a class="btn btn-mint" href="{u('/')}">Home {ICONS['arrow']}</a>'''
@@ -1948,12 +2153,51 @@ if os.path.isdir(_img) and not os.path.exists(_link):
     os.makedirs(os.path.dirname(_link), exist_ok=True)
     os.symlink(os.path.relpath(_img, os.path.dirname(_link)), _link)
 
+# No wall count, anywhere, ever. CLAUDE.md, round three, in the owner's own
+# words: "Don't say 12 walls — he has more not on there, and wants to show more
+# of his public works like Colossal did; he's been to Mexico, Brazil, teen
+# empowerment and more, so don't limit." The twelve rows in projects.py are the
+# walls we have photographs of; they are not the size of his career, and a
+# number computed from our data file must never become a claim about him.
+#
+# That rule is easy to keep by hand and easy to lose by accident — one
+# `spell(len(PROJECTS))` put back in a lead, one chip that counts what it
+# filters — so it is checked on the rendered page rather than trusted in the
+# source. These patterns run over every page's final HTML and the build stops
+# on a hit. A count of *cities* is fine and always has been: "eight cities" is
+# where he has worked, not a ceiling on how much he has done.
+WALL_COUNT_BAN = [
+    # the word itself, in any case, however it is phrased around
+    (re.compile(r'\btwelve\b', re.I), 'the word "twelve"'),
+    # a figure standing next to walls, in either order, across markup
+    (re.compile(r'\b12\b(?:(?!</?(?:section|h[1-6])\b).){0,40}?\bwalls?\b',
+                re.I | re.S), '"12" beside "walls"'),
+    (re.compile(r'\bwalls?\b(?:(?!</?(?:section|h[1-6])\b).){0,24}?\b12\b',
+                re.I | re.S), '"walls" beside "12"'),
+    (re.compile(r'\ba dozen\b', re.I), '"a dozen"'),
+]
+
+
+def check_no_wall_count(path, doc):
+    for rx, what in WALL_COUNT_BAN:
+        m = rx.search(doc)
+        if m:
+            start = max(0, m.start() - 70)
+            raise SystemExit(
+                f'build: {path} states a wall count — {what}.\n'
+                f'  ...{doc[start:m.end() + 70]}...\n'
+                f'  CLAUDE.md, round three: the roster is what we have photographs '
+                f'of, never a claim about how much work Ephraim has done.')
+
+
 for path, p in pages.items():
     fn = os.path.join(OUT, path.strip('/') + '.html')
     os.makedirs(os.path.dirname(fn), exist_ok=True)
+    doc = layout(path, p['title'], p['desc'], p['body'], p.get('ld'),
+                 p.get('noindex', False), p.get('wash', False), p.get('og'))
+    check_no_wall_count(path, doc)
     with open(fn, 'w') as f:
-        f.write(layout(path, p['title'], p['desc'], p['body'], p.get('ld'),
-                       p.get('noindex', False), p.get('wash', False), p.get('og')))
+        f.write(doc)
     print('wrote', fn)
 
 # the vCard behind "Save my number"
