@@ -21,6 +21,39 @@
      shaded against itself rather than against the ink: the roller lap
      marks and the bristle tones in Splat. It never carries type. */
   --mint-mid:#63D0A0;
+  /* --- round three: the second paint (owner, 2026-09-19) -------------
+     "Add in multi-colour mixing and an on-screen effect that matches
+     that." So every paint verb on this site now carries two paints, and
+     where one lands on the other they mix the way paint mixes rather than
+     stacking the way vector does. --pop is the coral the round-three
+     palette names, the one colour that pops against his mint; it is paint
+     and never a foreground, so no contrast pair is claimed for it and it
+     never carries type.
+
+     --mix is what the two make: the channel-wise product of --mint and
+     --pop, which is what a multiply blend computes at the overlap
+     (0x71*0xFF, 0xEE*0x4F, 0xB8*0x2E, each over 255) — the brown two
+     complements make on a wall. It is named here so the mixing has a
+     value that can be looked up and checked rather than only observed,
+     and so a still of an overlap can be compared against it.
+
+     --pop-mid and --pop-deep are the coral's two shades, doing for it what
+     --mint-mid and --mint-deep do for the mint: the lap marks between them
+     and the darker rim round a wet edge. --pop-wet is the pale coral a
+     loaded bristle carries. */
+  --pop:#FF4F2E; --pop-mid:#E8451F; --pop-deep:#A8300F;
+  /* The rim of a wet edge is darker than the paint's own shade: --mint-deep
+     and --pop-deep are tones the design uses beside their paint, and a rim
+     that is only one step down does not read as an edge at all. These two
+     are the edge, and they are paint and never type. */
+  --mint-rim:#2C7452; --pop-rim:#7A2007;
+  /* The wet highlight on a fresh throw: white, because a gloss is the light
+     and not the paint. Under the multiply that mixes the throw into the
+     stroke it disappears, which is what happens to a highlight when more
+     paint goes over it. */
+  --gloss:rgba(255,255,255,.55); --gloss-0:rgba(255,255,255,0);
+  --pop-wet:rgba(255,170,146,.72); --pop-wet-0:rgba(255,170,146,0);
+  --mix:#714A21;
   --line:rgba(244,243,239,.10); --line-2:rgba(244,243,239,.20);
   --mint-glow:rgba(113,238,184,.14); --shade:rgba(10,10,11,.72);
   /* The ambient breath, and the two stops that make it soft. The core is
@@ -961,61 +994,143 @@ html.motion .pcard-wet{
    click. The layer is pointer-events:none and aria-hidden, so nothing here
    is ever in the way of the page or of a screen reader.
 
-   Mint and nothing else. No sound, no counter, no label.
+   Two paints, and they mix. Round three (owner, 2026-09-19): the blob
+   alternates his mint and the coral, the stroke behind it always carries
+   the other one — as its body, and as lap marks of the first bleeding back
+   into it — and the blob multiplies into the stroke where they overlap, so
+   the overlap is --mix and not one shape lying on another. No sound, no
+   counter, no label.
    ===================================================================== */
 html.motion .splat-layer{
   position:fixed;inset:0;z-index:2000;pointer-events:none;overflow:hidden;
+  /* The layer is its own compositing group, and it has to be said out
+     loud: the splat multiplies into the stroke under it, and a blend that
+     reached past this layer would multiply the page itself. z-index 2000
+     on a fixed box already makes a stacking context; isolation says why. */
+  isolation:isolate;
 }
 html.motion .splat-layer svg{position:absolute;left:0;top:0}
-html.motion .sp-ink{fill:var(--mint)}
+/* The two paints, and the only place either of them is chosen. Every fill
+   below is --pnt, --pnt-deep or --pnt-wet, and these two classes are what
+   they resolve to: site.js puts .sp-a or .sp-b on the <svg> and nothing
+   else in this block knows which paint is in the brush. The stroke always
+   carries the other one from the splat it follows, so the frame the
+   visitor sees has both. */
+html.motion .sp-a{--pnt:var(--mint);--pnt-mid:var(--mint-mid);--pnt-deep:var(--mint-deep);--pnt-rim:var(--mint-rim);
+  --pnt-wet:var(--mint-wet);--pnt-wet-0:var(--mint-wet-0);
+  --oth:var(--pop);--oth-0:var(--pop-wet-0)}
+html.motion .sp-b{--pnt:var(--pop);--pnt-mid:var(--pop-mid);--pnt-deep:var(--pop-deep);--pnt-rim:var(--pop-rim);
+  --pnt-wet:var(--pop-wet);--pnt-wet-0:var(--pop-wet-0);
+  --oth:var(--mint);--oth-0:var(--glow-0)}
+html.motion .sp-ink{fill:var(--pnt)}
+html.motion .sp-rimc{flood-color:var(--pnt-rim)}
+html.motion .sp-gloss-a{stop-color:var(--gloss)}
+html.motion .sp-gloss-b{stop-color:var(--gloss-0)}
 
 /* The burst. The whole group is placed, turned and scaled in one transform,
    so there is one animated property and the origin is the top-left of the
    viewBox — unambiguous, unlike a transform-origin inside a translated <g>.
    --sx/--sy are the click point, --sr the variant's turn, --s0/--s1 the
-   scale it pops between (0.7-based on a phone). */
+   scale it pops between (0.667-based on a phone, which is the 1.4x the
+   round-three note asks for against the desktop 2.1x).
+
+   Round three: 260ms, not 120. "Increase time on transitions so he can
+   actually enjoy it" — and the filters below are the reason the transform
+   sits on this element and the art sits on the one inside it. A filtered
+   element whose own transform animates is re-filtered every frame; a
+   filtered child of an animating parent can be rasterised once and moved,
+   which is what will-change asks the compositor for here. */
 html.motion .sp-pop{
-  transform-box:view-box;transform-origin:0 0;
+  transform-box:view-box;transform-origin:0 0;will-change:transform;
   transform:translate(var(--sx),var(--sy)) rotate(var(--sr)) scale(var(--s0));
-  animation:oaSplatPop .12s cubic-bezier(.34,1.56,.64,1) both;
+  animation:oaSplatPop .26s cubic-bezier(.34,1.42,.64,1) both;
 }
 @keyframes oaSplatPop{
-  from{transform:translate(var(--sx),var(--sy)) rotate(var(--sr)) scale(var(--s0));opacity:.45}
+  from{transform:translate(var(--sx),var(--sy)) rotate(var(--sr)) scale(var(--s0));opacity:.4}
   to{transform:translate(var(--sx),var(--sy)) rotate(var(--sr)) scale(var(--s1));opacity:1}
 }
-/* The two drips run out of the blob rather than arriving with it: the dash
-   is the whole path length, offset by it, wound back to nothing in 300ms. */
-html.motion .sp-drip{
-  fill:none;stroke:var(--mint);stroke-linecap:round;
-  stroke-dasharray:var(--dl);stroke-dashoffset:var(--dl);
-  animation:oaSplatDrip .3s var(--ease-roll) both;
-}
-@keyframes oaSplatDrip{to{stroke-dashoffset:0}}
+/* The splat sits over the stroke and multiplies into it: paint on paint,
+   not two flat shapes stacked. Where there is no stroke under it yet the
+   backdrop is transparent and a multiply against nothing is the source
+   colour, so the blob is its own paint until the roller reaches it. */
+html.motion .sp-splat{z-index:2;mix-blend-mode:multiply}
+html.motion .sp-stroke{z-index:1}
 
-/* The stroke. A roller pass across the whole viewport, from the side the
+/* The bleed: a blurred copy of the whole throw under its own edge, at a
+   quarter. It is the halo of thinner paint a wet edge leaves in the wall,
+   and it is what stops the blob reading as a vector shape cut out with
+   scissors. */
+html.motion .sp-halo{opacity:.25}
+/* The grain: fractal noise through luminanceToAlpha, kept inside the
+   paint's own alpha, at a tenth and a bit. Tooth, not texture. */
+html.motion .sp-grain{opacity:.22}
+/* The gloss, along the top-left of the body, where a wet throw catches the
+   light. It is a gradient of the pale paint, not a blur of white. */
+html.motion .sp-gloss{opacity:.72}
+
+/* The runs. Round three draws them as filled, tapered paths that thin as
+   they fall and bead at the end, rather than as a stroked line of one
+   width — a run of paint has a shoulder and a tip. They are revealed by an
+   inset clip travelling down the path's own bounding box, and the bead
+   arrives once the run has reached it. */
+html.motion .sp-drip{
+  fill:var(--pnt);clip-path:inset(0 0 100% 0);
+  animation:oaSplatDrip .42s var(--ease-roll) both;
+}
+@keyframes oaSplatDrip{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 -4% 0)}}
+html.motion .sp-bead{
+  fill:var(--pnt);transform-box:fill-box;transform-origin:50% 50%;
+  animation:oaSplatBead .2s cubic-bezier(.34,1.5,.64,1) .36s both;
+}
+@keyframes oaSplatBead{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* The stroke. A brush pass across the whole viewport, from the side the
    link was on — and, from the phone menu, down it: site.js builds that one
    in a box laid on its side and stands it up with a rotate on .sp-mirror, so
-   the body, the bristles and the animation below are the same for both.
-   The only thing that moves is one translateX in the group's frame — the body
-   is a plain rect with a vertical lap-mark gradient and carries no filter at
-   all, because a filter on a full-viewport rect is a full-viewport repaint
-   every frame. The displacement is spent where it shows: on the bristle
-   fingers at the leading edge and the drops flung off them.
-   will-change is set only while the pass is running. */
+   the body, the laps, the bristles and the animation below are the same for
+   both. The only thing that moves is one translateX in the group's frame.
+
+   The body is a plain rect with a vertical lap-mark gradient and carries no
+   filter at all, because a filter on a full-viewport rect is a
+   full-viewport repaint every frame. The displacement is spent where it
+   shows: on the dry-brush streaks and the bristle fingers near the leading
+   edge, and on the drops flung off them. will-change is set only while the
+   pass is running. */
 html.motion .sp-body{fill:url(#oaLap)}
-html.motion .sp-lap-a{stop-color:var(--mint)}
-html.motion .sp-lap-b{stop-color:var(--mint-mid)}
-html.motion .sp-lap-c{stop-color:var(--mint-deep)}
-html.motion .sp-t0{fill:var(--mint)}
-html.motion .sp-t1{fill:var(--mint-mid)}
-html.motion .sp-t2{fill:var(--mint-deep)}
+html.motion .sp-lap-a{stop-color:var(--pnt)}
+html.motion .sp-lap-b{stop-color:var(--pnt-mid)}
+html.motion .sp-lap-c{stop-color:var(--pnt-deep)}
+/* The other paint, carried across in the same pass as lap marks. Two
+   copies of one gradient: the first laid on normally, so the coral (or the
+   mint) reads as itself at the soft edges of the band, and the second
+   multiplied, so the core of the band is the two paints mixed rather than
+   one paint lying on the other. That is the whole of "bleeding into the
+   body" — a lap mark where the roller reloaded with the wrong tin. */
+html.motion .sp-lapo-a{stop-color:var(--oth)}
+html.motion .sp-lapo-0{stop-color:var(--oth-0)}
+html.motion .sp-lapo{fill:url(#oaLapO);opacity:.34}
+html.motion .sp-lapo-mix{fill:url(#oaLapO);opacity:.62;mix-blend-mode:multiply}
+/* Dry brush: the streaks the nap leaves behind the leading edge once the
+   load starts to go. Deep paint and pale paint, both at low alpha, so the
+   body is broken up without a hole in it — a hole would be the page
+   showing through a transition whose whole job is to cover it. */
+html.motion .sp-dry0{fill:var(--pnt-deep);opacity:.30}
+html.motion .sp-dry1{fill:var(--pnt-wet);opacity:.26}
+/* The wet edge: the pale, bleeding line right behind the bristles, blurred
+   and then pushed about by the same turbulence the bristles get. Crossing
+   the splat it is what makes the overlap read as wet rather than as two
+   shapes meeting. */
+html.motion .sp-wet{fill:var(--pnt-wet);opacity:.55}
+html.motion .sp-t0{fill:var(--pnt)}
+html.motion .sp-t1{fill:var(--pnt-mid)}
+html.motion .sp-t2{fill:var(--pnt-deep)}
 html.motion .sp-sweep{
   transform-box:view-box;transform-origin:0 0;
   transform:translateX(var(--tx0));
 }
 html.motion .sp-stroke.go .sp-sweep{
   will-change:transform;
-  animation:oaSplatSweep .42s cubic-bezier(.55,.06,.68,.19) both;
+  animation:oaSplatSweep .9s cubic-bezier(.42,.02,.48,.98) both;
 }
 @keyframes oaSplatSweep{
   from{transform:translateX(var(--tx0))}

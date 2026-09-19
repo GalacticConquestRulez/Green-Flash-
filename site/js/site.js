@@ -1458,13 +1458,18 @@
   if (reduced) return;
 
   const NS = 'http://www.w3.org/2000/svg';
-  const POP = 120;                       // the blob lands, then the brush comes
-  const SWEEP = 420;                     // and covers the screen
-  const GO = POP + SWEEP + 15;           // 555ms, click to location.assign
-  const GO_S = SWEEP + 40;               // 460ms when there is no blob to wait for
-  const CLEAR = 1500;                    // never leave the page painted over
+  /* Round three (owner, 2026-09-19): "increase time on transitions so he can
+     actually enjoy it". The sweep is a beat, not a flash. Never faster than
+     these again — the numbers are written down in CLAUDE.md too, and these
+     are the ones it names. */
+  const POP = 260;                       // the blob lands, then the brush comes
+  const SWEEP = 900;                     // and covers the screen
+  const GO = POP + SWEEP + 140;          // 1300ms, click to location.assign
+  const GO_S = SWEEP + 100;              // 1000ms when there is no blob to wait for
+  const CLEAR = 2600;                    // never leave the page painted over
   const SEEDS = [11, 5, 23];             // three turbulence seeds ...
   const TURNS = [0, 40, -70];            // ... and three turns to go with them
+  const PHONE = 0.667;                   // 1.4x round two where the desktop is 2.1x
   const LEAD = 270;                      // how far the flung drops run ahead
   const TAIL = 340;                      // slack behind, so no far edge shows
 
@@ -1475,36 +1480,71 @@
   };
 
   /* The blob, in the coordinates the mock was drawn in: the click point is
-     the origin, so the whole thing is placed by one translate. */
+     the origin, so the whole thing is placed by one translate.
+
+     Round three is 2.1x round two — the body was rx 72 and is rx 151 — and
+     it owns about a third of a 1440 screen before the stroke comes. Eleven
+     satellites rather than six, and they are thrown further, because a
+     splat that is only bigger is a bigger clip-art blob; a splat that is
+     bigger and scattered is paint that hit a wall. The rim filter erodes
+     each shape's own alpha, so every satellite gets its own darker edge
+     without any of them being drawn twice. */
   const BLOB = [
-    ['ellipse', { cx: 0, cy: 0, rx: 72, ry: 58, transform: 'rotate(-18)' }],
-    ['ellipse', { cx: 95, cy: -30, rx: 24, ry: 18, transform: 'rotate(20 95 -30)' }],
-    ['ellipse', { cx: -88, cy: 24, rx: 20, ry: 14 }],
-    ['ellipse', { cx: 40, cy: 78, rx: 16, ry: 22 }],
-    ['ellipse', { cx: -50, cy: -70, rx: 14, ry: 12 }],
-    ['circle', { cx: 130, cy: 30, r: 6 }],
-    ['circle', { cx: -120, cy: -30, r: 5 }],
-    ['circle', { cx: 70, cy: -90, r: 8 }],
-    ['circle', { cx: 150, cy: -70, r: 4 }],
-    ['circle', { cx: -30, cy: 110, r: 7 }],
-    ['circle', { cx: -140, cy: 60, r: 5 }],
-  ];
-  // d, stroke width, path length (the dash is wound back over this).
-  const DRIPS = [
-    ['M-8 50 q4 60 0 120', 9, 122],
-    ['M42 96 q3 40 -2 70', 6, 71],
+    ['ellipse', { cx: 0, cy: 0, rx: 151, ry: 122, transform: 'rotate(-18)' }],
+    ['ellipse', { cx: 172, cy: -58, rx: 50, ry: 37, transform: 'rotate(20 172 -58)' }],
+    ['ellipse', { cx: -160, cy: 46, rx: 42, ry: 29 }],
+    ['ellipse', { cx: 74, cy: 152, rx: 33, ry: 45 }],
+    ['ellipse', { cx: -92, cy: -140, rx: 29, ry: 25 }],
+    ['ellipse', { cx: 206, cy: 96, rx: 22, ry: 15, transform: 'rotate(-28 206 96)' }],
+    ['circle', { cx: 232, cy: 58, r: 12 }],
+    ['circle', { cx: -216, cy: -56, r: 10 }],
+    ['circle', { cx: 128, cy: -176, r: 16 }],
+    ['circle', { cx: 234, cy: -140, r: 8 }],
+    ['circle', { cx: -56, cy: 210, r: 14 }],
+    ['circle', { cx: -210, cy: 118, r: 10 }],
   ];
 
-  /* The roller's lap marks: [% of the stroke's height, which mint]. a is the
-     mint itself, b one step down; each band is a narrow line with a 1%
+  /* The runs. Round two drew these as a stroked line of one width, which is
+     a line and not a run: paint leaving a blob has a shoulder where it
+     tears away, thins as it falls, and gathers into a bead at the tip that
+     is wider than the run above it. So each is a filled, tapered path plus
+     the bead, and the reveal is an inset clip travelling down it rather
+     than a dash wound back — a taper has no dash to wind.
+     [x, y, length, shoulder half-width, tip half-width, sideways wander].
+     Four of them, 68 to 132px, which is the 60-140 the note asks for. */
+  const DRIPS = [
+    [-18, 96, 132, 11, 3.4, 9],
+    [64, 126, 96, 8.5, 2.8, -7],
+    [-118, 52, 68, 6.5, 2.4, 5],
+    [124, 84, 112, 7.5, 3, -11],
+  ];
+  const dripPath = (x, y, len, w0, w1, wob) => {
+    const xe = x + wob, y1 = y + len, m = y + len * 0.46, n = y + len * 0.74;
+    return 'M' + (x - w0) + ' ' + y +
+      'C' + (x - w0 + wob * 0.35) + ' ' + m + ' ' + (xe - w1) + ' ' + n + ' ' + (xe - w1) + ' ' + y1 +
+      'A' + w1 + ' ' + w1 + ' 0 0 0 ' + (xe + w1) + ' ' + y1 +
+      'C' + (xe + w1) + ' ' + n + ' ' + (x + w0 + wob * 0.35) + ' ' + m + ' ' + (x + w0) + ' ' + y + 'Z';
+  };
+
+  /* The roller's lap marks: [% of the stroke's height, which tone]. a is the
+     paint itself, b one step down; each band is a narrow line with a 1%
      feather either side. Four faint lines is what a roller leaves when the
      nap reloads -- the first cut had them as 6% opaque stripes and read as
-     a flag, not a roller. c (--mint-deep) stays available but unused. */
+     a flag, not a roller. c (the deep tone) stays available but unused. */
   const LAP = [
     [0, 'a'], [9, 'a'], [10, 'b'], [12, 'b'], [13, 'a'],
     [32, 'a'], [33, 'b'], [35, 'b'], [36, 'a'],
     [63, 'a'], [64, 'b'], [66, 'b'], [67, 'a'],
     [89, 'a'], [90, 'b'], [92, 'b'], [93, 'a'], [100, 'a'],
+  ];
+  /* And the other paint, carried across in the same pass: three wide, soft
+     bands of the colour the splat is not, laid where the roller would have
+     been reloaded out of the wrong tin. 0 is that colour at nothing, so the
+     band fades into the body rather than ending on a line. */
+  const LAPO = [
+    [0, '0'], [18, '0'], [23, 'a'], [28, '0'],
+    [46, '0'], [51, 'a'], [56, '0'],
+    [75, '0'], [80, 'a'], [85, '0'], [100, '0'],
   ];
   // Thrown off the bristles, ahead of the edge. x is past the longest finger.
   const FLUNG = [
@@ -1521,6 +1561,7 @@
   const rng = window.oagKit.rng;
 
   let layer = null, shot = 0, killer = 0, running = false;
+  let pass = 0;             // which paint is in the tin this time
   let brush = null, brushW = 0, brushH = 0, brushV = false;
   let pt = null;            // where the last plain click on a submit button fell
   let replay = false;       // the form's own submit, let back through
@@ -1542,45 +1583,133 @@
     if (layer) layer.textContent = '';   // the brush stays cached, detached
   };
 
-  function splat(x, y, v) {
-    const W = innerWidth, H = innerHeight;
-    const s = W < 640 ? 0.7 : 1;         // a phone gets a smaller throw
-    const id = 'oaSplatF' + (++shot);
+  const tone = (c) => 'sp-' + (c ? 'b' : 'a');
 
-    const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, class: 'sp-splat' });
-    const f = el('filter', { id, x: '-30%', y: '-30%', width: '160%', height: '160%' });
+  /* --- the throw ------------------------------------------------------
+     Five layers and no flat fill anywhere in them, which is the whole of
+     "painterly, not clip-art":
+
+       the bleed    a blurred copy of the throw under its own edge, at a
+                    quarter — the halo of thinner paint round a wet edge;
+       the body     the shapes, through a rim filter: the alpha eroded by
+                    11px and composited out of itself is a ring, flooded
+                    with the deep tone and merged back under the paint, so
+                    every satellite has its own darker edge;
+       the runs     tapered, beaded, revealed by a travelling clip;
+       the gloss    a radial of the pale paint along the top-left, where a
+                    wet throw catches the light;
+       the grain    fractal noise through luminanceToAlpha kept inside the
+                    paint's own alpha — tooth, at a fifth.
+
+     All five sit inside one turbulence displacement, so the outline is the
+     same broken edge it always was, and the whole of that sits inside the
+     group the pop animates: a filtered element whose own transform
+     animates is re-filtered every frame, and a filtered child of an
+     animating parent is rasterised once and moved. `c` is which paint. */
+  function splat(x, y, v, c) {
+    const W = innerWidth, H = innerHeight;
+    const s = W < 640 ? PHONE : 1;       // a phone gets a smaller throw
+    const k = ++shot;
+    const fid = 'oaSpF' + k, hid = 'oaSpH' + k, rid = 'oaSpR' + k,
+          gid = 'oaSpG' + k, lid = 'oaSpL' + k;
+
+    const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`,
+                            class: 'sp-splat ' + tone(c) });
+    const defs = el('defs', {});
+
+    const f = el('filter', { id: fid, x: '-25%', y: '-25%', width: '150%', height: '150%' });
     f.appendChild(el('feTurbulence', {
-      type: 'fractalNoise', baseFrequency: '0.035', numOctaves: '3',
+      type: 'fractalNoise', baseFrequency: '0.014', numOctaves: '3',
       seed: SEEDS[v], result: 'n',
     }));
     f.appendChild(el('feDisplacementMap', {
-      in: 'SourceGraphic', in2: 'n', scale: '26',
+      in: 'SourceGraphic', in2: 'n', scale: '34',
       xChannelSelector: 'R', yChannelSelector: 'G',
     }));
-    const defs = el('defs', {});
     defs.appendChild(f);
+
+    const hf = el('filter', { id: hid, x: '-30%', y: '-30%', width: '160%', height: '160%' });
+    hf.appendChild(el('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '13' }));
+    defs.appendChild(hf);
+
+    const rf = el('filter', { id: rid, x: '-10%', y: '-10%', width: '120%', height: '120%' });
+    rf.appendChild(el('feMorphology', { in: 'SourceAlpha', operator: 'erode', radius: '11', result: 'er' }));
+    rf.appendChild(el('feComposite', { in: 'SourceAlpha', in2: 'er', operator: 'out', result: 'ring' }));
+    rf.appendChild(el('feFlood', { class: 'sp-rimc', result: 'rc' }));
+    rf.appendChild(el('feComposite', { in: 'rc', in2: 'ring', operator: 'in', result: 'rim' }));
+    const mg = el('feMerge', {});
+    mg.appendChild(el('feMergeNode', { in: 'SourceGraphic' }));
+    mg.appendChild(el('feMergeNode', { in: 'rim' }));
+    rf.appendChild(mg);
+    defs.appendChild(rf);
+
+    const gf = el('filter', { id: gid, x: '-2%', y: '-2%', width: '104%', height: '104%' });
+    gf.appendChild(el('feTurbulence', {
+      type: 'fractalNoise', baseFrequency: '0.55', numOctaves: '2',
+      seed: SEEDS[v] + 3, result: 't',
+    }));
+    gf.appendChild(el('feColorMatrix', { in: 't', type: 'luminanceToAlpha', result: 'a' }));
+    gf.appendChild(el('feComposite', { in: 'a', in2: 'SourceAlpha', operator: 'in' }));
+    defs.appendChild(gf);
+
+    const lg = el('radialGradient', { id: lid, cx: '0.34', cy: '0.26', r: '0.66' });
+    lg.appendChild(el('stop', { offset: '0%', class: 'sp-gloss-a' }));
+    lg.appendChild(el('stop', { offset: '100%', class: 'sp-gloss-b' }));
+    defs.appendChild(lg);
     svg.appendChild(defs);
 
-    const g = el('g', { class: 'sp-pop', filter: `url(#${id})` });
-    g.setAttribute('style',
+    const shapes = () => BLOB.map(([n, a]) => el(n, Object.assign({ class: 'sp-ink' }, a)));
+
+    const pop = el('g', { class: 'sp-pop' });
+    pop.setAttribute('style',
       `--sx:${x.toFixed(1)}px;--sy:${y.toFixed(1)}px;--sr:${TURNS[v]}deg;` +
       `--s0:${(s * 0.3).toFixed(3)};--s1:${s}`);
-    BLOB.forEach(([n, a]) => g.appendChild(el(n, Object.assign({ class: 'sp-ink' }, a))));
-    DRIPS.forEach(([d, w, len]) => {
-      const p = el('path', { class: 'sp-drip', d, 'stroke-width': w });
-      p.style.setProperty('--dl', len);
-      g.appendChild(p);
+    const art = el('g', { class: 'sp-art', filter: `url(#${fid})` });
+
+    const halo = el('g', { class: 'sp-halo', filter: `url(#${hid})` });
+    shapes().forEach(e => halo.appendChild(e));
+    art.appendChild(halo);
+
+    const body = el('g', { class: 'sp-blob', filter: `url(#${rid})` });
+    shapes().forEach(e => body.appendChild(e));
+    art.appendChild(body);
+
+    /* The runs hang outside the rim filter on purpose: their clip travels
+       for 420ms, and a morphology that had to be recomputed on every one
+       of those frames would be the one expensive thing on the page. */
+    const runs = el('g', { class: 'sp-runs' });
+    DRIPS.forEach(([dx, dy, len, w0, w1, wob]) => {
+      runs.appendChild(el('path', { class: 'sp-drip', d: dripPath(dx, dy, len, w0, w1, wob) }));
+      runs.appendChild(el('circle', {
+        class: 'sp-bead', cx: (dx + wob).toFixed(1),
+        cy: (dy + len + w1 * 0.55).toFixed(1), r: (w1 * 1.5).toFixed(1),
+      }));
     });
-    svg.appendChild(g);
+    art.appendChild(runs);
+
+    const gloss = el('g', { class: 'sp-gloss' });
+    gloss.appendChild(el('ellipse', {
+      cx: -30, cy: -36, rx: 108, ry: 76,
+      transform: 'rotate(-24 -30 -36)', fill: `url(#${lid})`,
+    }));
+    art.appendChild(gloss);
+
+    const grain = el('g', { class: 'sp-grain', filter: `url(#${gid})` });
+    shapes().forEach(e => grain.appendChild(e));
+    art.appendChild(grain);
+
+    pop.appendChild(art);
+    svg.appendChild(pop);
     deck().appendChild(svg);
     return svg;
   }
 
   /* --- the brush ------------------------------------------------------ */
-  /* Built once and kept, because the fingers are ~150 rects and nothing
+  /* Built once and kept, because the fingers are ~200 rects and nothing
      about them depends on the click: only the direction does, and that is
-     one attribute on the wrapper. Rebuilt when the viewport changes size,
-     or when the pass turns from horizontal to vertical.
+     one attribute on the wrapper, and the paint, which is one class on the
+     <svg>. Rebuilt when the viewport changes size, or when the pass turns
+     from horizontal to vertical.
 
      The vertical pass is the same brush, built in a box laid on its side —
      it travels `run` and is `across` wide either way — and stood up by the
@@ -1595,6 +1724,10 @@
     const lap = el('linearGradient', { id: 'oaLap', x1: 0, y1: 0, x2: 0, y2: 1 });
     LAP.forEach(([o, k]) => lap.appendChild(el('stop', { offset: o + '%', class: 'sp-lap-' + k })));
     defs.appendChild(lap);
+    const lapo = el('linearGradient', { id: 'oaLapO', x1: 0, y1: 0, x2: 0, y2: 1 });
+    LAPO.forEach(([o, k]) => lapo.appendChild(el('stop', { offset: o + '%', class: 'sp-lapo-' + k })));
+    defs.appendChild(lapo);
+
     const bf = el('filter', { id: 'oaBristle', x: '-20%', y: '-6%', width: '150%', height: '112%' });
     bf.appendChild(el('feTurbulence', {
       type: 'fractalNoise', baseFrequency: '0.02 0.4', numOctaves: 2, seed: 7, result: 'n',
@@ -1603,6 +1736,19 @@
       in: 'SourceGraphic', in2: 'n', scale: 10, xChannelSelector: 'R', yChannelSelector: 'G',
     }));
     defs.appendChild(bf);
+
+    /* The wet edge: blurred first, then pushed about by its own turbulence,
+       which is what makes the boundary bleed rather than fade. It is the
+       one blur in this block and it is spent on 50px of the leading edge. */
+    const wf = el('filter', { id: 'oaWetEdge', x: '-60%', y: '-8%', width: '220%', height: '116%' });
+    wf.appendChild(el('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '8 4', result: 'b' }));
+    wf.appendChild(el('feTurbulence', {
+      type: 'fractalNoise', baseFrequency: '0.03 0.32', numOctaves: 2, seed: 19, result: 'n',
+    }));
+    wf.appendChild(el('feDisplacementMap', {
+      in: 'b', in2: 'n', scale: 20, xChannelSelector: 'R', yChannelSelector: 'G',
+    }));
+    defs.appendChild(wf);
     svg.appendChild(defs);
 
     const mirror = el('g', { class: 'sp-mirror' });
@@ -1613,6 +1759,36 @@
     sweep.appendChild(el('rect', {
       class: 'sp-body', x: -(run + TAIL), y: -2, width: run + TAIL, height: across + 4,
     }));
+    // The other paint's lap marks, twice over the same bands: once laid on
+    // so the colour reads as itself, once multiplied so the core of the
+    // band is the two paints mixed. Both are rects, both carry the gradient.
+    ['sp-lapo', 'sp-lapo-mix'].forEach((cls) => sweep.appendChild(el('rect', {
+      class: cls, x: -(run + TAIL), y: -2, width: run + TAIL, height: across + 4,
+    })));
+
+    /* Dry brush: the streaks the nap leaves behind the leading edge once
+       the load starts to go — deep paint and pale paint, low alpha, never
+       a hole, because a hole is the page showing through a transition
+       whose whole job is to cover it. Same seeded generator, same file. */
+    const drys = el('g', { class: 'sp-drys', filter: 'url(#oaBristle)' });
+    const r2 = rng(0x0DB1);
+    for (let i = 0; i < 54; i++) {
+      const hh = 2 + r2() * 6;
+      const ww = 40 + r2() * run * 0.3;
+      const yy = -10 + r2() * (across + 20);
+      const xx = -(12 + r2() * run * 0.46) - ww;
+      drys.appendChild(el('rect', {
+        class: 'sp-dry' + (i % 2), x: xx.toFixed(1), y: yy.toFixed(1),
+        width: ww.toFixed(1), height: hh.toFixed(1), rx: (hh / 2).toFixed(2),
+      }));
+    }
+    sweep.appendChild(drys);
+
+    const wetg = el('g', { class: 'sp-wetg', filter: 'url(#oaWetEdge)' });
+    wetg.appendChild(el('rect', {
+      class: 'sp-wet', x: -52, y: -4, width: 58, height: across + 8,
+    }));
+    sweep.appendChild(wetg);
 
     // The leading edge: rounded bristle fingers, each overlapping the one
     // above it by 55-90% of its height, all the way down. Three tones.
@@ -1637,12 +1813,13 @@
     return svg;
   }
 
-  function paint(side, W, H) {
+  function paint(side, W, H, c) {
     const vert = side === 'top';
     if (!brush || brushW !== W || brushH !== H || brushV !== vert) {
       brush = build(W, H, vert); brushW = W; brushH = H; brushV = vert;
     }
     brush.classList.remove('go');
+    brush.setAttribute('class', 'sp-stroke ' + tone(c));
     const mirror = brush.querySelector('.sp-mirror');
     // Down the screen: the side-on brush turned a quarter and slid over, so
     // its own +x runs down the page and its width covers the page's.
@@ -1725,8 +1902,14 @@
     if (running) { e.preventDefault(); return; }
     clear();
 
+    /* Which paint. One counter for the whole site, so the clicks
+       alternate his mint and the coral however the visitor moves about the
+       page, and the stroke always carries the other one from the blob it
+       follows: the frame the visitor sees has both paints in it and a mix
+       where they overlap. A pass with no blob just takes its turn. */
     const hit = kind === 'btn';
-    if (hit) splat(x, y, shot % SEEDS.length);
+    const c = pass++ % 2;
+    if (hit) splat(x, y, shot % SEEDS.length, c);
 
     // A jump to an anchor on this page paints nothing over it: there is no
     // page coming to hide behind the stroke. The splat, and the link works.
@@ -1737,7 +1920,7 @@
 
     e.preventDefault();
     running = true;
-    const st = paint(side, W, H);
+    const st = paint(side, W, H, hit ? 1 - c : c);
     // The blob goes first when there is one; otherwise the roller starts on
     // the next frame, which is the only rAF in this block.
     if (hit) setTimeout(() => st.classList.add('go'), POP);
@@ -1770,9 +1953,10 @@
     e.preventDefault();
     e.stopPropagation();                 // the form's own listener, in a moment
     clear();
-    splat(x, y, shot % SEEDS.length);
+    const c = pass++ % 2;
+    splat(x, y, shot % SEEDS.length, c);
     running = true;
-    const st = paint(sideOf(x, W), W, H);
+    const st = paint(sideOf(x, W), W, H, 1 - c);
     setTimeout(() => st.classList.add('go'), POP);
     setTimeout(() => {
       replay = true;
