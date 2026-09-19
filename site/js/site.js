@@ -51,7 +51,7 @@
 })();
 
 /* =====================================================================
-   The motion layer — Roll · Scale · Cure.
+   The motion layer — Roll · Scale · Cure · Live.
 
    One IntersectionObserver, one class. Nothing in here is load-bearing:
    without it html.motion is absent, nothing is hidden, and the page is the
@@ -76,22 +76,101 @@
     v.play().catch(() => {});
   });
 
+  /* --- Live: the figures as mechanical counters ----------------------
+     Owner: "Try to animate the numbers on his site ... I'd like him to see
+     motion as he scrolls up and down from them."
+
+     Every figure on the site — the stats band and every .dims — is real
+     text in the server HTML and stays real text: this walks the text nodes
+     that carry digits and lays a column of 0-9 over each digit, keeping the
+     original characters in place underneath as the thing that sizes the
+     box. Nothing moves the mint prime marks or the times sign; they are
+     their own spans and are never touched.
+
+     The box is the ghost's box, so there is no layout shift whatever the
+     column does: the columns are absolutely positioned over it, each one a
+     grid of ten cells exactly one window tall, and the roll is one
+     translateY of a whole number of windows. Speed scales with the figure
+     (five digits ~1.1s, one digit ~.4s) and the digits start right to left,
+     the way a counter's wheels turn.                                      */
+  const STAG = 0.04;                 // between one wheel and the next
+  const rollUp = (host) => {
+    [...host.childNodes].forEach(node => {
+      if (node.nodeType !== 3 || !/[0-9]/.test(node.nodeValue)) return;
+      const text = node.nodeValue;
+      let n = 0;
+      for (const ch of text) if (ch >= '0' && ch <= '9') n++;
+      const span = (cls) => {
+        const s = document.createElement('span');
+        s.className = cls;
+        return s;
+      };
+
+      const wrap = span('roll');
+      wrap.setAttribute('data-live', '');
+      const ghost = span('roll-g');
+      ghost.textContent = text;      // the real figure, and the real box
+      const cols = span('roll-w');
+      cols.setAttribute('aria-hidden', 'true');
+
+      // The whole roll lands in `all`, and the wheel on the right sets off
+      // first, so each wheel's own turn is shortened by the stagger ahead
+      // of it rather than the figure taking longer the wider it is.
+      const all = Math.min(1.2, 0.4 + 0.175 * (n - 1));
+      const each = Math.max(0.28, all - STAG * (n - 1));
+      let right = n;                 // wheels still to this one's right
+      for (const ch of text) {
+        if (ch < '0' || ch > '9') { const s = span('roll-x'); s.textContent = ch; cols.appendChild(s); continue; }
+        right--;
+        const win = span('roll-d'), col = span('roll-c');
+        col.setAttribute('style',
+          `--v:${ch};--rt:${each.toFixed(3)}s;--rd:${(right * STAG).toFixed(3)}s`);
+        for (let d = 0; d < 10; d++) {
+          const cell = document.createElement('span');
+          cell.textContent = String(d);
+          col.appendChild(cell);
+        }
+        win.appendChild(col);
+        cols.appendChild(win);
+      }
+      wrap.appendChild(ghost);
+      wrap.appendChild(cols);
+      node.parentNode.replaceChild(wrap, node);
+    });
+  };
+  document.querySelectorAll('.stat-n,.dims .n').forEach(rollUp);
+
   const targets = [...document.querySelectorAll('.rv,.dims')];
-  if (!targets.length) return;
+  const live = [...document.querySelectorAll('[data-live]')];
+  if (!targets.length && !live.length) return;
 
   // No observer means no way to unhide: show everything now rather than
-  // making the visitor wait for the 2.8s self-reveal.
+  // making the visitor wait for the 2.8s self-reveal. A live element with
+  // no observer is simply at its value, which is what the page says.
   if (!('IntersectionObserver' in window)) {
-    targets.forEach(el => el.classList.add('in'));
+    targets.concat(live).forEach(el => el.classList.add('in'));
     return;
   }
 
+  /* One observer, two contracts. A .rv or a .dims is revealed once and let
+     go — Roll and Cure do not repeat. An element marked data-live is never
+     unobserved: it takes .in on the way in and loses it on the way out,
+     every time, because the owner asked to see motion scrolling up as well
+     as down. LIVE is the share of it that has to be on screen to count; the
+     .12 below is the reveal threshold this observer has always used, kept
+     as a floor so the reveals fire exactly where they fired before. */
+  const LIVE = 0.35;
   const io = new IntersectionObserver(entries => entries.forEach(e => {
-    if (!e.isIntersecting) return;
-    e.target.classList.add('in');
-    io.unobserve(e.target);          // Cure runs once, and only once
-  }), { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
-  targets.forEach(el => io.observe(el));
+    const el = e.target;
+    if (el.hasAttribute('data-live')) {
+      el.classList.toggle('in', e.intersectionRatio >= LIVE);
+      return;
+    }
+    if (!e.isIntersecting || e.intersectionRatio < 0.12) return;
+    el.classList.add('in');
+    io.unobserve(el);                // Cure runs once, and only once
+  }), { threshold: [0.12, LIVE], rootMargin: '0px 0px -6% 0px' });
+  targets.concat(live).forEach(el => io.observe(el));
 })();
 
 /* =====================================================================

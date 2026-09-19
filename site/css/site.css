@@ -278,6 +278,45 @@ html.motion .dims.in::before{
   to{background-position:145% 0;opacity:0}
 }
 
+/* =====================================================================
+   LIVE — the figures roll
+
+   The sixth verb, and the first that runs both ways. The owner: "Try to
+   animate the numbers on his site ... I'd like him to see motion as he
+   scrolls up and down from them." So every figure on the site is a
+   mechanical counter: each digit a column of 0-9 that rolls up to its
+   value as the figure comes on screen and back to 0 as it leaves, every
+   time, rather than the once-and-done of Roll and Cure.
+
+   The figure in the server HTML is the figure: site.js leaves the real
+   characters in place as .roll-g and lays the columns over them, so the
+   box is the text's own box and nothing can shift. .roll-g goes
+   transparent rather than hidden — it is still the text a screen reader
+   reads and a visitor selects, and the columns over it are aria-hidden.
+
+   The geometry, once: the window is one line tall plus a sixth of an em
+   of air at each end, pulled back by an equal negative margin so the line
+   box is unchanged. Each wheel is a grid of ten cells one window high, so
+   the roll is translateY of a whole number of windows and the digit lands
+   exactly where the text's digit was — the air is what stops a tall glyph
+   being clipped at the top of its window. Nothing here exists without
+   html.motion: with no script the figure is the text and that is all.
+   ===================================================================== */
+html.motion .roll{position:relative;display:inline-block;font-variant-numeric:tabular-nums}
+html.motion .roll-g{color:transparent}
+html.motion .roll-w{position:absolute;inset:0;display:flex;align-items:stretch;overflow:hidden}
+html.motion .roll-x{flex:none;display:flex;align-items:center}
+html.motion .roll-d{flex:none;position:relative;overflow:hidden;height:calc(100% + .34em);margin:-.17em 0}
+html.motion .roll-c{
+  display:grid;grid-auto-rows:100%;height:100%;
+  transform:translateY(calc(var(--d,0) * -100%));
+  transition:transform var(--rt,.6s) cubic-bezier(.22,.78,.26,1) var(--rd,0s);
+}
+html.motion .roll-c > span{display:flex;align-items:center;justify-content:center}
+/* .in is added on the way in and taken away on the way out: one declaration
+   is the whole of both directions. */
+html.motion .roll.in .roll-c{--d:var(--v)}
+
 /* --- and the way out -------------------------------------------------- */
 /* html.motion is already withheld when the visitor asks for reduced motion.
    This is the second lock: if the class ever arrives anyway, nothing here
@@ -286,6 +325,10 @@ html.motion .dims.in::before{
   html.motion .rv,html.motion .rv.in{opacity:1;transform:none;-webkit-mask-image:none;mask-image:none;transition:none;animation:none}
   html.motion .dims{font-variation-settings:'wdth' 125,'wght' 800;transition:none;animation:none}
   html.motion .dims.in::before{content:none;animation:none}
+  /* The columns are never built under reduced motion — site.js returns
+     before it touches the DOM. If they ever are, the figure is the text. */
+  html.motion .roll-g{color:inherit}
+  html.motion .roll-w{display:none}
   html{scroll-behavior:auto}
 }
 
