@@ -415,7 +415,7 @@ def footer_html():
           <li><a {ext(IG)}>{ICONS['ig']}{IG_HANDLE}</a></li>
         </ul>
       </div>
-      <div><h4>Work</h4><ul>{work}<li><a href="{u('/work')}">All twelve walls</a></li></ul></div>
+      <div><h4>Work</h4><ul>{work}<li><a href="{u('/work')}">All the work</a></li></ul></div>
       <div><h4>Company</h4><ul>{company}</ul></div>
     </div>
     <div class="foot-bottom">
@@ -875,22 +875,21 @@ pages['/index'] = dict(
 
 <section class="alt stats-band">{glow()}<div class="wrap">
   <div class="section-head rv"><div class="eyebrow">The measure of it</div>
-  <h2>{spell(WALLS, cap=True)} walls. Over {SQ_FT // 1000:,},000 square feet.</h2>
-  <p class="lead">Added up wall by wall, the work so far comes to {SQ_FT:,} square feet of painted surface in {spell(len(CITIES))} cities. The tallest of them stands {TALLEST['dim_h']} feet in {TALLEST['city']}; the widest runs {WIDEST['dim_w']} feet.</p></div>
+  <h2>Over {SQ_FT // 1000:,},000 square feet, and counting.</h2>
+  <p class="lead">Added up wall by wall, the work shown here alone comes to {SQ_FT:,} square feet of painted surface in {spell(len(CITIES))} cities — with more walls in Mexico, Brazil and beyond. The tallest of them stands {TALLEST['dim_h']} feet in {TALLEST['city']}; the widest runs {WIDEST['dim_w']} feet.</p></div>
   <ul class="stats">
-    {stat(WALLS, 'walls painted')}
-    {stat(f'{SQ_FT:,}', 'square feet of wall')}
+    {stat(f'{SQ_FT:,}', 'square feet, and counting')}
     {stat(TALLEST['dim_h'], f'tallest wall, {TALLEST["city"]}', mark='′')}
     {stat(len(CITIES), 'cities, coast to coast')}
   </ul>
 </div></section>
 
 <section><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">Selected work</div><h2>{spell(WALLS, cap=True)} walls, measured in feet</h2>
-  <p class="lead">Six of them here, all {spell(WALLS)} on the Work page. The number over each photograph is how much wall it took.</p></div>
+  <div class="section-head rv"><div class="eyebrow">Selected work</div><h2>Walls, measured in feet</h2>
+  <p class="lead">Six of them here, more on the Work page. The number over each photograph is how much wall it took.</p></div>
   <div class="pgrid">{''.join(pcard(p, f'rv-d{i % 3}' if i % 3 else '') for i, p in enumerate(featured()))}
   </div>
-  <div class="row-end rv"><a class="btn btn-ghost" href="{u('/work')}">All {spell(WALLS)} walls {ICONS['arrow']}</a></div>
+  <div class="row-end rv"><a class="btn btn-ghost" href="{u('/work')}">See the work {ICONS['arrow']}</a></div>
 </div></section>
 
 <section class="alt pair-band">{glow()}<div class="wrap">
@@ -939,11 +938,11 @@ def work_index():
 
 pages['/work'] = dict(
   title=f'Work | {SITE_NAME}',
-  desc=f'All {spell(WALLS)} walls Open Air Gallery has painted, with what each one measured — '
+  desc=f'Walls Open Air Gallery has painted, with what each one measured — '
        f'{SQ_FT:,} square feet across {spell(len(CITIES))} cities, from Gucci in Manhattan to '
        f'John Lewis and Malcolm X in Rochester.',
   body=f'''
-{page_hero('The roster', f'{spell(WALLS, cap=True)} walls',
+{page_hero('The roster', 'The walls',
            f'Every wall Open Air Gallery has painted, with what it measured. '
            f'{SQ_FT:,} square feet in {spell(len(CITIES))} cities — brand walls, painted '
            f'portraits, and the two Rochester commissions.',
@@ -1041,7 +1040,7 @@ def project_page(p):
 </div></section>
 {cta(title='Want one this size?',
      text='Tell us the wall, the city and roughly how big it is. We will come back with a plan and a price.',
-     secondary=('All twelve walls', '/work'))}'''
+     secondary=('See the work', '/work'))}'''
 
 
 for _p in PROJECTS:
@@ -1149,10 +1148,10 @@ pages['/about'] = dict(
   <div class="section-head rv"><div class="eyebrow">Where we work</div>
   <h2>New York, and wherever the wall is</h2>
   <p class="lead">Open Air Gallery is based in New York and paints nationwide. The
-  {spell(WALLS)} walls on the Work page stand in {spell(len(CITIES))} cities, coast to
+  The walls on the Work page stand in {spell(len(CITIES))} cities, coast to
   coast — {SQ_FT:,} square feet of painted surface between them.</p></div>
   <ul class="cities">{''.join(city_tile(place, walls) for place, walls in CITY_ROWS)}</ul>
-  <div class="row-end rv"><a class="btn btn-ghost" href="{u('/work')}">See all {spell(WALLS)} walls {ICONS['arrow']}</a></div>
+  <div class="row-end rv"><a class="btn btn-ghost" href="{u('/work')}">See the work {ICONS['arrow']}</a></div>
 </div></section>
 
 {gr_strip()}
@@ -1202,19 +1201,17 @@ pages['/services'] = dict(
   <div class="section-head rv"><div class="eyebrow">Murals</div>
   <h2>A small image, exploded onto a massive canvas</h2>
   <p class="lead">Brand walls, painted portraits and civic commissions, projected and
-  painted by hand. {spell(WALLS, cap=True)} of them so far — {SQ_FT:,} square feet in
-  {spell(len(CITIES))} cities, the largest {WIDEST['dim_w']} feet across.</p></div>
+  painted by hand, in {spell(len(CITIES))} cities and counting — the largest {WIDEST['dim_w']} feet across.</p></div>
   <div class="duo wide">
     <div class="rv">
       <blockquote class="pull"><p>{PROCESS[0][1]}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
       <div class="btn-row" style="margin-top:1.8rem">
         <a class="btn btn-mint" href="{consult('Murals')}">Start a mural {ICONS['arrow']}</a>
-        <a class="btn btn-ghost" href="{u('/work')}">See all {spell(WALLS)} walls</a>
+        <a class="btn btn-ghost" href="{u('/work')}">See the work</a>
       </div>
     </div>
     <ul class="stats rv rv-d1 stats-2">
-      {stat(WALLS, 'walls painted')}
-      {stat(f'{SQ_FT:,}', 'square feet of wall')}
+      {stat(f'{SQ_FT:,}', 'square feet, and counting')}
       {stat(WIDEST['dim_w'], f'widest wall, {WIDEST["city"]}', mark=PRIME)}
       {stat(len(CITIES), 'cities, coast to coast')}
     </ul>
@@ -1546,8 +1543,8 @@ pages['/contact'] = dict(
         shortly. For graffiti removal, a picture is enough to start: send us a picture of the
         space you want cleaned and we’ll send you a no hassle quote and date of completion.</span></div></div>
       <div class="contact-card"><div class="ic">{ICONS['pin']}</div>
-        <div><b>Where we work</b><span>New York and nationwide. {spell(WALLS, cap=True)} walls
-        in {spell(len(CITIES))} cities so far, from Manhattan to Los Angeles.</span></div></div>
+        <div><b>Where we work</b><span>New York and nationwide — Manhattan to Los Angeles,
+        and walls abroad in Mexico and Brazil.</span></div></div>
     </div>
   </div>
 </div></section>
