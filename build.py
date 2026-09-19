@@ -507,10 +507,18 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
              f'</div><div class="hero-shade"></div>') if media_slug else ''
     crumbs = (f'<div class="crumbs"><a href="{u("/")}">Home</a><span>/</span><span>{crumb or title}</span></div>'
               if crumb is not False else '')
+    # Home's hero is the headline and nothing else (the mockup): the sentence
+    # that used to stand under it is the shouted lead of the band below, so
+    # the paragraph is left out rather than left empty.
+    lead_html = f'<p class="lead">{lead}</p>' if lead else ''
     assert not (wall and media_slug), 'page_hero: a wall to paint is a hero with no photograph'
     cls = (cls + ' has-tip').strip() if tip else cls
+    # A hero with a photograph is one of the three black bands — the words on
+    # it are light. A hero without one is the white page, and its words are
+    # ink. The class says which, so no rule has to guess.
+    cls = (cls + ' has-media').strip() if media_slug else cls
     return f'''<section class="page-hero{" " + cls if cls else ""}"{' data-wall' if wall else ''}>{media}
-  <div class="wrap"><div class="hero-inner">{crumbs}<div class="eyebrow">{eyebrow}</div><h1>{title}</h1><p class="lead">{lead}</p>{extra}{tip_can() if tip else ''}</div></div></section>'''
+  <div class="wrap"><div class="hero-inner">{crumbs}<div class="eyebrow">{eyebrow}</div><h1>{title}</h1>{lead_html}{extra}{tip_can() if tip else ''}</div></div></section>'''
 
 
 # The six things a visitor can ask for. The Contact form's <select> is built
@@ -537,7 +545,7 @@ def consult(service=None):
     return u(consult_path(service))
 
 
-def stroke_band(inner, uid, cls='', h=720):
+def stroke_band(inner, uid, cls='', h=720, before=''):
     """A section whose background is one swept stroke of mint (strokes.py).
 
     Owner, 2026-09-19: "Maybe make the teal a brush stroke — so it looks like
@@ -551,8 +559,12 @@ def stroke_band(inner, uid, cls='', h=720):
     preserveAspectRatio="none": a stroke over a taller section is a wider
     brush, which is the right answer. Nothing here is gated on motion — a
     painted band is not an animation, it is the page.
+
+    `before` is a slot outside the words and beside the stroke, for the one
+    thing that has to be the size of the section rather than the size of
+    the paragraph: the closing call to action's ambient glow.
     """
-    return f'''<section class="band{" " + cls if cls else ""}">
+    return f'''<section class="band{" " + cls if cls else ""}">{before}
   <div class="stroke-wrap">{stroke_svg(uid, h=h)}</div>
   <div class="wrap">{inner}</div>
 </section>'''
@@ -571,14 +583,31 @@ def highlight(text, uid):
             f'<em>{text}</em></span>')
 
 
-def cta(title='Ready when you are.',
+def cta(title="Let&rsquo;s paint it",
+        eyebrow='got a wall?',
         text='Tell us the wall, the city and roughly how big it is. We will come back with a plan and a price.',
-        primary=('Book a free consultation', '/contact'),
-        secondary=('See the work', '/work')):
-    return f'''<section class="cta-wrap">{glow()}<div class="wrap"><div class="cta rv">
-  <h2>{title}</h2><p>{text}</p>
-  <div class="btn-row"><a class="btn btn-mint" href="{u(primary[1])}">{primary[0]} {ICONS['arrow']}</a><a class="btn btn-ghost" href="{u(secondary[1])}">{secondary[0]}</a></div>
-</div></div></section>'''
+        primary=('Book a free consult', '/contact'),
+        secondary=('See the work', '/work'),
+        uid='lets-paint-it'):
+    """The last thing on every page, and the second band painted in mint.
+
+    The mockup's closing section: the marker asking "got a wall?", the
+    headline at the size of a hoarding, and a coral button on the paint. It
+    keeps the second link the live site had — a visitor who is not ready to
+    write still has somewhere to go — and it keeps the ambient glow, which
+    is one of the four places the Live verb is allowed to light (CLAUDE.md).
+    The glow is a sibling of the stroke rather than a child of the words, so
+    it is the section that breathes and not the paragraph.
+
+    The primary button is coral rather than mint for the obvious reason: a
+    mint button on a mint stroke is a button nobody can see.
+    """
+    return stroke_band(f"""<div class="cta rv">
+    <span class="eyebrow">{eyebrow}</span>
+    <h2>{title}</h2>
+    <p class="serif">{text}</p>
+    <div class="btn-row"><a class="btn btn-pop" href="{u(primary[1])}">{primary[0]} {ICONS['arrow']}</a><a class="btn btn-ghost" href="{u(secondary[1])}">{secondary[0]}</a></div>
+  </div>""", uid, cls='cta-wrap', h=640, before=glow())
 
 
 # Ephraim's own account of the work, transcribed from the About page of his
@@ -902,6 +931,51 @@ def gr_strip(text=None):
 </div></section>'''
 
 
+# The brand wall and the faces strand are the other agent's components, and
+# Home leaves the two places the mockup puts them whether they have landed or
+# not: if brands.py is in the tree they are rendered, and if it is not the
+# page is the page without them. Nothing else on Home knows the difference.
+try:
+    from brands import brand_wall, faces_strand           # noqa: F401
+except ImportError:                                       # not built yet
+    def brand_wall():
+        return ''
+
+    def faces_strand():
+        return ''
+
+
+MARQUEE = ('Always hand painted', 'Murals', 'Banners &amp; signs', 'Graffiti removal')
+
+
+def marquee(items=MARQUEE, times=3):
+    """The strip that runs between two bands (Colossal, CLAUDE.md round three).
+
+    One of the three black bands the white canvas keeps, and the only one
+    that is type and nothing else: the four things the company does, set in
+    the headline face, divided by a coral bar, running off both edges of the
+    screen because a strip that fits is a list. It does not move — the motion
+    on this site is the paint verbs, and every one of them is written down.
+    """
+    row = ''.join(f'<span>{t}</span><b aria-hidden="true">|</b>' for t in items)
+    return (f'<div class="mq" aria-label="What Open Air Gallery does">'
+            f'{row * times}</div>')
+
+
+def row(slug, alt, words, flip=False, sizes=PAIR_SIZES):
+    """A photograph down one half of the page and the words down the other.
+
+    The mockup's spine: Roots, Vision and Public works are all this, and the
+    only difference between them is which side the wall is on. `flip` puts
+    the words first, which is also the order they stack in on a phone — the
+    one place the two disagree, and the mockup's own answer.
+    """
+    media = f'<div class="rows-media">{pic(slug, alt, sizes)}</div>'
+    body = f'<div class="rows-words rv">{words}</div>'
+    inner = (body + media) if flip else (media + body)
+    return f'<section class="rows{" flip" if flip else ''}">{inner}</section>'
+
+
 # ---------------------------------------------------------------- HOME
 # Every number on this page is computed from projects.py. None of them is
 # typed: "Twelve walls. Over 23,000 square feet." is the roster adding itself
@@ -920,35 +994,79 @@ def stat(figure, label, mark=''):
             f'<span class="stat-l">{label}</span></li>')
 
 
+CITY_LIST = []
+for _p in PROJECTS:
+    if _p['city'] not in CITY_LIST:
+        CITY_LIST.append(_p['city'])
+
+
+def and_list(names):
+    """A, B and C — the roster read out loud rather than counted.
+
+    Never a count: "he has more not on there ... so don't limit" (owner,
+    2026-09-19). The names are what we have photographs of; the sentence
+    they land in is the one that says the work does not stop there.
+    """
+    return names[0] if len(names) == 1 else ', '.join(names[:-1]) + ' and ' + names[-1]
+
+
+CROWN = BY_SLUG['crown-royal-trail-blazers']
+
 pages['/index'] = dict(
   wash=True,
   title=f'{SITE_NAME} | Murals at building scale, New York and nationwide',
   desc='Open Air Gallery is a muralist and large-image company led by Ephraim. Gucci in Manhattan at 81 by 80 feet, Crown Royal in Portland at 85 by 90, John Lewis and Malcolm X in Rochester.',
   body=f'''
-{page_hero('Muralist and large-image company',
-           'Murals that capture the gaze',
-           'Open Air Gallery is Ephraim’s studio: eighty-one feet of Gucci on a Manhattan wall, eighty-five feet of Crown Royal in Portland, John Lewis and Malcolm X in Rochester.',
+{page_hero('est. New York &middot; painted by hand',
+           f'Murals that<br>{highlight("capture the gaze", "home-hero")}',
+           '',
            media_slug='gucci-new-york-hero',
            media_alt='The Gucci mural by Open Air Gallery, eighty-one feet across a New York City wall',
            video='hero-johnnie-walker',
-           crumb=False, cls='tall')}
+           crumb=False, cls='tall hero-mid')}
 
 {spray_band()}
 
+{stroke_band(f"""<h2>Always hand painted</h2>
+    <p class="band-lead wide">Open Air Gallery is the New York muralist and large-image company behind eighty-one feet of Gucci in Manhattan, eighty-five feet of Crown Royal in Portland, and John Lewis and Malcolm X in Rochester.</p>
+    <p class="band-copy serif">It starts from a small image and explodes onto a massive canvas. The ability to scale and project is what differs an artist and a muralist.</p>""",
+             'always-hand-painted')}
+
+{row('crown-royal-trail-blazers-hero',
+     f'{CROWN["title"]} mural by Open Air Gallery, {CROWN["city"]}, {CROWN["state"]}',
+     f"""<h2>Roots</h2>
+     {dims(CROWN['dim_w'], CROWN['dim_h'], 'row')}
+     <p class="serif">{CROWN['title']}, {CROWN['city']}. Walls in {and_list(CITY_LIST)} &mdash; and in Mexico and Brazil &mdash; the tallest of them {spell(TALLEST['dim_h'])} feet.</p>
+     <p class="serif">There is a science to paint. We analyze the way the paint will decay over time and how the light will affect its color, so we use only what we need and what will last.</p>""")}
+
+{row('john-lewis-rochester-hero',
+     f'{ROCHESTER[0]["title"]} mural by Open Air Gallery, {ROCHESTER[0]["city"]}, {ROCHESTER[0]["state"]}',
+     f"""<h2><span class="shout">Vision</span></h2>
+     {dims(ROCHESTER[0]['dim_w'], ROCHESTER[0]['dim_h'], 'row')}
+     <p class="serif">{ROCHESTER[0]['title']}, and {ROCHESTER[1]['title']} &mdash; two civil-rights walls in {ROCHESTER[0]['city']} at the same size to the foot.</p>
+     <p class="serif">Each project is a labor of love, and we pour our hearts into every brushstroke.</p>""",
+     flip=True)}
+
+{brand_wall()}
+{faces_strand()}
+
+{marquee()}
+
 <section class="alt stats-band">{glow()}<div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">The measure of it</div>
+  <div class="section-head rv"><div class="eyebrow">the measure of it</div>
   <h2>Over {SQ_FT // 1000:,},000 square feet, and counting.</h2>
-  <p class="lead">Added up wall by wall, the work shown here alone comes to {SQ_FT:,} square feet of painted surface in {spell(len(CITIES))} cities — with more walls in Mexico, Brazil and beyond. The tallest of them stands {TALLEST['dim_h']} feet in {TALLEST['city']}; the widest runs {WIDEST['dim_w']} feet.</p></div>
+  <p class="lead serif">Added up wall by wall, the work shown here alone comes to {SQ_FT:,} square feet of painted surface in {spell(len(CITIES))} cities &mdash; with more walls in Mexico, Brazil and beyond. The tallest of them stands {TALLEST['dim_h']} feet in {TALLEST['city']}; the widest runs {WIDEST['dim_w']} feet.</p></div>
   <ul class="stats">
     {stat(f'{SQ_FT:,}', 'square feet, and counting')}
-    {stat(TALLEST['dim_h'], f'tallest wall, {TALLEST["city"]}', mark='′')}
+    {stat(TALLEST['dim_h'], f'tallest wall, {TALLEST["city"]}', mark='&#8242;')}
     {stat(len(CITIES), 'cities, coast to coast')}
   </ul>
 </div></section>
 
-<section><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">Selected work</div><h2>Walls, measured in feet</h2>
-  <p class="lead">Six of them here, more on the Work page. The number over each photograph is how much wall it took.</p></div>
+<section class="walls-band"><div class="wrap">
+  <div class="section-head rv"><h2>The walls</h2>
+  <p class="sub">measured in feet</p>
+  <p class="lead serif">Six of them here, more on the Work page. The number over each photograph is how much wall it took.</p></div>
   <div class="pgrid">{''.join(pcard(p, f'rv-d{i % 3}' if i % 3 else '') for i, p in enumerate(featured()))}
   </div>
   <div class="row-end rv"><a class="btn btn-ghost" href="{u('/work')}">See the work {ICONS['arrow']}</a></div>
@@ -957,14 +1075,21 @@ pages['/index'] = dict(
 <section class="alt pair-band">{glow()}<div class="wrap">
   <div class="section-head rv"><div class="eyebrow">{ROCHESTER[0]['city']}, {ROCHESTER[0]['state']}</div>
   <h2>Two walls in Rochester</h2>
-  <p class="lead">{ROCHESTER[0]['title']} and {ROCHESTER[1]['title']}, painted in the same city at the same size: {ROCHESTER[0]['dim_w']} feet wide by {ROCHESTER[0]['dim_h']} feet tall, each of them.</p></div>
+  <p class="lead serif">{ROCHESTER[0]['title']} and {ROCHESTER[1]['title']}, painted in the same city at the same size: {ROCHESTER[0]['dim_w']} feet wide by {ROCHESTER[0]['dim_h']} feet tall, each of them.</p></div>
   <div class="pgrid pair">{''.join(pcard(p, 'pcard-lg' + (' rv-d1' if i else ''), PAIR_SIZES) for i, p in enumerate(ROCHESTER))}
   </div>
 </div></section>
 
+{row('about-team',
+     'Ephraim and the Open Air Gallery crew painting a wall from a lift',
+     """<h2>Public <span class="shout">works</span></h2>
+     <p class="places wide">Mexico &middot; Brazil &middot; Rochester &middot; New York</p>
+     <p class="serif">Beyond the brands: community walls, civil-rights portraits and teen-empowerment murals &mdash; painted with the people who live beside them, in Mexico, Brazil and at home.</p>
+     <p class="marker note">more coming as the photos arrive</p>""")}
+
 <section><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow">How a wall gets painted</div><h2>Prep, paint, preservation</h2>
-  <p class="lead">Ephraim’s three stages, in his own words.</p></div>
+  <div class="section-head rv"><div class="eyebrow">how a wall gets painted</div><h2>Prep, paint, preservation</h2>
+  <p class="lead serif">Ephraim&rsquo;s three stages, in his own words.</p></div>
   {beats(PROCESS, rule=True)}
 </div></section>
 

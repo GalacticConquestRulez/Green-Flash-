@@ -215,12 +215,17 @@ def stroke_svg(uid, w=1440, h=720, *, top=None, bot=None, drips=4,
 
 
 # ------------------------------------------------- the highlight in the hero
-def highlight_svg(uid, w=1000, h=200):
+def highlight_svg(uid, w=1600, h=200):
     """The stroke behind the mint words of a headline.
 
-    The same brush at a tenth of the size, so it keeps the tilt, the dragged
-    edges and the streaks and loses the drips — paint on a word runs down
-    the letters, and a drip there would be read as a descender.
+    The same brush at a tenth of the size, so it keeps the dragged edges and
+    the streaks and loses the drips — paint on a word runs down the letters,
+    and a drip there would be read as a descender.
+
+    The viewBox is eight to one because a line of this headline is about
+    that: the drawing is stretched over the words with no aspect ratio kept,
+    so a box much squarer than the line it lands on would have its bristle
+    noise flattened out sideways into stripes.
     """
     top, bot = h * .16, h * .15
     r = _rng(uid, 'hl')

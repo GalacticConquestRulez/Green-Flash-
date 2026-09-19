@@ -438,7 +438,12 @@ html.motion .hero-video{display:block;position:absolute;inset:0;width:100%;heigh
   position:relative;color:var(--ink);text-align:center;
   padding:clamp(5rem,11vw,8.5rem) 0 clamp(5.5rem,12vw,9.5rem);
 }
-.stroke-wrap{position:absolute;inset:0;z-index:0;pointer-events:none}
+/* The stroke is painted past both ends of its box and leans a degree or
+   two, so it is wider than the page. overflow-x:clip takes that off the
+   document without taking the drips with it: clip on one axis leaves the
+   other visible, where hidden or auto would have forced a scrollport and
+   cut the runs off at the bottom edge. */
+.stroke-wrap{position:absolute;inset:0;z-index:0;pointer-events:none;overflow-x:clip;overflow-y:visible}
 .stroke{width:100%;height:100%;display:block;transform-origin:50% 50%;overflow:visible}
 .band > .wrap{position:relative;z-index:1}
 
@@ -1461,6 +1466,133 @@ html.motion .sp-stroke.go .sp-sweep{
 .beat blockquote{margin:0}
 .beat blockquote p{margin:0;color:var(--ink);opacity:.86;max-width:52ch}
 @media (min-width:960px){.beats{grid-template-columns:repeat(3,1fr);gap:2rem}}
+
+/* =====================================================================
+   HOME — the mockup's spine (research/mock-approved.html)
+
+   The approved mockup is the specification, section for section: a hero
+   that is the headline and nothing else, a band painted in one stroke, two
+   rows of wall-and-words, the brand wall and the faces (the other agent's
+   components, rendered here if they have landed), the black marquee strip,
+   the grid of walls, the public-works row, and the closing band.
+
+   The blocks the live site already had and the mockup does not draw — the
+   sprayed wordmark, the measure of it, the two Rochester walls, his three
+   stages and the graffiti-removal band — are all still on the page and in
+   the same order they were: the mockup adds sections, it does not delete
+   copy. The one figure the owner struck out stays struck out — there is no
+   wall count anywhere on this page.
+   ===================================================================== */
+
+/* --- the hero: one headline, on the wall ------------------------------ */
+/* A hero with a photograph is one of the three black bands, so its words
+   are the light ones; page_hero() marks it .has-media so nothing has to
+   guess. Home's is centred on the picture, which is the mockup. */
+.page-hero.has-media{color:var(--on-ink)}
+.page-hero.has-media h1,.page-hero.has-media .lead{color:var(--on-ink)}
+.page-hero.hero-mid{
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:0;min-height:clamp(520px,86vh,860px);
+}
+.page-hero.hero-mid .hero-inner{max-width:none;margin-inline:auto}
+.page-hero.hero-mid .hero-shade{background:linear-gradient(180deg,var(--scrim-soft) 0%,var(--shade) 100%)}
+.page-hero.hero-mid h1{font-size:clamp(3rem,10.4vw,10.4rem);margin:0}
+/* The marker sits a little off level, the way a hand writes it. */
+.page-hero.hero-mid .eyebrow{
+  font-size:clamp(1.5rem,2.4vw,2.1rem);margin-bottom:1rem;
+  transform:rotate(-3deg);
+}
+
+/* --- the words inside a painted band ---------------------------------- */
+.band h2{font-size:clamp(2.6rem,7vw,6.5rem);margin:0 0 1.2rem}
+/* The lead in a band is shouted rather than read: Archivo at its widest,
+   caps, and short lines. The paragraph under it is the one you read. */
+.band-lead{
+  max-width:52rem;margin:0 auto 1.1rem;
+  font-size:clamp(.95rem,1.35vw,1.2rem);line-height:1.4;color:var(--ink);
+}
+.band-copy{max-width:44rem;margin:0 auto;font-size:1.08rem;line-height:1.6;color:var(--ink)}
+
+/* --- a wall down one half of the page, the words down the other -------- */
+.rows{display:grid;grid-template-columns:1fr;padding:0}
+.rows-media{position:relative;min-height:62vw;background:var(--paper-3)}
+.rows-media picture,.rows-media img{display:block;width:100%;height:100%}
+.rows-media img{object-fit:cover}
+.rows-words{
+  display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(2.8rem,8vw,5.5rem) clamp(1rem,5vw,4rem);
+}
+.rows-words h2{font-size:clamp(3.2rem,7.4vw,7rem);margin:0 0 .5rem}
+.rows-words .serif{font-size:1.05rem;line-height:1.65;color:var(--muted);max-width:33rem;margin:0 0 1rem}
+.rows-words .serif:last-child{margin-bottom:0}
+/* The measurement in a row is the mockup's: Archivo at its widest, with the
+   prime marks and the times sign in the coral instead of the mint, because
+   on white the mint is paint and not a colour type can be set in. */
+.dims-row{font-size:clamp(2.1rem,4.4vw,2.9rem);line-height:.9;margin:0 0 1.4rem}
+.dims .f,.dims .x{color:var(--pop)}
+.pcard .dims .f,.pcard .dims .x,.page-hero .dims .f,.page-hero .dims .x,
+.on-ink .dims .f,.on-ink .dims .x{color:var(--mint)}
+.dims-row::after{display:none}
+/* The places a public-works row lists are not a measurement, so they are
+   not .dims — but they are set in the same face, and at the size the coral
+   is allowed to carry type at. */
+.places{font-size:clamp(1.5rem,2.2vw,1.9rem);line-height:1.2;color:var(--pop);margin:0 0 1.1rem}
+.note{font-size:clamp(1.5rem,2vw,1.6rem);line-height:1.2;color:var(--pop);margin:.4rem 0 0}
+@media (min-width:860px){
+  .rows{grid-template-columns:1fr 1fr}
+  .rows-media{min-height:min(64vh,580px)}
+}
+
+/* --- the marquee strip ------------------------------------------------- */
+/* Type, a black ground and a coral bar between the words: the second of the
+   three black bands. It runs off both edges because a strip that fits is a
+   list, and it clips rather than scrolling the page. */
+.mq{
+  background:var(--ink);color:var(--on-ink);overflow:hidden;white-space:nowrap;
+  padding:.75rem 0;font-family:var(--font-tall);text-transform:uppercase;
+  font-size:clamp(1.25rem,2.5vw,2.2rem);letter-spacing:.04em;line-height:1.25;
+}
+.mq span{padding:0 .5em}
+.mq b{color:var(--pop);font-weight:400}
+
+/* --- a section head, and the aside under one -------------------------- */
+.section-head h2{font-size:clamp(2.6rem,6.2vw,5.4rem)}
+.section-head .lead{font-size:1.06rem;color:var(--muted);margin-top:1rem}
+.sub{
+  font-family:var(--font-marker);font-weight:400;text-transform:none;
+  font-size:clamp(1.5rem,2.2vw,1.8rem);line-height:1.2;
+  color:var(--pop);margin:.2rem 0 1.1rem;
+}
+.shout{color:var(--pop)}
+.walls-band h2{font-size:clamp(3.2rem,8vw,8rem)}
+
+/* --- the card, as the mockup draws it --------------------------------- */
+/* The title is the headline and the measurement is the line under it, in
+   the wordmark's face and in mint — the one place on the page mint carries
+   type, and it may because the caption sits on a black scrim. */
+.pcard-body{display:flex;flex-direction:column}
+.pcard h3{order:1;margin:0;font-family:var(--font-tall);font-weight:400;text-transform:uppercase;font-size:clamp(1.5rem,2.3vw,2.1rem);line-height:.95;letter-spacing:.01em;color:var(--on-ink)}
+.pcard .dims-sm{
+  order:2;margin-top:.3rem;font-family:var(--font-display);font-weight:900;
+  font-variation-settings:'wdth' 125,'wght' 900;
+  font-size:.92rem;line-height:1.2;letter-spacing:.06em;color:var(--mint);
+}
+.pcard .dims-sm .f,.pcard .dims-sm .x{font-size:.92em;vertical-align:0}
+.pcard .place{order:3;margin-top:.35rem}
+.pcard-lg .dims-sm{font-size:1.05rem}
+
+/* --- the measure of it ------------------------------------------------- */
+.stats-band .stat{border-top:2px solid var(--ink)}
+.stat-n{font-variation-settings:'wdth' 125,'wght' 900;color:var(--ink)}
+.stat-n .f{color:var(--pop)}
+.stat-l{color:var(--muted)}
+
+/* --- the closing band -------------------------------------------------- */
+.cta{border:0;border-radius:0;background:none;padding:0;text-align:center}
+.cta h2{font-size:clamp(3rem,9vw,9.2rem);margin:0 0 .3rem}
+.cta .eyebrow{display:block;transform:rotate(-2deg);margin-bottom:.9rem}
+.cta .serif{max-width:46ch;margin:0 auto 1.7rem;color:var(--ink);font-size:1.05rem;line-height:1.6}
+.cta .btn-row{justify-content:center;margin-top:0}
 
 /* =====================================================================
    WORK — the index
