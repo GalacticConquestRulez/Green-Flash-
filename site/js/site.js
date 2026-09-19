@@ -525,13 +525,15 @@
   ];
 
   /* The roller's lap marks: [% of the stroke's height, which mint]. a is the
-     mint itself, b one step down, c --mint-deep. Four faint bands is what a
-     roller leaves when the nap reloads. */
+     mint itself, b one step down; each band is a narrow line with a 1%
+     feather either side. Four faint lines is what a roller leaves when the
+     nap reloads -- the first cut had them as 6% opaque stripes and read as
+     a flag, not a roller. c (--mint-deep) stays available but unused. */
   const LAP = [
-    [0, 'a'], [7, 'a'], [8, 'b'], [12, 'b'], [13, 'a'],
-    [30, 'a'], [31, 'c'], [37, 'c'], [38, 'a'],
-    [61, 'a'], [62, 'b'], [68, 'b'], [69, 'a'],
-    [87, 'a'], [88, 'c'], [93, 'c'], [94, 'a'], [100, 'a'],
+    [0, 'a'], [9, 'a'], [10, 'b'], [12, 'b'], [13, 'a'],
+    [32, 'a'], [33, 'b'], [35, 'b'], [36, 'a'],
+    [63, 'a'], [64, 'b'], [66, 'b'], [67, 'a'],
+    [89, 'a'], [90, 'b'], [92, 'b'], [93, 'a'], [100, 'a'],
   ];
   // Thrown off the bristles, ahead of the edge. x is past the longest finger.
   const FLUNG = [
