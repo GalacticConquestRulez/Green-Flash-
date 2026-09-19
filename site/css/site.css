@@ -34,6 +34,14 @@
      mint of a loaded bristle, over the flat mint of the dry rule, so "wet"
      reads as a lighter ridge rather than more of the same green. */
   --mint-wet:rgba(168,247,214,.72); --mint-wet-0:rgba(168,247,214,0);
+  /* Primer: the coat a wall waits under before the mural goes on. Twelve
+     per cent of the photograph's colour left, the contrast pulled almost
+     flat and the whole thing lifted toward --wall, which is a whitewashed
+     wall and not a grey one — hence the sepia at the end. It is a filter
+     rather than a colour because it has to be the photograph, faintly,
+     rather than a sheet laid over it: the mural is still there under the
+     primer, the way it is on a wall that has been painted out. */
+  --primer:saturate(.12) contrast(.45) brightness(1.5) sepia(.08);
   --scrim:rgba(10,10,11,.88); --scrim-soft:rgba(10,10,11,.45);
   /* Ink on the one light panel: the ghost of a buff job across its corner,
      its hairlines, and the muted grey that stands in for --muted there.
@@ -230,6 +238,11 @@ footer .foot-grid ul a:hover{color:var(--paper)}
 
      Roll   a reveal arrives like a roller pass — a clip-path wipe
             left-to-right with the last 18px of rise.
+     Roll it in
+            the same pass, laid down by the visitor: a card's photograph
+            waits under primer and is rolled in on hover (desktop, the
+            pointer wearing the roller) or as it arrives (a phone), and
+            stays painted. See ROLL IT IN, below.
      Scale  the dimension figures widen into place, wdth 100 -> 125.
      Cure   one slow mint sheen down the rule under a figure as it lands,
             once, never repeated.
@@ -428,7 +441,7 @@ html.motion .pcard[data-live].rv.in:hover,
 html.motion .pcard[data-live].rv.in:focus-visible{--lift:-3px}
 /* Under the pointer the card has to keep up with it. */
 html.motion .pcard[data-live].rv.is-tilt{transition:border-color .25s,transform .1s linear}
-html.motion .pcard[data-live] .pcard-img{position:relative}
+html.motion .pcard[data-live] .pcard-img{position:relative;isolation:isolate}
 html.motion .pcard[data-live] .pcard-img picture{
   position:absolute;left:0;right:0;top:-6%;height:112%;
   transform:translate3d(0,calc(var(--drift,0) * 6%),0);
@@ -478,6 +491,103 @@ html.motion .pair-band .glow{--gx:76%;--gy:26%}
 html.motion .cta-wrap .glow{--gy:82%}
 html.motion .pintro .glow{--gx:74%;--gy:20%}
 
+/* =====================================================================
+   ROLL IT IN — the murals go up under a roller
+
+   Concept 2, and Roll's second use: the first is a reveal that arrives on
+   its own, this one is a reveal the visitor lays down. Every photograph on
+   a card waits under primer, and it is rolled in under a single pass that
+   leaves it painted for good.
+
+   Three layers inside a box that already clips, and none of them changes
+   the box:
+
+     the primer   a filter on the photograph itself (--primer), under
+                  html.motion and only until the card is .painted. It is
+                  on the img from the very first paint — html.motion is
+                  set by the bootstrap in <head>, before the body is
+                  parsed — so there is no frame of full colour to flash.
+                  The 2.8s oaPrimed is the same bail-out every hidden
+                  thing on this site carries: if site.js never arrives the
+                  primer lifts by itself rather than stranding the murals
+                  under it. site.js adds .rollin the moment it runs, which
+                  calls the bail-out off.
+     the paint    a second, unprimed copy of the <picture>, cloned by
+                  site.js and masked exactly the way .rv is masked — a
+                  mask, not a clip-path, for the same reason as Roll. Its
+                  mask grows from 0 to 116% of the card, and because the
+                  gradient goes opaque to 86% of itself the painted edge
+                  is at .86 x 1.16 = 100% of the card at the end of the
+                  pass, to the pixel. When the pass finishes the primer
+                  comes off the photograph underneath and the copy is
+                  removed in the same frame: the same pixels, one layer.
+     the roller   art.py's, at --rw, riding that edge. The track is the
+                  width of the card and translates from 0 to 100% of
+                  itself over the same 600ms with the same easing, so the
+                  nap and the painted edge stay together without a number
+                  passing between them. The nap is the track's left edge —
+                  the two margins are art.py's contact point — and the wet
+                  sheen is the strip immediately behind it.
+
+   Desktop rolls a card in on hover (the pointer is wearing the roller);
+   a phone rolls them in as they arrive, one after another. Either way it
+   is once and for good: nothing here un-paints on the way back up.     */
+html.motion .pcard{--rw:96px;--roll-t:.6s}
+@media (max-width:700px){html.motion .pcard{--rw:68px}}
+
+html.motion .pcard-img picture:not(.pcard-paint) img{
+  filter:var(--primer);
+  animation:oaPrimed 0s linear 2.8s forwards;
+}
+html.motion.rollin .pcard-img picture:not(.pcard-paint) img{animation:none}
+html.motion .pcard.painted .pcard-img img{filter:none;animation:none}
+@keyframes oaPrimed{to{filter:none}}
+
+html.motion .pcard-paint{
+  z-index:1;
+  -webkit-mask-image:linear-gradient(90deg,var(--paper) 86%,transparent);
+          mask-image:linear-gradient(90deg,var(--paper) 86%,transparent);
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:0 0;mask-position:0 0;
+  -webkit-mask-size:0% 100%;mask-size:0% 100%;
+  transition:-webkit-mask-size var(--roll-t) var(--ease-roll),
+                     mask-size var(--roll-t) var(--ease-roll);
+}
+html.motion .pcard.rolling .pcard-paint{-webkit-mask-size:116% 100%;mask-size:116% 100%}
+
+/* The track: the whole width of the card, carried across it by one
+   translate. Nothing in it is ever measured — the roller is hung off the
+   track's left edge by art.py's two fractions, so it sits on the wet edge
+   at any --rw. It fades in as the pass starts and lifts off as it ends,
+   on its own linear clock, so the fade never fights the easing. */
+.pcard-roll{display:none}
+html.motion .pcard-roll{
+  display:block;position:absolute;left:0;top:0;width:100%;height:100%;
+  z-index:2;pointer-events:none;opacity:0;
+  transform:translateX(0);
+  transition:transform var(--roll-t) var(--ease-roll);
+}
+html.motion .pcard.rolling .pcard-roll{
+  transform:translateX(100%);
+  animation:oaRollOff var(--roll-t) linear both;
+}
+html.motion .pcard.painted .pcard-roll{display:none}
+@keyframes oaRollOff{0%{opacity:0}10%{opacity:1}84%{opacity:1}100%{opacity:0}}
+html.motion .pcard-roller{
+  position:absolute;left:0;top:50%;width:var(--rw);height:var(--rw);
+  margin-left:calc(var(--rw) * -.698);
+  margin-top:calc(var(--rw) * -.669);
+}
+html.motion .pcard-roller svg{display:block;width:100%;height:100%;overflow:visible}
+/* The paint that is still wet, directly behind the nap. Faint: this is a
+   sheen on a photograph, not a bar of mint across it. */
+html.motion .pcard-wet{
+  position:absolute;top:0;bottom:0;left:0;
+  width:calc(var(--rw) * 1.1);margin-left:calc(var(--rw) * -1.1);
+  background:linear-gradient(90deg,var(--mint-wet-0),var(--mint-wet));
+  opacity:.42;
+}
+
 /* --- and the way out -------------------------------------------------- */
 /* html.motion is already withheld when the visitor asks for reduced motion.
    This is the second lock: if the class ever arrives anyway, nothing here
@@ -492,6 +602,9 @@ html.motion .pintro .glow{--gx:74%;--gy:20%}
   html.motion .roll-w{display:none}
   html.motion .pcard[data-live].rv{transform:none;transition:none}
   html.motion .pcard[data-live] .pcard-img picture{position:static;height:100%;transform:none}
+  /* Roll it in: no primer, and the roller was never there. */
+  html.motion .pcard-img img{filter:none;animation:none}
+  html.motion .pcard-roll{display:none}
   /* Reduced motion gets no glow at all, rather than a still one. The
      bootstrap withholds html.motion from a visitor who has asked for
      reduced motion, so there was never going to be a glow to hold still:

@@ -155,6 +155,30 @@ Ephraim before any production code.
   the two renders stay the same document. It runs off the Live IIFE's one scroll listener and
   one rAF, and the same IntersectionObserver, which now has a third contract: a `[data-brush]`
   element is never unobserved and is repainted on every crossing.
+- **Roll it in — Roll's second use (owner, 2026-09-19), on every project card.** The vocabulary
+  stays **Roll · Scale · Cure · Wash · Splat · Live · Brush**: this is not an eighth verb but the
+  first one used a second way. Roll the reveal arrives by itself; **Roll it in the visitor lays
+  down himself**, and it makes the twelve-wall grid feel like twelve walls going up. Every
+  `.pcard` photograph waits under **primer** — a whitewashed wall: the photograph at 12% of its
+  colour, the contrast almost flat and the whole thing lifted toward `--wall` (`--primer`, a CSS
+  filter on the `<img>` and only while the card is unpainted, so no filter is ever left on a page
+  element). **Desktop:** over the grids the pointer *is* the roller — `art.py`'s
+  `roller_pass_svg()` serialised at 40px into a `cursor:url(data:…)` with the hotspot on the nap
+  — and hovering a card rolls its mural in under a single 600ms pass: a mask wipe left to right,
+  the same mechanism as Roll and for the same reason (a mask is paint-only, a clip-path would
+  collapse the observer's rectangle), with the roller riding the leading edge and a faint wet
+  sheen immediately behind the nap. It stays `.painted`, and **once every card on the page is
+  painted the pointer is handed back**. **Mobile:** no pointer to hover with, so the cards roll in
+  as they arrive, 120ms apart, off the same observer. Either way it is **once and for good** —
+  this is Roll, which runs one way, not Live, which runs both. It composes with Live rather than
+  replacing any of it: the drift, the rise, the tilt, the mint hairline and the photograph to 1.04
+  are all untouched, and nothing in it changes a box. **No JS / reduced motion: full-colour
+  photographs, no primer, no roller** — the primer is `html.motion` only, it is on the img from
+  the first paint so there is no flash of colour, and it carries the same 2.8s bail-out every
+  hidden thing here carries, called off by `.rollin` the moment site.js runs. The second, unprimed
+  copy of the photograph that the wipe reveals is cloned by site.js and removed the frame the
+  primer comes off, so a crawler is never handed the same mural twice and the no-JS document is
+  the document it always was.
 - **The graffiti has to read as a real tagged wall — never cartoon bubble letters.** The first
   drawn version was three bubble-letter pieces in magenta, blue and amber, evenly spaced, all
   plainly painted the same afternoon by the same hand; the owner's verdict was *"that graffiti

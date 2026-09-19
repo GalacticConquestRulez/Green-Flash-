@@ -292,6 +292,71 @@
   });
   wearRoller(true);
 
+  /* --- Roll it in: the primer, and the pass that takes it off --------
+     The stylesheet primes every photograph on a card from the first
+     paint. This is the pass that takes the primer off, and the first
+     thing it does is say so: .rollin on <html> calls off the 2.8s
+     bail-out the primer carries, so a page whose script never arrives
+     lifts the primer by itself instead of stranding the murals under it.
+
+     The wipe wants two layers and the page has one, so the unprimed copy
+     is cloned here rather than sent twice down the wire: a crawler is
+     never handed the same mural with two alts, and the document without
+     a script is the document it was before this existed. The clone is
+     masked from nothing to the full card; the photograph underneath it
+     loses the primer the moment the pass is over and the clone goes in
+     the same frame, which is the same pixels either side of the swap.
+
+     Desktop paints on hover — the pointer is already wearing the roller
+     — and on focus, so the keyboard gets there too. A phone paints as
+     the cards arrive, 120ms apart, off the observer below. Once a card
+     is claimed it is never claimed again: this is Roll, which runs once,
+     and not Live, which runs both ways. */
+  const ROLL = 600, STAGGER = 120;
+  const pcards = [...document.querySelectorAll('.pcard')];
+  let unpainted = pcards.length, nextAt = 0;
+  if (pcards.length) {
+    root.classList.add('rollin');
+    pcards.forEach(card => {
+      const base = card.querySelector('.pcard-img picture');
+      if (!base) return;
+      const paint = base.cloneNode(true);
+      paint.classList.add('pcard-paint');
+      paint.setAttribute('aria-hidden', 'true');
+      paint.querySelectorAll('img').forEach(im => { im.alt = ''; });
+      base.after(paint);
+    });
+  }
+
+  const claim = (card) => {
+    if (card.dataset.rollin) return false;
+    card.dataset.rollin = '1';
+    return true;
+  };
+  const roll = (card) => {
+    card.classList.add('rolling');
+    setTimeout(() => {
+      card.classList.add('painted');        // the primer comes off
+      card.classList.remove('rolling');
+      const paint = card.querySelector('.pcard-paint');
+      if (paint) paint.remove();
+      // A wall with nothing left to paint hands the pointer back.
+      if (--unpainted <= 0) wearRoller(false);
+    }, ROLL + 60);
+  };
+  const queue = (card) => {
+    const now = performance.now();
+    const at = Math.max(now, nextAt);
+    nextAt = at + STAGGER;
+    setTimeout(() => roll(card), at - now);
+  };
+  pcards.forEach(card => {
+    if (fine) card.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'touch' && claim(card)) roll(card);
+    });
+    card.addEventListener('focus', () => { if (claim(card)) roll(card); });
+  });
+
   const targets = [...document.querySelectorAll('.rv,.dims')];
   const live = [...document.querySelectorAll('[data-live]')];
   const glowing = [...document.querySelectorAll('[data-glow]')];
@@ -339,6 +404,10 @@
       // at the threshold it has always run at, and .rolled is what holds
       // it open afterwards — .in comes and goes underneath it.
       if (e.intersectionRatio >= 0.12 && el.classList.contains('rv')) el.classList.add('rolled');
+      // Roll it in, on a phone: no pointer to hover with, so a card is
+      // rolled in as it arrives and the next one 120ms behind it.
+      if (!fine && e.intersectionRatio >= 0.12 && el.classList.contains('pcard')
+          && claim(el)) queue(el);
       el.classList.toggle('in', e.intersectionRatio >= LIVE);
       if (el.classList.contains('pcard')) {
         if (e.isIntersecting) cards.add(el); else cards.delete(el);

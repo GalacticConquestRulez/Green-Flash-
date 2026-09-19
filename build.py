@@ -300,11 +300,21 @@ def pcard(p, cls='', sizes=CARD_SIZES):
     photograph drifts inside the frame with the scroll, and on a desktop it
     tilts a few degrees toward the pointer. The attribute is inert without
     html.motion — with no script it is a card with a photograph in it.
+
+    The track after the photograph is Roll it in: the roller that rides the
+    wet edge as the mural is rolled in over its primer, and the sheen it
+    leaves just behind the nap. It is one <use> of the page's single roller
+    <symbol> (roller_sprite()), it is display:none outside html.motion, and
+    it is absolutely positioned inside a box that already clips — so it adds
+    nothing to the layout and a page with no script never shows it. The
+    second, unprimed copy of the photograph that the wipe reveals is not
+    here: site.js clones it, so a crawler is never handed the same mural
+    twice and the no-JS document is the document it has always been.
     """
     place = f"{p['city']}, {p['state']}"
     alt = f"{p['title']} mural by Open Air Gallery, {place}"
     return f'''<a class="pcard rv {cls}" data-live href="{u('/work/' + p['slug'])}">
-  <div class="pcard-img">{pic(p['hero'], alt, sizes, extra=focus_attr(p))}</div>
+  <div class="pcard-img">{pic(p['hero'], alt, sizes, extra=focus_attr(p))}<span class="pcard-roll" aria-hidden="true"><span class="pcard-wet"></span><span class="pcard-roller"><svg viewBox="0 0 200 200"><use href="#oa-roller"></use></svg></span></span></div>
   <div class="pcard-body">{dims(p['dim_w'], p['dim_h'], 'sm')}<h3>{p['title']}</h3><span class="place">{place}</span></div>
 </a>'''
 
