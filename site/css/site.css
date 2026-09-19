@@ -1140,17 +1140,18 @@ html.motion .sp-mc{stop-color:var(--cream)}
 html.motion .sp-vein{fill:none;stroke:var(--cream);stroke-linecap:round;opacity:.52}
 html.motion .sp-vein-2{fill:none;stroke:var(--mix);stroke-linecap:round;opacity:.28}
 
-/* The bleed: a blurred copy of the whole throw under its own edge, at a
-   quarter. It is the halo of thinner paint a wet edge leaves in the wall,
-   and it is what stops the blob reading as a vector shape cut out with
-   scissors. */
-html.motion .sp-halo{opacity:.25}
+/* The bleed: a thin ring of thinner paint just outside the rim, and
+   nothing at all inside it — paint wicking a few millimetres into the wall
+   and stopping, which is what stops the blob reading as a vector shape cut
+   out with scissors. A blurred copy of the whole throw was a glow. */
+html.motion .sp-halo{opacity:.55}
 /* The grain: fractal noise through luminanceToAlpha, kept inside the
    paint's own alpha, at a tenth and a bit. Tooth, not texture. */
 html.motion .sp-grain{opacity:.22}
-/* The gloss, along the top-left of the body, where a wet throw catches the
-   light. It is a gradient of the pale paint, not a blur of white. */
-html.motion .sp-gloss{opacity:.72}
+/* The gloss: a crescent along the top-left shoulder of the body, where a
+   wet throw catches the light — blurred, and running out at both ends, so
+   it is a highlight and not a shape laid on one. */
+html.motion .sp-gloss{opacity:.8}
 
 /* The runs. Round three draws them as filled, tapered paths that thin as
    they fall and bead at the end, rather than as a stroked line of one

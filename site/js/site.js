@@ -1520,20 +1520,53 @@
      bigger and scattered is paint that hit a wall. The rim filter erodes
      each shape's own alpha, so every satellite gets its own darker edge
      without any of them being drawn twice. */
-  const BLOB = [
-    ['ellipse', { cx: 0, cy: 0, rx: 151, ry: 122, transform: 'rotate(-18)' }],
-    ['ellipse', { cx: 172, cy: -58, rx: 50, ry: 37, transform: 'rotate(20 172 -58)' }],
-    ['ellipse', { cx: -160, cy: 46, rx: 42, ry: 29 }],
-    ['ellipse', { cx: 74, cy: 152, rx: 33, ry: 45 }],
-    ['ellipse', { cx: -92, cy: -140, rx: 29, ry: 25 }],
-    ['ellipse', { cx: 206, cy: 96, rx: 22, ry: 15, transform: 'rotate(-28 206 96)' }],
-    ['circle', { cx: 232, cy: 58, r: 12 }],
-    ['circle', { cx: -216, cy: -56, r: 10 }],
-    ['circle', { cx: 128, cy: -176, r: 16 }],
-    ['circle', { cx: 234, cy: -140, r: 8 }],
-    ['circle', { cx: -56, cy: 210, r: 14 }],
-    ['circle', { cx: -210, cy: 118, r: 10 }],
+  /* A satellite is not a circle. Paint that leaves a thrown blob leaves it
+     travelling, and what lands is a teardrop with its head at the far end
+     and its tail pointing back at where it came from -- which is the one
+     thing in a splat that tells you it was thrown rather than drawn. So
+     each is a head of radius r at distance d from the click point, drawn
+     out to a tip t further back, and turned to face away from the centre.
+     [distance, head radius, tail, angle]. */
+  const teardrop = (d, r, t) => {
+    const tip = d - t, ctl = d - t * 0.46, lip = r * 0.72;
+    return 'M' + tip.toFixed(1) + ' 0' +
+      'Q' + ctl.toFixed(1) + ' ' + (-lip).toFixed(1) + ' ' + d.toFixed(1) + ' ' + (-r).toFixed(1) +
+      'A' + r + ' ' + r + ' 0 0 1 ' + d.toFixed(1) + ' ' + r.toFixed(1) +
+      'Q' + ctl.toFixed(1) + ' ' + lip.toFixed(1) + ' ' + tip.toFixed(1) + ' 0Z';
+  };
+  /* Every tail stops clear of the body: the tip sits at least 172 out and
+     the body's own smallest radius is 122, so a satellite is a drop that
+     landed near the blob and never a spike growing out of it. */
+  const SATS = [
+    [224, 25, 46, -14], [202, 21, 28, 34], [196, 18, 22, 96],
+    [232, 14, 52, 143], [205, 22, 30, 178], [219, 16, 42, 210],
+    [199, 20, 26, 250], [238, 12, 60, 286], [208, 15, 33, 316],
+    [193, 23, 20, 60], [226, 10, 50, 126],
   ];
+  const BLOB = [['ellipse', { cx: 0, cy: 0, rx: 151, ry: 122, transform: 'rotate(-18)' }]]
+    .concat(SATS.map(([d, r, t, a]) =>
+      ['path', { d: teardrop(d, r, t), transform: 'rotate(' + a + ')' }]));
+
+  /* The gloss. A crescent along the top-left shoulder of the body, where a
+     wet throw catches the light, drawn between two ellipses concentric
+     with the body and struck through a fade so it has no ends. Round
+     three's first cut put a radial gradient over the whole blob at three
+     quarters opacity and it was invisible; a highlight is a shape, and it
+     is on one side. */
+  const GLOSS = (() => {
+    const RX = 151, RY = 122, ROT = -18, A0 = 176, A1 = 274;
+    const P = (deg, k) => {
+      const t = deg * Math.PI / 180, rr = ROT * Math.PI / 180;
+      const x = k * RX * Math.cos(t), y = k * RY * Math.sin(t);
+      return [(x * Math.cos(rr) - y * Math.sin(rr)).toFixed(1),
+              (x * Math.sin(rr) + y * Math.cos(rr)).toFixed(1)];
+    };
+    const o0 = P(A0, 0.93), o1 = P(A1, 0.93), i1 = P(A1, 0.74), i0 = P(A0, 0.74);
+    return 'M' + o0[0] + ' ' + o0[1] +
+      'A' + (RX * 0.93).toFixed(1) + ' ' + (RY * 0.93).toFixed(1) + ' ' + ROT + ' 0 1 ' + o1[0] + ' ' + o1[1] +
+      'L' + i1[0] + ' ' + i1[1] +
+      'A' + (RX * 0.74).toFixed(1) + ' ' + (RY * 0.74).toFixed(1) + ' ' + ROT + ' 0 0 ' + i0[0] + ' ' + i0[1] + 'Z';
+  })();
 
   /* The runs. Round two drew these as a stroked line of one width, which is
      a line and not a run: paint leaving a blob has a shoulder where it
@@ -1650,15 +1683,18 @@
      Five layers and no flat fill anywhere in them, which is the whole of
      "painterly, not clip-art":
 
-       the bleed    a blurred copy of the throw under its own edge, at a
-                    quarter — the halo of thinner paint round a wet edge;
+       the bleed    a thin ring of paint outside the rim and nothing at all
+                    inside it — the alpha dilated, softened and then punched
+                    back out of itself, which is paint wicking a few
+                    millimetres into the wall and stopping;
        the body     the shapes, through a rim filter: the alpha eroded by
-                    11px and composited out of itself is a ring, flooded
-                    with the deep tone and merged back under the paint, so
-                    every satellite has its own darker edge;
+                    4px and composited out of itself is a ring, flooded
+                    with the deep tone, darkened by a colour matrix and
+                    merged back under the paint, so every satellite has its
+                    own edge and none of them is outlined;
        the runs     tapered, beaded, revealed by a travelling clip;
-       the gloss    a radial of the pale paint along the top-left, where a
-                    wet throw catches the light;
+       the gloss    a blurred crescent along the top-left shoulder, fading
+                    out at both ends, where a wet throw catches the light;
        the grain    fractal noise through luminanceToAlpha kept inside the
                     paint's own alpha — tooth, at a fifth.
 
@@ -1694,14 +1730,33 @@
     }));
     defs.appendChild(f);
 
-    const hf = el('filter', { id: hid, x: '-30%', y: '-30%', width: '160%', height: '160%' });
-    hf.appendChild(el('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '13' }));
+    /* The bleed. Round three's first cut blurred a whole copy of the throw
+       and left it at a quarter, which is a glow round a blob and not what
+       paint does. What paint does is wick a few millimetres into the wall
+       past its own edge and stop: so the alpha is dilated, softened, and
+       then the throw's own alpha is punched back out of it, which leaves a
+       thin ring outside the rim and nothing at all inside it. */
+    const hf = el('filter', { id: hid, x: '-20%', y: '-20%', width: '140%', height: '140%' });
+    hf.appendChild(el('feMorphology', { in: 'SourceAlpha', operator: 'dilate', radius: '6', result: 'd' }));
+    hf.appendChild(el('feGaussianBlur', { in: 'd', stdDeviation: '5', result: 'b' }));
+    hf.appendChild(el('feComposite', { in: 'b', in2: 'SourceAlpha', operator: 'out', result: 'ring' }));
+    hf.appendChild(el('feFlood', { class: 'sp-rimc', result: 'fc' }));
+    hf.appendChild(el('feComposite', { in: 'fc', in2: 'ring', operator: 'in' }));
     defs.appendChild(hf);
 
+    /* The rim: 4px, not 11, and darker than the token by two fifths. Eleven
+       pixels of it outlined the body instead of edging it, and an outline
+       is the one thing a glossy body must not have. The darkening is a
+       colour matrix rather than a second token, because the palette is not
+       this block's to add to. */
     const rf = el('filter', { id: rid, x: '-10%', y: '-10%', width: '120%', height: '120%' });
-    rf.appendChild(el('feMorphology', { in: 'SourceAlpha', operator: 'erode', radius: '11', result: 'er' }));
+    rf.appendChild(el('feMorphology', { in: 'SourceAlpha', operator: 'erode', radius: '4', result: 'er' }));
     rf.appendChild(el('feComposite', { in: 'SourceAlpha', in2: 'er', operator: 'out', result: 'ring' }));
-    rf.appendChild(el('feFlood', { class: 'sp-rimc', result: 'rc' }));
+    rf.appendChild(el('feFlood', { class: 'sp-rimc', result: 'fl' }));
+    rf.appendChild(el('feColorMatrix', {
+      in: 'fl', type: 'matrix', result: 'rc',
+      values: '.6 0 0 0 0  0 .6 0 0 0  0 0 .6 0 0  0 0 0 1 0',
+    }));
     rf.appendChild(el('feComposite', { in: 'rc', in2: 'ring', operator: 'in', result: 'rim' }));
     const mg = el('feMerge', {});
     mg.appendChild(el('feMergeNode', { in: 'SourceGraphic' }));
@@ -1718,10 +1773,17 @@
     gf.appendChild(el('feComposite', { in: 'a', in2: 'SourceAlpha', operator: 'in' }));
     defs.appendChild(gf);
 
-    const lg = el('radialGradient', { id: lid, cx: '0.34', cy: '0.26', r: '0.66' });
-    lg.appendChild(el('stop', { offset: '0%', class: 'sp-gloss-a' }));
-    lg.appendChild(el('stop', { offset: '100%', class: 'sp-gloss-b' }));
+    // The gloss runs out at both ends of the crescent rather than stopping,
+    // and it is blurred, because a highlight on wet paint has no edge.
+    const lg = el('linearGradient', {
+      id: lid, gradientUnits: 'userSpaceOnUse', x1: -150, y1: 10, x2: 40, y2: -130,
+    });
+    [[0, 'b'], [30, 'a'], [58, 'a'], [100, 'b']].forEach(([o, t]) =>
+      lg.appendChild(el('stop', { offset: o + '%', class: 'sp-gloss-' + t })));
     defs.appendChild(lg);
+    const sf = el('filter', { id: 'oaSpS' + k, x: '-30%', y: '-30%', width: '160%', height: '160%' });
+    sf.appendChild(el('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '5' }));
+    defs.appendChild(sf);
     svg.appendChild(defs);
 
     const shapes = () => BLOB.map(([n, a]) => el(n, Object.assign({ class: 'sp-ink' }, a)));
@@ -1751,11 +1813,8 @@
         cy: (dy + len + w1 * 0.55).toFixed(1), r: (w1 * 1.5).toFixed(1),
       }));
     });
-    const gloss = el('g', { class: 'sp-gloss' });
-    gloss.appendChild(el('ellipse', {
-      cx: -30, cy: -36, rx: 108, ry: 76,
-      transform: 'rotate(-24 -30 -36)', fill: `url(#${lid})`,
-    }));
+    const gloss = el('g', { class: 'sp-gloss', filter: `url(#oaSpS${k})` });
+    gloss.appendChild(el('path', { d: GLOSS, fill: `url(#${lid})` }));
     throwg.appendChild(gloss);
 
     const grain = el('g', { class: 'sp-grain', filter: `url(#${gid})` });
