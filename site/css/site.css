@@ -264,55 +264,89 @@ section{padding:clamp(4.5rem,10vw,8rem) 0;position:relative}
 }
 
 /* =====================================================================
-   Nav — wordmark, five links, one mint pill. No dropdowns: six pages, all
-   one click away. Below 960 the links become a full-height panel behind
-   the hamburger, which is the only thing the toggle does.
+   Nav — the menu runs across the top of the screen (Overall Murals).
+
+   Ephraim's own reference, in the owner's words (CLAUDE.md, round three):
+   "the menu runs across the top of the screen, not tucked on the right — a
+   full horizontal nav beside the wordmark, visible at every width (no
+   hamburger)." So there is no hamburger and no panel: the wordmark is on
+   the left, the five links run across the middle in the headline face, and
+   the consult button is on the right.
+
+   "At every width" is the part that costs something. On a phone five links
+   in Anton are wider than 390px, so the row stays exactly where it is and
+   scrolls sideways under the thumb — the links are never hidden behind a
+   control, which is the whole point of the reference. The bar wraps to two
+   rows there: the wordmark and the button on the first, the scrolling row
+   of links on the second.
+
+   White glass on a 2px ink hairline, sticky rather than fixed: the page
+   below it is white now, so the bar is a painted sign at the top of the
+   page rather than something floating over a photograph, and the hero
+   starts under it instead of behind it.
    ===================================================================== */
-.nav{position:fixed;inset:0 0 auto 0;z-index:100;height:var(--nav-h);border-bottom:1px solid transparent;transition:border-color .3s}
-/* The blur lives on a pseudo-element: backdrop-filter on .nav itself would
-   make it the containing block for the panel and clip it to 72px. */
-.nav::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--ink);opacity:0;transition:opacity .3s;pointer-events:none;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.nav.scrolled::before,.nav.open::before{opacity:.94}
-/* At the top of a page the nav has no background, and every page on this site
-   opens on a photograph — so at rest the links can be sitting on a bright sky.
-   A short gradient under the bar, on all the time and faded out the moment the
-   solid background arrives, keeps them on their own dark ground without ever
-   putting a box around the wordmark. */
-.nav::after{content:"";position:absolute;inset:0 0 -40px 0;z-index:-2;pointer-events:none;background:linear-gradient(180deg,var(--scrim) 0%,transparent 100%);transition:opacity .3s}
-.nav.scrolled::after,.nav.open::after{opacity:0}
-.nav.scrolled,.nav.open{border-color:var(--line)}
-.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:100%;gap:1rem}
-
-.brand{display:grid;font-family:var(--font-display);font-variation-settings:'wdth' 125,'wght' 800;font-size:.98rem;line-height:.94;letter-spacing:.02em;text-transform:uppercase;color:var(--paper)}
-
-.nav-links{
-  position:fixed;top:var(--nav-h);left:0;right:0;bottom:0;
-  height:calc(100dvh - var(--nav-h));
-  display:none;flex-direction:column;align-items:stretch;gap:.1rem;
-  padding:1.2rem 1rem 2.5rem;overflow:auto;
-  background:var(--ink);border-top:1px solid var(--line);
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:2px solid var(--ink);
 }
-.nav.open .nav-links{display:flex}
-.nav-links li:not(.nav-cta) a{display:flex;align-items:center;padding:.85rem .6rem;border-radius:var(--radius);font-size:1.05rem;font-weight:600;color:var(--muted);transition:color .2s,background .2s}
-.nav-links li:not(.nav-cta) a:hover{color:var(--paper)}
-.nav-links li:not(.nav-cta) a.active{color:var(--mint)}
-.nav-cta{margin-top:1.1rem}
-.nav-cta .btn{width:100%}
+.nav .wrap{display:flex;align-items:center;gap:clamp(.8rem,2vw,2.5rem);min-height:var(--nav-h)}
 
-.nav-toggle{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;background:none;border:1px solid var(--line-2);border-radius:var(--radius);color:var(--paper);cursor:pointer}
-.nav-toggle svg{width:22px;height:22px}
+.brand{
+  display:grid;flex:none;font-family:var(--font-display);
+  font-variation-settings:'wdth' 125,'wght' 900;font-weight:900;
+  font-size:.95rem;line-height:1;letter-spacing:.03em;
+  text-transform:uppercase;color:var(--ink);
+}
 
+/* The row itself. margin-inline:auto is what centres it between the
+   wordmark and the button without either of them having to be the same
+   width as the other. */
+.nav-bar{margin-inline:auto;min-width:0}
+.nav-links{display:flex;align-items:center;gap:.1rem;list-style:none;margin:0;padding:0}
+.nav-links a{
+  display:block;font-family:var(--font-tall);font-weight:400;
+  text-transform:uppercase;font-size:1.05rem;letter-spacing:.04em;
+  padding:.6rem .7rem;color:var(--ink);white-space:nowrap;
+  transition:color .2s;
+}
+.nav-links a:hover{color:var(--pop)}
+/* The page you are on, in the one accent that is allowed to shout. It is
+   1.05rem, which is under the coral's 24px floor for type on white — so the
+   current page is marked twice, in colour and with a painted underline, and
+   the colour is never the only signal. */
+.nav-links a.active{color:var(--pop)}
+.nav-links a.active::after{content:"";display:block;height:3px;margin-top:2px;background:var(--pop)}
+.nav-cta{flex:none}
+
+/* The phone. The row stays at the top and takes the thumb sideways;
+   scrollbar-width:none because a scrollbar under the links is furniture,
+   and the fade on the right edge is what says there is more. */
+@media (max-width:959px){
+  .nav .wrap{flex-wrap:wrap;gap:.6rem 1rem;padding-top:.7rem;padding-bottom:.1rem}
+  .nav-cta{order:2;margin-left:auto}
+  .nav-bar{
+    order:3;width:100%;
+    overflow-x:auto;overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(90deg,#000 94%,transparent);
+            mask-image:linear-gradient(90deg,#000 94%,transparent);
+  }
+  .nav-bar::-webkit-scrollbar{display:none}
+  .nav-links{gap:0;padding-bottom:.45rem;width:max-content}
+  .nav-links a{font-size:.95rem;padding:.5rem .55rem}
+  .nav-links li:first-child a{padding-left:0}
+}
 @media (min-width:960px){
-  .nav-toggle{display:none}
-  .nav-links{position:static;height:auto;display:flex;flex-direction:row;align-items:center;gap:.15rem;padding:0;overflow:visible;background:none;border-top:0}
-  .nav-links li:not(.nav-cta) a{padding:.5rem .7rem;font-size:.92rem}
-  .nav-cta{margin:0 0 0 .5rem}
-  .nav-cta .btn{width:auto}
   .brand{font-size:1.05rem}
+  .nav-links a{font-size:1.15rem;padding:.7rem .85rem}
 }
 
 /* --- page hero -------------------------------------------------------- */
-.page-hero{padding:calc(var(--nav-h) + clamp(3.5rem,9vw,7rem)) 0 clamp(3.5rem,9vw,7rem);position:relative;isolation:isolate;overflow:hidden}
+/* The bar is sticky, so it takes its own room at the top of the document
+   and the hero starts under it rather than behind it. */
+.page-hero{padding:clamp(3.5rem,9vw,7rem) 0;position:relative;isolation:isolate;overflow:hidden}
 .page-hero .hero-media{position:absolute;inset:0;z-index:-2}
 .page-hero .hero-media img{width:100%;height:100%;object-fit:cover}
 /* The hero clip sits over the photograph and only plays where motion is
@@ -419,11 +453,16 @@ html.motion .hero-video{display:block;position:absolute;inset:0;width:100%;heigh
 .cta p{color:var(--muted);max-width:60ch}
 .cta .btn-row{margin-top:1.6rem}
 
-/* --- footer ----------------------------------------------------------- */
-/* The footer is one of the three black bands, so every colour in it is
-   the one that goes on ink. */
-footer{background:var(--ink);color:var(--on-ink);padding:clamp(3rem,7vw,5rem) 0 1.8rem}
-footer h4{color:var(--on-ink)}
+/* --- footer -----------------------------------------------------------
+   One of the three black bands the flipped canvas keeps, and the last
+   thing on every page: the wordmark and how to reach him on the left, the
+   work and the company beside it, headings in the headline face. */
+footer{background:var(--ink);color:var(--on-ink);padding:clamp(3.4rem,7vw,5rem) 0 1.8rem}
+footer .brand{color:var(--on-ink)}
+footer h4{
+  font-family:var(--font-tall);font-weight:400;text-transform:uppercase;
+  font-size:1.35rem;letter-spacing:.04em;color:var(--on-ink);
+}
 .foot-grid{display:grid;gap:2.4rem}
 .foot-brand p{color:var(--on-ink-mute);max-width:36ch;margin:1.1rem 0}
 .foot-contact li{margin-bottom:.4rem}
@@ -1458,7 +1497,7 @@ html.motion .sp-stroke.go .sp-sweep{
    measurements set large, then what is known about the wall and nothing
    that is not.
    ===================================================================== */
-.phero{padding:var(--nav-h) 0 0}
+.phero{padding:0}
 .scale{position:relative;isolation:isolate}
 /* The height is written out rather than left to aspect-ratio with a
    max-height on the same box: given both, the browser keeps the ratio by

@@ -402,12 +402,28 @@ def brand(aria=''):
 
 
 def nav_html():
+    """The menu across the top of the screen, at every width.
+
+    Ephraim's reference is Overall Murals and the owner wrote down what he
+    took from it (CLAUDE.md, round three): "the menu runs across the top of
+    the screen, not tucked on the right — a full horizontal nav beside the
+    wordmark, visible at every width (no hamburger)." So the hamburger is
+    gone, and with it the panel and the JavaScript that opened it: the
+    wordmark is on the left, the five links run across the middle, the
+    consult button is on the right, and on a phone the row of links stays
+    where it is and scrolls sideways. Nothing here is ever hidden behind a
+    control, which is the whole of the reference.
+
+    The consult button is outside the list rather than the last item in it:
+    it is not one of the five pages, and the list has to be able to centre
+    itself between two things that are not the same width.
+    """
     items = ''.join(f'<li><a href="{u(href)}">{label}</a></li>' for label, href in NAV)
     return f'''<header class="nav">
   <div class="wrap">
     {brand(f'{SITE_NAME} home')}
-    <nav aria-label="Main"><ul class="nav-links" id="nav-links">{items}<li class="nav-cta"><a class="btn btn-mint btn-sm" href="{u('/contact')}">Book a free consult</a></li></ul></nav>
-    <button class="nav-toggle" type="button" aria-label="Menu" aria-controls="nav-links" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <nav class="nav-bar" aria-label="Main"><ul class="nav-links">{items}</ul></nav>
+    <a class="btn btn-mint btn-sm nav-cta" href="{u('/contact')}">Book a free consult</a>
   </div>
 </header>'''
 
