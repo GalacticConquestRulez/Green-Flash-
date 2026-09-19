@@ -256,12 +256,73 @@ def brush_svg(uid='brush', loaded=True):
             f'{d}{body}</svg>')
 
 
+# ---------------------------------------------------------------- the spray can
+def spraycan_svg(uid='can2', pressed=True):
+    """A rattle can, nozzle down, mid-line: the one that writes the wordmark.
+
+    Same standard as the tin: a rolled seam, a dented body, a printed label,
+    a mint cap, and the nozzle with its finger on it. pressed=True draws the
+    cone of spray leaving the nozzle; the band's mask does the actual writing.
+    """
+    r = _rng(21)
+    d = _defs(uid)
+    d = d.replace('</defs>', f'''<linearGradient id="{uid}-body" x1="0" y1="0" x2="1" y2="0">
+ <stop offset="0" stop-color="#4b4e54"/><stop offset=".12" stop-color="#b8bcc3"/><stop offset=".3" stop-color="#e9ebee"/>
+ <stop offset=".5" stop-color="#9ea2a9"/><stop offset=".72" stop-color="#d5d8dd"/><stop offset=".9" stop-color="#6a6e75"/><stop offset="1" stop-color="#34373c"/></linearGradient>
+<linearGradient id="{uid}-cap" x1="0" y1="0" x2="1" y2="0">
+ <stop offset="0" stop-color="{MINT_DEEP}"/><stop offset=".3" stop-color="{MINT}"/><stop offset=".5" stop-color="{MINT_HI}"/><stop offset=".8" stop-color="{MINT}"/><stop offset="1" stop-color="{MINT_DEEP}"/></linearGradient>
+<radialGradient id="{uid}-cone" cx="0" cy=".5" r="1">
+ <stop offset="0" stop-color="{MINT}" stop-opacity=".55"/><stop offset=".5" stop-color="{MINT}" stop-opacity=".18"/><stop offset="1" stop-color="{MINT}" stop-opacity="0"/></radialGradient>
+<filter id="{uid}-mist" x="-30%" y="-40%" width="170%" height="180%">
+ <feTurbulence type="fractalNoise" baseFrequency=".08" numOctaves="2" seed="9" result="t"/>
+ <feDisplacementMap in="SourceGraphic" in2="t" scale="14"/><feGaussianBlur stdDeviation="2.2"/></filter></defs>''')
+    # specks of paint in the cone, seeded
+    specks = ''.join(f'<circle cx="{132+r.uniform(0,58):.1f}" cy="{86+r.uniform(-26,26)*(1+(r.random()*.6)):.1f}" r="{r.uniform(.4,1.4):.2f}" fill="{MINT}" opacity="{r.uniform(.25,.8):.2f}"/>' for _ in range(70))
+    cone = (f'<g transform="rotate(-90 118 86)"><path d="M118 86 L182 40 Q205 86 182 132 Z" fill="url(#{uid}-cone)" filter="url(#{uid}-mist)"/>{specks}</g>'
+            if pressed else '')
+    body = f'''
+<ellipse cx="86" cy="186" rx="40" ry="6" fill="url(#{uid}-shadow)"/>
+<!-- the can, upright; the cone is rotated to point down-left of the nozzle -->
+<g transform="rotate(14 86 100)">
+ <path d="M52 44 L52 168 Q86 180 120 168 L120 44 Z" fill="url(#{uid}-body)"/>
+ <path d="M52 44 L52 168 Q86 180 120 168 L120 44 Z" fill="#000" opacity=".16" filter="url(#{uid}-grain)"/>
+ <path d="M56 100 q8 14 0 28" stroke="#1f2023" stroke-width="3" fill="none" opacity=".4" filter="url(#{uid}-soft)"/>
+ <!-- label band -->
+ <path d="M52 72 L52 140 Q86 150 120 140 L120 72 Q86 82 52 72 Z" fill="{INK}"/>
+ <path d="M52 72 L52 140 Q86 150 120 140 L120 72 Q86 82 52 72 Z" fill="#fff" opacity=".07" filter="url(#{uid}-grain)"/>
+ <text x="86" y="104" text-anchor="middle" font-family="Archivo,Inter,Arial,sans-serif" font-weight="900" font-size="11.5" fill="{MINT}" letter-spacing=".5">OPEN AIR</text>
+ <text x="86" y="116" text-anchor="middle" font-family="Archivo,Inter,Arial,sans-serif" font-weight="700" font-size="5" fill="#F4F3EF" letter-spacing="1.8">GALLERY · MINT</text>
+ <rect x="70" y="124" width="32" height="6" fill="{MINT}"/><text x="86" y="128.8" text-anchor="middle" font-family="Inter,Arial" font-weight="700" font-size="4" fill="{INK}" letter-spacing=".8">400 ML</text>
+ <!-- seams -->
+ <path d="M53 58 Q86 68 119 58" stroke="#1f2023" stroke-width="2" fill="none" opacity=".5"/>
+ <path d="M53 56.6 Q86 66.6 119 56.6" stroke="#fff" stroke-width=".9" fill="none" opacity=".35"/>
+ <path d="M54 156 Q86 166 118 156" stroke="#1f2023" stroke-width="2" fill="none" opacity=".5"/>
+ <!-- shoulder and rim -->
+ <path d="M52 44 Q86 34 120 44 Q86 54 52 44 Z" fill="url(#{uid}-steelv)"/>
+ <path d="M60 40 Q86 33 112 40 L112 44 Q86 50 60 44 Z" fill="#8f9299"/>
+ <path d="M64 40 Q86 47 108 40 Q86 33 64 40 Z" fill="#2a2c30"/>
+ <!-- cap: mint, ribbed -->
+ <path d="M70 24 h32 v14 q-16 6 -32 0 z" fill="url(#{uid}-cap)"/>
+ <g stroke="#000" stroke-width=".8" opacity=".25"><path d="M74 26 v10 M80 25 v11 M86 25 v11 M92 25 v11 M98 26 v10"/></g>
+ <!-- nozzle, pressed -->
+ <rect x="82" y="16" width="8" height="10" rx="1.5" fill="#2b2c2f"/><rect x="83" y="17" width="3" height="8" rx="1" fill="#55575c"/>
+ <circle cx="80.5" cy="21" r="1.4" fill="#111"/>
+ <!-- specular -->
+ <path d="M66 62 L66 160" stroke="#fff" stroke-width="4" opacity=".16" stroke-linecap="round" filter="url(#{uid}-soft)"/>
+ <!-- a run of mint down the side, from a heavy hand -->
+ {_drip(112, 46, 30, 3.6, MINT, 12)}
+</g>
+{cone}'''
+    return (f'<svg class="prop prop-spray" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true" focusable="false">'
+            f'{d}{body}</svg>')
+
+
 if __name__ == '__main__':
     import sys
     html = f'''<!doctype html><meta charset=utf-8><style>
-body{{margin:0;background:{INK};display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;padding:40px;height:900px;box-sizing:border-box}}
+body{{margin:0;background:{INK};display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:24px;padding:40px;height:900px;box-sizing:border-box}}
 .cell{{display:flex;align-items:center;justify-content:center;border:1px solid rgba(244,243,239,.1)}} svg{{width:380px;height:380px;overflow:visible}}
-</style><div class="cell">{can_svg()}</div><div class="cell">{roller_svg()}</div><div class="cell">{brush_svg()}</div>'''
+</style><div class="cell">{can_svg()}</div><div class="cell">{roller_svg()}</div><div class="cell">{brush_svg()}</div><div class="cell">{spraycan_svg()}</div>'''
     out = sys.argv[1] if len(sys.argv) > 1 else 'research/props.html'
     open(out, 'w').write(html); print('wrote', out, len(html), 'bytes')
 
