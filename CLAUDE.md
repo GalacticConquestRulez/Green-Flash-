@@ -535,3 +535,15 @@ works · Paint science · Commercial painting) with his walls behind the windows
 window idea can carry the Work grid (cards as negative space over one wall). Photo cells use
 `background-attachment: fixed` (desktop; a scroll-linked translate on iOS where fixed is not
 honoured), never a static crop. Mockup: scratchpad `oagmock/checker.html`.
+- **The board is 3D, and the murals hand over seamlessly (owner, 2026-09-19):** "As you scroll
+  the images move behind, making a 3D effect, and how it's set up like a checkerboard the
+  transition between photos of murals is seamless." So the photo cells are not six crops — they
+  are windows onto **one deep layer** that scrolls slower than the cards (parallax, ~0.5×), so
+  the wall appears to sit behind the page. Along that deep layer the murals are laid **end to
+  end as one continuous strip**, each wall's top edge feathered into the next (a soft gradient
+  seam, never a hard cut), so as the visitor scrolls the Gucci wall gives way to Crown Royal
+  gives way to John Lewis without any visible boundary — the checkerboard's gaps are what make
+  the changeover invisible. Build: one absolutely-positioned `.deep` strip behind the board,
+  `translate3d` on scroll via the Live loop (not `background-attachment: fixed`, which iOS
+  ignores and which cannot cross-fade), with the cards above it in the normal flow; reduced
+  motion = the strip static; no JS = the strip static at its first position.
