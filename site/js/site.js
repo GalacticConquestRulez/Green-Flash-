@@ -51,7 +51,7 @@
 })();
 
 /* =====================================================================
-   The motion layer — Roll · Scale · Cure · Live.
+   The motion layer — Roll · Scale · Cure · Live · Brush.
 
    One IntersectionObserver, one class. Nothing in here is load-bearing:
    without it html.motion is absent, nothing is hidden, and the page is the
@@ -153,21 +153,60 @@
      only cards measured are the ones the observer says are on screen. The
      frame reads every box first and writes every property after, so a
      hundred feet of scrolling is still one layout pass.                  */
-  const cards = new Set(), glows = new Set();
+  const cards = new Set(), glows = new Set(), rules = new Map();
   let frame = 0, tiltEl = null, tiltX = 0, tiltY = 0;
 
   // Where a box sits on the screen: -1 at the top, 0 dead centre, +1 at
   // the bottom. Both the drift and the glow are this one number.
   const place = (r, H) => (r.top + r.height / 2 - H / 2) / ((H + r.height) / 2);
 
+  /* --- Brush: the rule his three stages sit on -----------------------
+     Owner: "Add an animated paintbrush in more places on his site."
+
+     One number, --paint, from 0 to 1: how much of the mint rule has been
+     painted. The stylesheet scales the rule by it and carries the brush
+     along the leading edge by it, so there is nothing to keep in step.
+
+     0 is the rule crossing the bottom of the window — 94% of it, which is
+     where the observer below starts calling, so the first frame is 0 and
+     not a jump — and 1 is a rule finished while the last stage is still on
+     screen: the travel is the list's own height plus a fifth of a window,
+     held between .45 and .8 of a window so that a long list on a phone
+     still finishes with the brush in front of the visitor rather than
+     somewhere above the top of the screen.
+
+     Scrolling back up runs the same sum backwards, which is the whole of
+     the un-painting: this is Live behaviour, not a one-shot reveal.
+
+     Each stage takes the Cure sheen as the brush goes over it — the middle
+     of its share of the rule, which on the Home row is the middle of its
+     column and in the About column is simply its turn. .cured is the
+     state, .curing is the pass: taking it off, reading a box to force the
+     style through, and putting it back is what makes the sheen run again
+     on the way back past. It happens three times a pass at most.       */
+  const brushTo = (el, beats, r, H) => {
+    const travel = Math.max(H * 0.45, Math.min(H * 0.8, r.height + H * 0.2));
+    const p = Math.max(0, Math.min(1, (H * 0.94 - r.top) / travel));
+    el.style.setProperty('--paint', p.toFixed(4));
+    beats.forEach((b, i) => {
+      const past = p >= (i + 0.5) / beats.length;
+      if (past === b.classList.contains('cured')) return;
+      b.classList.toggle('cured', past);
+      b.classList.remove('curing');
+      void b.offsetWidth;
+      b.classList.add('curing');
+    });
+  };
+
   const paint = () => {
     frame = 0;
     const H = innerHeight || 1;
     // Every box is read before anything is written: one layout pass, no
     // matter how many cards and glows are on screen.
-    const read = [], lit = [];
+    const read = [], lit = [], painting = [];
     cards.forEach(c => read.push([c, place(c.getBoundingClientRect(), H)]));
     glows.forEach(g => lit.push([g, place(g.getBoundingClientRect(), H)]));
+    rules.forEach((beats, el) => painting.push([el, beats, el.getBoundingClientRect()]));
 
     read.forEach(([c, p]) => {
       // The photograph lags the frame: as the card rides up the screen the
@@ -184,6 +223,8 @@
       const v = g === near ? Math.max(0, 1 - Math.abs(p) * 1.3) : 0;
       g.style.setProperty('--g', v.toFixed(3));
     });
+
+    painting.forEach(([el, beats, r]) => brushTo(el, beats, r, H));
 
     if (tiltEl) {
       tiltEl.style.setProperty('--ry', tiltX.toFixed(2) + 'deg');
@@ -225,7 +266,8 @@
   const targets = [...document.querySelectorAll('.rv,.dims')];
   const live = [...document.querySelectorAll('[data-live]')];
   const glowing = [...document.querySelectorAll('[data-glow]')];
-  if (!targets.length && !live.length && !glowing.length) return;
+  const painted = [...document.querySelectorAll('[data-brush]')];
+  if (!targets.length && !live.length && !glowing.length && !painted.length) return;
 
   // No observer means no way to unhide: show everything now rather than
   // making the visitor wait for the 2.8s self-reveal. A live element with
@@ -233,6 +275,7 @@
   if (!('IntersectionObserver' in window)) {
     targets.concat(live).forEach(el => el.classList.add('in'));
     glowing.forEach(g => g.style.setProperty('--g', '.45'));   // the mid value
+    painted.forEach(el => el.style.setProperty('--paint', '1'));  // the rule, painted
     return;
   }
 
@@ -252,6 +295,16 @@
       pump();
       return;
     }
+    if (el.hasAttribute('data-brush')) {
+      // The rect the observer already measured lands the rule exactly on 0
+      // or 1 as it leaves, so a section scrolled past is finished and one
+      // scrolled off the bottom is bare.
+      const beats = rules.get(el) || [...el.querySelectorAll('.beat')];
+      brushTo(el, beats, e.boundingClientRect, innerHeight || 1);
+      if (e.isIntersecting) rules.set(el, beats); else rules.delete(el);
+      pump();
+      return;
+    }
     if (el.hasAttribute('data-live')) {
       // A card is a reveal as well as a live thing. Roll still runs once,
       // at the threshold it has always run at, and .rolled is what holds
@@ -268,7 +321,7 @@
     el.classList.add('in');
     io.unobserve(el);                // Cure runs once, and only once
   }), { threshold: [0, 0.12, LIVE], rootMargin: '0px 0px -6% 0px' });
-  targets.concat(live, glowing).forEach(el => io.observe(el));
+  targets.concat(live, glowing, painted).forEach(el => io.observe(el));
 })();
 
 /* =====================================================================

@@ -30,6 +30,10 @@
      the fade ends in the colour it started as rather than in grey. */
   --glow:rgba(113,238,184,.09); --glow-soft:rgba(113,238,184,.035);
   --glow-0:rgba(113,238,184,0);
+  /* The wet edge the brush leaves on the rule it has just painted: the pale
+     mint of a loaded bristle, over the flat mint of the dry rule, so "wet"
+     reads as a lighter ridge rather than more of the same green. */
+  --mint-wet:rgba(168,247,214,.72); --mint-wet-0:rgba(168,247,214,0);
   --scrim:rgba(10,10,11,.88); --scrim-soft:rgba(10,10,11,.45);
   /* Ink on the one light panel: the ghost of a buff job across its corner,
      its hairlines, and the muted grey that stands in for --muted there.
@@ -225,6 +229,9 @@ footer .foot-grid ul a:hover{color:var(--paper)}
      Scale  the dimension figures widen into place, wdth 100 -> 125.
      Cure   one slow mint sheen down the rule under a figure as it lands,
             once, never repeated.
+     Brush  the mint rule his three stages sit on is painted in by a brush
+            riding its leading edge as the visitor scrolls, and un-painted
+            as they scroll back up.
    ===================================================================== */
 
 /* --- Roll ------------------------------------------------------------- */
@@ -283,6 +290,72 @@ html.motion .dims.in::before{
   from{background-position:-45% 0;opacity:0}
   18%{opacity:1}
   to{background-position:145% 0;opacity:0}
+}
+
+/* --- Brush ------------------------------------------------------------ */
+/* The seventh verb, and the second that runs both ways. The owner: "Add an
+   animated paintbrush in more places on his site." So the mint rule his three
+   stages sit on is not drawn any more, it is painted: a brush rides the
+   leading edge as the visitor scrolls down and retreats as they scroll back
+   up, and each stage takes its Cure sheen as the brush passes it.
+
+   The rule, its track and the brush are all in the server HTML and only the
+   motion is gated, which keeps the promise the rest of this file keeps: with
+   no script — and for a visitor who asked for reduced motion, who never gets
+   html.motion — the rule is simply a finished mint rule and there is no
+   brush. The track is absolutely positioned and its own height, with the line
+   on its bottom edge sitting over the top hairline of the stage list: it adds
+   nothing to the layout, and because it clips, a brush at the end of the rule
+   can never widen the document (the lesson written up under Cure). --paint,
+   0 to 1, is the one number site.js writes; --bw is how big the brush is
+   drawn and --bh how far it stands above the line, which is what the track
+   has to be tall enough to hold. The brush's own contact point is 26% across
+   and 83% down its box — art.py brush_rule_svg() — and those two fractions
+   are what put its bristles on the line at any size. */
+.beatrule{position:relative;--bw:64px;--bh:calc(var(--bw) * .78)}
+@media (max-width:700px){.beatrule{--bw:44px}}
+.beatrule-track{
+  position:absolute;left:0;right:0;top:calc(var(--bh) * -1);
+  height:calc(var(--bh) + 6px);overflow:hidden;pointer-events:none;
+}
+.beatrule-line{
+  position:absolute;left:0;right:0;top:var(--bh);height:2px;
+  background:var(--mint);transform-origin:left center;
+}
+.beatrule-pos{display:none}
+html.motion .beatrule-line{transform:scaleX(var(--paint,0))}
+/* The positioner is the width of the track, so one translateX in per cent of
+   itself carries the brush and its wet edge along the whole rule. It lifts
+   off over the last stretch rather than being sliced by the track's edge. */
+html.motion .beatrule-pos{
+  display:block;position:absolute;left:0;top:0;width:100%;height:100%;
+  transform:translateX(calc(var(--paint,0) * 100%));
+  opacity:clamp(0,calc((1 - var(--paint,0)) * 12),1);
+}
+html.motion .beatrule-wet{
+  position:absolute;right:0;top:calc(var(--bh) - 1px);height:4px;
+  width:calc(var(--bw) * 1.2);border-radius:2px;
+  background:linear-gradient(90deg,var(--mint-wet-0),var(--mint-wet));
+}
+html.motion .beatrule-brush{
+  position:absolute;left:0;top:0;width:var(--bw);height:var(--bw);
+  margin-left:calc(var(--bw) * -.26);
+  margin-top:calc(var(--bh) + 1px - var(--bw) * .83);
+}
+html.motion .beatrule-brush svg{display:block;width:100%;height:100%}
+/* Cure, fired by the brush rather than by arriving on screen: the same sheen
+   travelling the same way, under the stage's number, every time the brush
+   goes past it in either direction. .cured is the state — the brush is past
+   this stage — and .curing is the pass that just happened; site.js takes it
+   off and puts it back so the sheen runs again on a repaint. */
+html.motion .beat h3{position:relative}
+html.motion .beats-full .beat h3{--cy:2.1rem;--cw:2.6rem}
+html.motion .beat.curing h3::after{
+  content:"";position:absolute;left:0;top:var(--cy,5px);
+  width:var(--cw,34px);height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent) no-repeat;
+  background-size:60% 100%;
+  animation:oaCure 1.4s var(--ease) 1 both;pointer-events:none;
 }
 
 /* =====================================================================
@@ -420,6 +493,10 @@ html.motion .pintro .glow{--gx:74%;--gy:20%}
      reduced motion, so there was never going to be a glow to hold still:
      this says the same thing twice, on purpose. */
   html.motion .glow{display:none}
+  /* Brush: the rule is painted and the brush was never there. */
+  html.motion .beatrule-line{transform:none}
+  html.motion .beatrule-pos{display:none}
+  html.motion .beat.curing h3::after{content:none;animation:none}
   html{scroll-behavior:auto}
 }
 

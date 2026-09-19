@@ -130,6 +130,31 @@ Ephraim before any production code.
   who asked for reduced motion, so there was never a glow to hold still; the numbers and the
   cards are the static page they are today. No counters, no scores, no labels: a figure rolling
   is motion, not a number going up.
+- **Brush — the seventh verb (owner, 2026-09-19), and the second that runs both ways.** He
+  asked for it in one sentence: *"Add an animated paintbrush in more places on his site."* So
+  the vocabulary is **Roll · Scale · Cure · Wash · Splat · Live · Brush**, and Brush is the one
+  that is neither a reveal nor a click: it is tied to the scroll, both ways, like Live.
+  **The mint rule his three stages sit on is painted rather than drawn.** On Home's "Prep,
+  paint, preservation" row and on About's three stages in full, the rule is scaled from the left
+  by one custom property, `--paint`, and a brush rides its leading edge with a faint wet ridge
+  directly behind the bristles. `--paint` is 0 as the rule crosses the bottom of the window and
+  1 while the last stage is still on screen (the list's own height plus a fifth of a window,
+  held between .45 and .8 of a window so a long list on a phone still finishes in front of the
+  visitor). Scrolling back up runs the same sum backwards: the rule un-paints and the brush
+  retreats. **Each stage takes the Cure sheen as the brush goes over it** — under the stage's
+  number, on every pass, in either direction, which is what `.cured` (the state) and `.curing`
+  (the pass that just happened) are for. The brush is `art.py`'s, in a second variant —
+  `brush_rule_svg()`, the same wood, ferrule and mint-loaded bristles turned 48° and anchored on
+  the point where the leading hairs touch, at 26% across and 83% down its box, which is how
+  site.css puts its bristles on the line at any size — drawn at 64px, 44px on a phone. It is
+  never over the stage text: it rides the line itself, in a clipping track that is absolutely
+  positioned over the list's top hairline, so the mechanic adds nothing to the layout and a
+  brush at the end of the rule can never widen the document. Desktop and mobile are the same
+  mechanic because it is scroll-tied. **No JS / reduced motion: the rule is simply painted and
+  there is no brush** — the markup is all in the server HTML and only the motion is gated, so
+  the two renders stay the same document. It runs off the Live IIFE's one scroll listener and
+  one rAF, and the same IntersectionObserver, which now has a third contract: a `[data-brush]`
+  element is never unobserved and is repainted on every crossing.
 - **The graffiti has to read as a real tagged wall — never cartoon bubble letters.** The first
   drawn version was three bubble-letter pieces in magenta, blue and amber, evenly spaced, all
   plainly painted the same afternoon by the same hand; the owner's verdict was *"that graffiti

@@ -18,6 +18,7 @@ img(), so the same build runs at the domain root and under a preview prefix.
 """
 import os, sys, html, json, struct, hashlib
 from urllib.parse import quote as _urlq
+from art import brush_rule_svg
 
 SRC = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(SRC, 'site')
@@ -492,7 +493,7 @@ PROCESS = [
 ]
 
 
-def beats(items, cls='', quoted=True):
+def beats(items, cls='', quoted=True, rule=False):
     """A row of stages: the stage name, then the sentences under it.
 
     `quoted` is not decoration. Where the words are Ephraim's they are set in
@@ -500,13 +501,40 @@ def beats(items, cls='', quoted=True):
     four beats of a graffiti job, who the service is for — they are ordinary
     paragraphs. Marking our own prose as a quotation of his would be the one
     kind of lie this site cannot afford.
+
+    `rule` is Brush: the mint rule the stages sit on is painted in by a brush
+    as the visitor scrolls, and un-painted as they scroll back up. It is on
+    his three stages and nowhere else — the Home row and the About column,
+    which are the same three sentences twice.
     """
     body = ('<blockquote><p>{0}</p></blockquote>' if quoted else '<p>{0}</p>')
     li = ''.join(
         f'<li class="beat rv{" rv-d" + str(i) if i else ""}">'
         f'<h3>{stage}</h3>{body.format(words)}</li>'
         for i, (stage, words) in enumerate(items))
-    return f'<ol class="{("beats " + cls).strip()}">{li}</ol>'
+    ol = f'<ol class="{("beats " + cls).strip()}">{li}</ol>'
+    return brush_rule(ol) if rule else ol
+
+
+def brush_rule(stages):
+    """The rule the stages sit on, and the brush that paints it (Brush).
+
+    All of it is in the server HTML, because the page has to be finished
+    without a script: the track is an absolutely positioned box with the mint
+    line on its bottom edge, laid over the top hairline of the stage list, so
+    it adds nothing to the layout and a page with no JavaScript — or a
+    visitor who asked for reduced motion, who never gets html.motion — simply
+    reads a rule that is already painted. The brush and the wet edge are here
+    too, and are display:none outside html.motion: markup a crawler can see
+    and nobody else can. site.js writes one number, --paint, and the
+    stylesheet does the rest.
+    """
+    return (f'<div class="beatrule" data-brush>'
+            f'<div class="beatrule-track" aria-hidden="true">'
+            f'<span class="beatrule-line"></span>'
+            f'<span class="beatrule-pos"><span class="beatrule-wet"></span>'
+            f'<span class="beatrule-brush">{brush_rule_svg()}</span></span>'
+            f'</div>{stages}</div>')
 
 
 def swipe(slides, label, cls=''):
@@ -734,7 +762,7 @@ pages['/index'] = dict(
 <section><div class="wrap">
   <div class="section-head rv"><div class="eyebrow">How a wall gets painted</div><h2>Prep, paint, preservation</h2>
   <p class="lead">Ephraim’s three stages, in his own words.</p></div>
-  {beats(PROCESS)}
+  {beats(PROCESS, rule=True)}
 </div></section>
 
 {gr_band()}
@@ -972,7 +1000,7 @@ pages['/about'] = dict(
   <h2>Prep, paint, preservation</h2>
   <p class="lead">Ephraim’s three stages, in full and in his own words — the same three
   he has published since the first version of this company’s site.</p></div>
-  {beats(PROCESS, 'beats-full')}
+  {beats(PROCESS, 'beats-full', rule=True)}
 </div></section>
 
 <section class="alt"><div class="wrap">
