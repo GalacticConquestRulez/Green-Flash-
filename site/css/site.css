@@ -54,6 +54,14 @@
      page rather than part of it; a cut edge of ink around it and the shadow
      of a hand holding it a little off the wall. It carries no type, so it
      answers to none of the contrast rules above — it is a prop. */
+  /* Spray: the mist that drifts off the nozzle while the can is writing,
+     and the runs that come off the bottom of the heaviest letters after it
+     has passed them. The mist is a radial gradient's own falloff and
+     nothing else — nothing on this site is softened with a blur filter —
+     and the drip is the wet mint of a loaded can, thinning as it runs.
+     --glow-0 is this same mint at nothing, which is where the mist ends. */
+  --mist:rgba(113,238,184,.38); --drip:rgba(113,238,184,.9);
+  --drip-0:rgba(113,238,184,.3);
   --matte:#9A9284; --matte-2:#7F776A;
   --matte-edge:rgba(10,10,11,.45); --st-shade:rgba(10,10,11,.55);
   --st-cut:rgba(10,10,11,.55);
@@ -229,7 +237,7 @@ html.motion .hero-video{display:block;position:absolute;inset:0;width:100%;heigh
 .spray-word{
   display:grid;margin:0;
   font-family:var(--font-display);font-variation-settings:'wdth' 125,'wght' 800;
-  font-size:clamp(2.6rem,10.2vw,7.2rem);line-height:.92;letter-spacing:.02em;
+  font-size:clamp(2.6rem,12vw,7.2rem);line-height:.92;letter-spacing:.02em;
   text-transform:uppercase;color:var(--paper);
 }
 .spray-track{display:none}
@@ -541,6 +549,148 @@ html.motion .st-done .st-halo{opacity:.12}
 html.motion .st-probe{display:inline-block;width:0;height:0;vertical-align:baseline}
 html.motion .st-defs{position:absolute;width:0;height:0;overflow:hidden}
 
+/* --- Spray ------------------------------------------------------------
+   Owner, 2026-09-19: "Is there any way to have a can of spray paint spray
+   'Open Air Gallery' underneath the hero as a section builder?"
+
+   So the band build.py lays down is written rather than printed. The can
+   enters from the left, travels the line at letter height with its nozzle
+   on the letters, and the word appears behind it through a feathered edge
+   that advances with the nozzle. An overspray halo hangs on while the can
+   is open and settles to a faint one when it is dry; a mist cloud rides
+   just ahead of the nozzle and clears; two or three runs come off the
+   heaviest letters once the can has gone past them.
+
+   The nozzle and the wet edge are in step by construction rather than by
+   a number passed between them: the can's track is the width of the word,
+   the mask is sized on the word, and both carry the same animation — same
+   duration, same linear clock, the same keyframe offsets — so the left
+   edge of the track and the edge of the paint are the same percentage of
+   the same box at every frame.
+
+   It sprays once on the way in, like Roll; a hover on a fine pointer and a
+   tap on a coarse one spray it again. Nothing in it can move a box: the
+   can, the mist, the halo and the drips are all absolutely positioned
+   inside a stage that shrink-wraps the word, and the mask changes no
+   metric of the text at all. And nothing in it survives without
+   html.motion — the halo and the drips are site.js's and are never built,
+   the can is display:none, and the word is simply the word.            */
+html.motion .spray-band{--cw:120px;--mw:1.7;--sp-t:2.05s;--sp-lead:-34%}
+/* A phone gets a smaller can and a much smaller cloud: the mist is drawn
+   off the can's size, and on a 390 the word is a third of the width it is
+   on a desktop — a cloud at the desktop's proportion would be the band. */
+@media (max-width:700px){html.motion .spray-band{--cw:84px;--mw:1.05}}
+
+/* The word waits behind an edge that is nowhere yet, and carries this
+   section's share of the 2.8s bail-out every hidden thing in this file
+   carries: if the pass never runs, the wordmark paints itself in rather
+   than staying blank. */
+html.motion .spray-band[data-spray] .spray-word{
+  -webkit-mask-image:linear-gradient(90deg,var(--paper) 86%,transparent);
+          mask-image:linear-gradient(90deg,var(--paper) 86%,transparent);
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:0 0;mask-position:0 0;
+  -webkit-mask-size:0% 100%;mask-size:0% 100%;
+  animation:oaSprayFail 0s linear 2.8s forwards;
+}
+@keyframes oaSprayFail{to{-webkit-mask-size:130% 100%;mask-size:130% 100%}}
+html.motion .spray-band.spray-go .spray-word{
+  animation:oaSprayWrite var(--sp-t) linear both;
+}
+/* Dry: the mask comes off outright rather than being left at its end
+   value, so a settled band carries nothing at all on its type. */
+html.motion .spray-band.spray-done .spray-word{
+  -webkit-mask-image:none;mask-image:none;animation:none;
+}
+@keyframes oaSprayWrite{
+  0%,24%{-webkit-mask-size:0% 100%;mask-size:0% 100%}
+  100%{-webkit-mask-size:118% 100%;mask-size:118% 100%}
+}
+
+/* The overspray. A clone of the word with no ink in it: what paints is
+   the shadow, the way the stencil's halo does, so the halo can never come
+   away from the glyphs it belongs to. It wears the tags' own aerosol
+   filter for as long as the can is open — site.js puts it on and takes it
+   off — and nothing at all once the paint is dry. */
+html.motion .spray-halo{
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  -webkit-user-select:none;user-select:none;
+  color:transparent;text-shadow:0 0 6px var(--paper),0 0 15px var(--paper);
+  opacity:0;transition:opacity .42s var(--ease);
+}
+html.motion .spray-band.spray-go .spray-halo{opacity:.3;transition-duration:.2s}
+html.motion .spray-band.spray-done .spray-halo{opacity:.12}
+
+/* The track: the width of the word, carried across it by one translate.
+   Nothing in it is measured — the can is hung off the track's left edge by
+   art.py's two fractions, so the nozzle sits on the wet edge at any --cw.
+   It exists only while the can is out, which is also what keeps the can's
+   own grain and aerosol filters off a settled page. */
+html.motion .spray-band.spray-go .spray-track{
+  display:block;position:absolute;left:0;top:0;width:100%;height:100%;
+  z-index:2;pointer-events:none;
+}
+html.motion .spray-pos{
+  position:absolute;left:0;top:0;width:100%;height:100%;
+  animation:oaSprayRide var(--sp-t) linear both;
+}
+@keyframes oaSprayRide{
+  0%{transform:translateX(var(--sp-lead));opacity:0}
+  5%{opacity:1}
+  24%{transform:translateX(0)}
+  95%{opacity:1}
+  100%{transform:translateX(118%);opacity:0}
+}
+html.motion .spray-can{
+  position:absolute;left:0;top:50%;width:var(--cw);height:var(--cw);
+  margin-left:calc(var(--cw) * -.75);margin-top:calc(var(--cw) * -.5);
+}
+html.motion .spray-can svg{display:block;width:100%;height:100%;overflow:visible}
+
+/* The mist, just ahead of the nozzle: a radial's own falloff, no filter,
+   coming up as the finger goes down and clearing as the pass ends. */
+html.motion .spray-mist{
+  position:absolute;left:0;top:50%;
+  width:calc(var(--cw) * var(--mw));height:calc(var(--cw) * var(--mw));
+  margin-left:calc(var(--cw) * var(--mw) * -.1);
+  margin-top:calc(var(--cw) * var(--mw) * -.5);
+  background:radial-gradient(circle at 24% 50%,var(--mist) 0%,var(--glow-0) 58%);
+  transform-origin:24% 50%;opacity:0;
+  animation:oaSprayMist var(--sp-t) linear both;
+}
+@keyframes oaSprayMist{
+  0%,22%{opacity:0;transform:scale(.68)}
+  34%{opacity:1;transform:scale(1)}
+  92%{opacity:.85;transform:scale(1.08)}
+  100%{opacity:0;transform:scale(1.2)}
+}
+
+/* The runs. Each one is a body of mint scaled down from the letter it came
+   off and a bead carried to the end of it — two transforms on the same
+   clock rather than a height, so a drip costs a layout nothing. site.js
+   sets where it starts, how long it runs and when: after the can. */
+html.motion .spray-drip{
+  position:absolute;z-index:1;pointer-events:none;
+  width:var(--dw);height:var(--dh);opacity:0;
+}
+html.motion .spray-drip.run{animation:oaSprayWet .18s linear both}
+html.motion .spray-run{
+  position:absolute;inset:0;transform:scaleY(0);transform-origin:top center;
+  border-radius:0 0 var(--dw) var(--dw);
+  background:linear-gradient(180deg,var(--drip-0),var(--drip) 55%);
+}
+html.motion .spray-bead{
+  position:absolute;left:50%;top:0;
+  width:calc(var(--dw) * 1.7);height:calc(var(--dw) * 1.7);
+  margin-left:calc(var(--dw) * -.85);border-radius:50%;
+  background:var(--drip);transform:translateY(-50%);
+}
+html.motion .spray-drip.run .spray-run{animation:oaSprayRun var(--dt) cubic-bezier(.34,.06,.28,1) both}
+html.motion .spray-drip.run .spray-bead{animation:oaSprayBead var(--dt) cubic-bezier(.34,.06,.28,1) both}
+@keyframes oaSprayWet{to{opacity:1}}
+@keyframes oaSprayRun{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes oaSprayBead{from{transform:translateY(-50%)}to{transform:translateY(calc(var(--dh) - 50%))}}
+
 /* --- the cards --------------------------------------------------------
    "Add more motion to the cards." Three things, composed on top of the
    hover the card already had rather than in place of it:
@@ -746,6 +896,10 @@ html.motion .pcard-wet{
      reduced motion, so there was never going to be a glow to hold still:
      this says the same thing twice, on purpose. */
   html.motion .glow{display:none}
+  /* Spray: the wordmark is the word, and there was never a can. site.js
+     builds no halo and no drips here; this says it a second time. */
+  html.motion .spray-word{-webkit-mask-image:none;mask-image:none;animation:none}
+  html.motion .spray-track,html.motion .spray-halo,html.motion .spray-drip{display:none}
   /* Brush: the rule is painted and the brush was never there. */
   html.motion .beatrule-line{transform:none}
   html.motion .beatrule-pos{display:none}

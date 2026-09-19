@@ -119,6 +119,32 @@
       hissOn: () => voiceOn('brush', 1250, 0.55, 0.006, 0.042),
       hissSpeed: (v) => voiceAt('brush', v),
       hissOff: () => voiceOff('brush'),
+      // Spray: the can writing on a wall. Its own named voice, tighter and
+      // higher than the washer's jet, so a Home page that carries both can
+      // never have one of them reaching for the other's gain node.
+      canOn: () => voiceOn('can', 3400, 1.2, 0.006, 0.045),
+      canAt: (v) => voiceAt('can', v),
+      canOff: () => voiceOff('can'),
+      // Spray: the ball bearing in a rattle can, shaken as it comes in.
+      // Four knocks out of the same noise buffer every other voice uses,
+      // each one a few milliseconds of band-passed noise and gone.
+      rattle: () => {
+        const c = ensure();
+        if (!c) return;
+        [0, 0.105, 0.2, 0.315].forEach((at, i) => {
+          const t = c.currentTime + at;
+          const src = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+          src.buffer = buf; src.loop = true;
+          bp.type = 'bandpass';
+          bp.frequency.value = 1700 + i * 260;
+          bp.Q.value = 2.4;
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.05, t + 0.006);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
+          src.connect(bp); bp.connect(g); g.connect(c.destination);
+          src.start(t); src.stop(t + 0.07);
+        });
+      },
       // Wash: two rising chirps, the squeak of a finger on clean glass.
       squeak: () => {
         const c = ensure();
@@ -542,7 +568,10 @@
      settled page.                                                       */
   const ST_HOLD = 120, ST_LIFT = 220, ST_SETTLE = 60, ST_AGAIN = 200;
   const figures = [...document.querySelectorAll('.dims,.stat-n')];
-  if (figures.length) {
+  // Spray's halo wears the same aerosol, so the band asks for it here
+  // rather than defining a second copy of the same filter further down.
+  const spBands = [...document.querySelectorAll('.spray-band[data-spray]')];
+  if (figures.length || spBands.length) {
     // wall.py's aerosol, in the one place off the wall that needs it:
     // turbulence displaces the halo by a few units and a hair of blur takes
     // the vector edge off it, which is the difference between a can and a
@@ -711,11 +740,149 @@
     else f.addEventListener('pointerdown', () => stSpray(f, false));
   });
 
+  /* --- Spray: a can writes the wordmark ------------------------------
+     Owner: "Is there any way to have a can of spray paint spray 'Open Air
+     Gallery' underneath the hero as a section builder?"
+
+     The band, the word and the can are all in the server HTML (build.py
+     spray_band()). What is built here is the two things that have to be
+     measured: the overspray halo, which is a clone of the word with the
+     ink taken out of it so the halo can never come away from the glyphs
+     it belongs to, and the runs of paint, which are hung off the bottom
+     of particular letters and so have to be asked where those letters
+     actually are.
+
+     Nothing here drives the pass frame by frame. The can and the wet edge
+     carry the same CSS animation on the same clock — the stylesheet has
+     the why — and this only says go, puts the aerosol filter on the halo
+     while the can is open, starts a run of paint as the nozzle goes past
+     the letter it comes off, and takes the filter off again at the end.
+
+     The letters are measured with a Range rather than by wrapping every
+     glyph in a span: a range over one character reports exactly where
+     that character is without changing the document, which keeps the word
+     one text node and the no-script render the render it always was.
+
+     It sprays once on the way in, like Roll rather than like Live. A
+     hover on a fine pointer and a tap on a coarse one spray it again, and
+     the band is not a link, so a tap costs nothing.                    */
+  const SP_T = 2050, SP_WRITE = 0.24, SP_DRIP = 640, SP_SEEN = 0.5, SP_HEAVY = 'OAG';
+  const spKit = window.oagKit;
+
+  const spBuild = (band) => {
+    if (band.dataset.spBuilt) return true;
+    const word = band.querySelector('.spray-word');
+    if (!word) return false;
+    const halo = word.cloneNode(true);
+    halo.classList.add('spray-halo');
+    halo.setAttribute('aria-hidden', 'true');
+    word.after(halo);
+    band.dataset.spBuilt = '1';
+    band.style.setProperty('--sp-t', SP_T + 'ms');
+    return true;
+  };
+
+  /* Where the runs go: the heaviest letters on each line — O, A and G —
+     at most two to a line and never two within a third of the word of
+     each other, so three drips are spread across the band rather than
+     bunched at its left edge. A drip off a line that is not the last one
+     is half the length: it has the next line under it. */
+  const spDrips = (band) => {
+    const stage = band.querySelector('.spray-stage');
+    const word = band.querySelector('.spray-word');
+    if (!stage || !word) return [];
+    stage.querySelectorAll('.spray-drip').forEach(n => n.remove());
+    const sr = stage.getBoundingClientRect();
+    if (!sr.width) return [];
+    const fs = parseFloat(getComputedStyle(word).fontSize) || 16;
+    const w = Math.max(2, fs * 0.036);
+    const lines = [...word.children];
+    const probe = document.createElement('i');
+    probe.className = 'st-probe';
+    const out = [];
+    lines.forEach((line, li) => {
+      const node = line.firstChild;
+      if (!node || node.nodeType !== 3) return;
+      const t = node.nodeValue;
+      const last = li === lines.length - 1;
+      // Where the letters actually stand. A range rect is the line's box,
+      // which on a face set at .92 line-height is nowhere near the feet of
+      // the glyphs; a zero-height inline-block stands its bottom edge on
+      // the baseline, which is the only way to ask the page where one is —
+      // the same probe Stencil measures its cut from.
+      line.appendChild(probe);
+      const base = probe.getBoundingClientRect().bottom - sr.top;
+      probe.remove();
+      let took = 0, prev = -1e9;
+      for (let i = 0; i < t.length && took < 2; i++) {
+        if (SP_HEAVY.indexOf(t[i].toUpperCase()) < 0) continue;
+        const rg = document.createRange();
+        rg.setStart(node, i); rg.setEnd(node, i + 1);
+        const r = rg.getBoundingClientRect();
+        if (!r.width) continue;
+        const x = r.left + r.width / 2 - sr.left;
+        if (x - prev < sr.width * 0.33) continue;
+        prev = x; took++;
+        out.push({ x, y: base - fs * 0.05, len: fs * (last ? 0.3 : 0.17) });
+      }
+    });
+    const drips = out.slice(0, 3);
+    drips.forEach(d => {
+      const el = document.createElement('span');
+      el.className = 'spray-drip';
+      el.setAttribute('aria-hidden', 'true');
+      el.style.cssText = 'left:' + (d.x - w / 2).toFixed(1) + 'px;top:' + d.y.toFixed(1) +
+        'px;--dw:' + w.toFixed(1) + 'px;--dh:' + d.len.toFixed(1) + 'px;--dt:' + SP_DRIP + 'ms';
+      el.innerHTML = '<i class="spray-run"></i><i class="spray-bead"></i>';
+      stage.appendChild(el);
+      d.el = el;
+      d.at = SP_T * (SP_WRITE + (1 - SP_WRITE) * Math.min(1, d.x / sr.width)) + 200;
+    });
+    return drips;
+  };
+
+  const spSpray = (band) => {
+    if (band.dataset.spraying) return;           // one can at a time
+    if (!spBuild(band)) return;
+    band.dataset.spraying = '1';
+    (band.oaSpT || []).forEach(clearTimeout);
+    band.oaSpT = [];
+    band.classList.remove('spray-go', 'spray-done');
+    void band.offsetWidth;                       // a respray starts over
+    const drips = spDrips(band);
+    const halo = band.querySelector('.spray-halo');
+    band.classList.add('spray-go');
+    if (halo) halo.style.filter = 'url(#oa-spray)';
+    // Muted is the default and the state is the one the wall and the
+    // washer already persist: this asks, it never turns anything on.
+    if (spKit) spKit.sound.rattle();
+    band.oaSpT.push(setTimeout(() => {
+      if (spKit) { spKit.sound.canOn(); spKit.sound.canAt(0.62); }
+    }, SP_T * SP_WRITE));
+    drips.forEach(d => band.oaSpT.push(setTimeout(() => d.el.classList.add('run'), d.at)));
+    band.oaSpT.push(setTimeout(() => {
+      band.classList.remove('spray-go');
+      band.classList.add('spray-done');          // the halo settles
+      if (halo) halo.style.filter = '';          // and nothing is filtered again
+      if (spKit) spKit.sound.canOff();
+      delete band.dataset.spraying;
+    }, SP_T));
+  };
+
+  spBands.forEach(b => {
+    spBuild(b);
+    if (fine) b.addEventListener('pointerenter', e => {
+      if (e.pointerType !== 'touch') spSpray(b);
+    });
+    else b.addEventListener('pointerdown', () => spSpray(b));
+  });
+
   const targets = [...document.querySelectorAll('.rv,.dims,.stat-n')];
   const live = [...document.querySelectorAll('[data-live]')];
   const glowing = [...document.querySelectorAll('[data-glow]')];
   const painted = [...document.querySelectorAll('[data-brush]')];
-  if (!targets.length && !live.length && !glowing.length && !painted.length) return;
+  if (!targets.length && !live.length && !glowing.length && !painted.length
+      && !spBands.length) return;
 
   // No observer means no way to unhide: show everything now rather than
   // making the visitor wait for the 2.8s self-reveal. A live element with
@@ -724,6 +891,7 @@
     targets.concat(live).forEach(el => el.classList.add('in'));
     glowing.forEach(g => g.style.setProperty('--g', '.45'));   // the mid value
     painted.forEach(el => el.style.setProperty('--paint', '1'));  // the rule, painted
+    spBands.forEach(b => b.classList.add('spray-done'));         // the word, sprayed
     return;
   }
 
@@ -741,6 +909,19 @@
       if (e.isIntersecting) glows.add(el);
       else { glows.delete(el); el.style.setProperty('--g', '0'); }
       pump();
+      return;
+    }
+    if (el.hasAttribute('data-spray')) {
+      // Spray runs once on the way in, the way Roll does: it is the
+      // wordmark arriving, not something that replays as the page moves.
+      // Half the band rather than the eighth the reveals use, because the
+      // top of a band is its padding: an eighth of it can be showing under
+      // a hero with the word itself still below the fold, and a wordmark
+      // written where nobody is looking has not been written at all.
+      if (e.isIntersecting && e.intersectionRatio >= SP_SEEN) {
+        spSpray(el);
+        io.unobserve(el);
+      }
       return;
     }
     if (el.hasAttribute('data-brush')) {
@@ -775,8 +956,8 @@
     // that only when the visitor asks for it again.
     if (el.classList.contains('dims') || el.classList.contains('stat-n')) stSpray(el, true);
     io.unobserve(el);                // Cure runs once, and only once
-  }), { threshold: [0, 0.12, LIVE], rootMargin: '0px 0px -6% 0px' });
-  targets.concat(live, glowing, painted).forEach(el => io.observe(el));
+  }), { threshold: [0, 0.12, LIVE, SP_SEEN], rootMargin: '0px 0px -6% 0px' });
+  targets.concat(live, glowing, painted, spBands).forEach(el => io.observe(el));
 })();
 
 /* =====================================================================

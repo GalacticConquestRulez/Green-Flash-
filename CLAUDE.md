@@ -248,6 +248,54 @@ Ephraim before any production code.
   **No JS / reduced motion: the hero exactly as it is today** — there is no canvas and no toggle
   to withhold, because site.js builds both under `html.motion`; the server HTML is one attribute,
   `data-wall`, and the `--nojs` render of `/about` is byte-identical to the one before this.
+- **Spray — the tenth verb (owner, 2026-09-19), and the one that writes.** He asked for it in
+  one sentence: *"Is there any way to have a can of spray paint spray 'Open Air Gallery'
+  underneath the hero as a section builder?"* So the vocabulary is **Roll · Scale · Cure · Wash ·
+  Splat · Live · Brush · Stencil · Wall · Spray**, and Spray is the first verb that is a
+  *section builder*: `spray_band(text)` in `build.py` is reusable, takes a word, splits it on a
+  slash into the lines it stacks as, and gives back a full-width band. Its first use is Home,
+  directly under the Johnnie Walker hero and before the stats band.
+  **The word is real server-rendered text in the wordmark's own face** — Archivo at the
+  `.brand` treatment (`wdth` 125, `wght` 800, uppercase), set at headline size and stacked two
+  lines the way `.brand` stacks — and it is the only thing in the band with a height.
+  **As the band comes into view the can writes it.** `art.py`'s rattle can, in a second variant
+  — `spraycan_pass_svg()`, the same tin, label, mint cap and dented body turned 82 degrees and
+  anchored on the nozzle's own orifice at 75% across and 50% down its box — enters from the left
+  at 120px (84px on a phone), travels the line at letter height, and the letters appear behind
+  the nozzle through a feathered edge that advances with it. **The nozzle and the wet edge are
+  in step by construction, not by a number passed between them:** the can's track is the width
+  of the word, the mask is sized on the word, and both carry the same CSS animation — same
+  duration, same linear clock, the same keyframe offsets — so the left edge of the track and the
+  edge of the paint are the same percentage of the same box at every frame, measured at three
+  moments and identical to a third of a pixel. Eighty-two degrees is a sum rather than a look:
+  the can leans 14 degrees inside its own drawing, so 82 on top puts the jet six degrees below
+  the horizontal and the label a hair past vertical, reading down the can the way a label on a
+  can lying on its side does.
+  **Three things ride with it.** An overspray halo — a clone of the word with the ink taken out
+  of it, the way Stencil's is, wearing the same `#oa-spray` aerosol while the can is open and
+  **nothing at all once the paint is dry**, settling from .30 to a static .12. A mist cloud just
+  ahead of the nozzle, a mint radial's own falloff and never a blur filter, smaller in
+  proportion on a phone because a 390 word is a third of the width a desktop one is. And two or
+  three runs off the heaviest letters — O, A and G, at most two to a line and never two within a
+  third of the word of each other — each one starting **after** the can has gone past the letter
+  it comes off, hung on the baseline a zero-height probe finds (Stencil's `.st-probe`) because a
+  range rect on a face set at .92 line-height is nowhere near the feet of the glyphs.
+  **It sprays once on the way in, like Roll rather than like Live**, and at half the band rather
+  than the eighth the reveals use: the top of a band is its padding, and a wordmark written
+  where nobody is looking has not been written at all. **Hover resprays it on a fine pointer, a
+  tap on a coarse one**, and the band is not a link, so a tap costs nothing.
+  **Sound is the ball bearing and the hiss** — four short knocks as the can comes in, then the
+  can's own named voice while it writes — behind the toggle the wall and the washer already
+  share, muted by default and read off the same persisted key. **Home has no toggle of its own:**
+  its wash band runs in auto mode and never had one, and a second toggle on Home is not wanted,
+  so the band is silent there unless the visitor turned sound on elsewhere.
+  **No JS / reduced motion: the wordmark as plain text, no can, no halo, no drips.** The halo
+  and the drips are built by site.js under `html.motion` and nowhere else, the can is
+  `display:none` outside it, and the mask that hides the letters before the can reaches them
+  changes no metric of the text at all — the word's box is the same to two decimal places in all
+  three renders, and `/`'s `--nojs` and `--reduced --compare` are still identical on every count.
+  It runs off the Live IIFE's one observer, which now has a fourth contract: a `[data-spray]`
+  band is sprayed once at half visibility and then unobserved.
 - **The graffiti has to read as a real tagged wall — never cartoon bubble letters.** The first
   drawn version was three bubble-letter pieces in magenta, blue and amber, evenly spaced, all
   plainly painted the same afternoon by the same hand; the owner's verdict was *"that graffiti
