@@ -1490,6 +1490,17 @@
   const SEEDS = [11, 5, 23];             // three turbulence seeds ...
   const TURNS = [0, 40, -70];            // ... and three turns to go with them
   const PHONE = 0.667;                   // 1.4x round two where the desktop is 2.1x
+  /* The throw's own box, and the reason it has one. Round two drew the blob
+     into a viewport-sized <svg> and animated a <g> inside it; an SVG group
+     whose transform animates is re-rasterised every frame, and with five
+     filtered layers over a 470px throw that is ~66ms a frame on a machine
+     with no GPU -- four frames for the whole pop. So the thing that
+     animates is now the <svg> element itself, which is an ordinary box the
+     compositor can raster once and move, and the filters sit still inside
+     it. BOX_W/BOX_H are that box and BOX_X/BOX_Y where the click point
+     falls in it: the art runs x -228..245 and y -192..232, plus 34 of
+     displacement and three sigmas of the bleed's blur either way. */
+  const BOX_X = 330, BOX_Y = 300, BOX_W = 680, BOX_H = 640;
   const LEAD = 270;                      // how far the flung drops run ahead
   const TAIL = 340;                      // slack behind, so no far edge shows
 
@@ -1622,10 +1633,9 @@
                     paint's own alpha — tooth, at a fifth.
 
      All five sit inside one turbulence displacement, so the outline is the
-     same broken edge it always was, and the whole of that sits inside the
-     group the pop animates: a filtered element whose own transform
-     animates is re-filtered every frame, and a filtered child of an
-     animating parent is rasterised once and moved. `c` is which paint. */
+     same broken edge it always was, and none of them is inside anything
+     that animates: the pop is on the <svg> element, which is a box the
+     compositor rasters once and moves. `c` is which paint. */
   function splat(x, y, v, c) {
     const W = innerWidth, H = innerHeight;
     const s = W < 640 ? PHONE : 1;       // a phone gets a smaller throw
@@ -1633,8 +1643,15 @@
     const fid = 'oaSpF' + k, hid = 'oaSpH' + k, rid = 'oaSpR' + k,
           gid = 'oaSpG' + k, lid = 'oaSpL' + k;
 
-    const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`,
-                            class: 'sp-splat ' + tone(c) });
+    const svg = el('svg', {
+      width: BOX_W, height: BOX_H,
+      viewBox: `${-BOX_X} ${-BOX_Y} ${BOX_W} ${BOX_H}`,
+      class: 'sp-splat ' + tone(c),
+    });
+    svg.setAttribute('style',
+      `left:${(x - BOX_X).toFixed(1)}px;top:${(y - BOX_Y).toFixed(1)}px;` +
+      `--ox:${BOX_X}px;--oy:${BOX_Y}px;--sr:${TURNS[v]}deg;` +
+      `--s0:${(s * 0.3).toFixed(3)};--s1:${s}`);
     const defs = el('defs', {});
 
     const f = el('filter', { id: fid, x: '-25%', y: '-25%', width: '150%', height: '150%' });
@@ -1680,24 +1697,24 @@
 
     const shapes = () => BLOB.map(([n, a]) => el(n, Object.assign({ class: 'sp-ink' }, a)));
 
-    const pop = el('g', { class: 'sp-pop' });
-    pop.setAttribute('style',
-      `--sx:${x.toFixed(1)}px;--sy:${y.toFixed(1)}px;--sr:${TURNS[v]}deg;` +
-      `--s0:${(s * 0.3).toFixed(3)};--s1:${s}`);
-    const art = el('g', { class: 'sp-art', filter: `url(#${fid})` });
+    /* .sp-art carries no filter of its own: it is the box the throw is
+       measured by, and the two groups inside it are what the turbulence
+       runs on. Splitting them is what keeps the runs cheap -- their clip
+       travels for 420ms, and a filter region drawn round the whole throw
+       would be recomputed on every one of those frames, where a region
+       round four runs is a tenth of the pixels. */
+    const art = el('g', { class: 'sp-art' });
+    const throwg = el('g', { class: 'sp-throw', filter: `url(#${fid})` });
 
     const halo = el('g', { class: 'sp-halo', filter: `url(#${hid})` });
     shapes().forEach(e => halo.appendChild(e));
-    art.appendChild(halo);
+    throwg.appendChild(halo);
 
     const body = el('g', { class: 'sp-blob', filter: `url(#${rid})` });
     shapes().forEach(e => body.appendChild(e));
-    art.appendChild(body);
+    throwg.appendChild(body);
 
-    /* The runs hang outside the rim filter on purpose: their clip travels
-       for 420ms, and a morphology that had to be recomputed on every one
-       of those frames would be the one expensive thing on the page. */
-    const runs = el('g', { class: 'sp-runs' });
+    const runs = el('g', { class: 'sp-runs', filter: `url(#${fid})` });
     DRIPS.forEach(([dx, dy, len, w0, w1, wob]) => {
       runs.appendChild(el('path', { class: 'sp-drip', d: dripPath(dx, dy, len, w0, w1, wob) }));
       runs.appendChild(el('circle', {
@@ -1705,21 +1722,20 @@
         cy: (dy + len + w1 * 0.55).toFixed(1), r: (w1 * 1.5).toFixed(1),
       }));
     });
-    art.appendChild(runs);
-
     const gloss = el('g', { class: 'sp-gloss' });
     gloss.appendChild(el('ellipse', {
       cx: -30, cy: -36, rx: 108, ry: 76,
       transform: 'rotate(-24 -30 -36)', fill: `url(#${lid})`,
     }));
-    art.appendChild(gloss);
+    throwg.appendChild(gloss);
 
     const grain = el('g', { class: 'sp-grain', filter: `url(#${gid})` });
     shapes().forEach(e => grain.appendChild(e));
-    art.appendChild(grain);
+    throwg.appendChild(grain);
 
-    pop.appendChild(art);
-    svg.appendChild(pop);
+    art.appendChild(throwg);
+    art.appendChild(runs);
+    svg.appendChild(art);
     deck().appendChild(svg);
     return svg;
   }

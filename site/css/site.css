@@ -1037,7 +1037,16 @@ html.motion .splat-layer{
      on a fixed box already makes a stacking context; isolation says why. */
   isolation:isolate;
 }
-html.motion .splat-layer svg{position:absolute;left:0;top:0}
+/* The stroke is a viewport-sized sheet at the origin; the throw is a box
+   of its own, carrying the left/top site.js measured for it inline, which
+   is why that rule cannot be written here.
+
+   max-width is undone on purpose. The reset at the top of this file gives
+   every svg max-width:100%, which is right for a drawing in a column and
+   wrong for a throw: the box is 680px wide, so on a 390 phone the cap
+   squeezed it to 390 and the paint came out at 57% of the size it was
+   asked for. Nothing here is in a column — the layer is the viewport. */
+html.motion .splat-layer svg{position:absolute;left:0;top:0;max-width:none}
 /* The two paints, and the only place either of them is chosen. Every fill
    below is --pnt, --pnt-deep or --pnt-wet, and these two classes are what
    they resolve to: site.js puts .sp-a or .sp-b on the <svg> and nothing
@@ -1055,33 +1064,34 @@ html.motion .sp-rimc{flood-color:var(--pnt-rim)}
 html.motion .sp-gloss-a{stop-color:var(--gloss)}
 html.motion .sp-gloss-b{stop-color:var(--gloss-0)}
 
-/* The burst. The whole group is placed, turned and scaled in one transform,
-   so there is one animated property and the origin is the top-left of the
-   viewBox — unambiguous, unlike a transform-origin inside a translated <g>.
-   --sx/--sy are the click point, --sr the variant's turn, --s0/--s1 the
-   scale it pops between (0.667-based on a phone, which is the 1.4x the
-   round-three note asks for against the desktop 2.1x).
+/* The burst, and where it is animated. site.js gives the throw its own box
+   — 680x640 of viewBox with the click point at --ox/--oy inside it — and
+   places that box by left/top, so the one animated property is a transform
+   on the <svg> element itself. That is the whole of the performance story:
+   an SVG group whose transform animates is re-rasterised every frame, and
+   five filtered layers over a 470px throw cost ~66ms a frame on a machine
+   with no GPU, which is four frames for the entire pop. An <svg> is an
+   ordinary box; with will-change the compositor rasters it once and moves
+   it, and the filters inside never run again. --sr is the variant's turn,
+   --s0/--s1 the scale it pops between (0.667-based on a phone, which is the
+   1.4x the round-three note asks for against the desktop 2.1x).
 
    Round three: 260ms, not 120. "Increase time on transitions so he can
-   actually enjoy it" — and the filters below are the reason the transform
-   sits on this element and the art sits on the one inside it. A filtered
-   element whose own transform animates is re-filtered every frame; a
-   filtered child of an animating parent can be rasterised once and moved,
-   which is what will-change asks the compositor for here. */
-html.motion .sp-pop{
-  transform-box:view-box;transform-origin:0 0;will-change:transform;
-  transform:translate(var(--sx),var(--sy)) rotate(var(--sr)) scale(var(--s0));
-  animation:oaSplatPop .26s cubic-bezier(.34,1.42,.64,1) both;
-}
-@keyframes oaSplatPop{
-  from{transform:translate(var(--sx),var(--sy)) rotate(var(--sr)) scale(var(--s0));opacity:.4}
-  to{transform:translate(var(--sx),var(--sy)) rotate(var(--sr)) scale(var(--s1));opacity:1}
-}
+   actually enjoy it." */
 /* The splat sits over the stroke and multiplies into it: paint on paint,
    not two flat shapes stacked. Where there is no stroke under it yet the
    backdrop is transparent and a multiply against nothing is the source
    colour, so the blob is its own paint until the roller reaches it. */
-html.motion .sp-splat{z-index:2;mix-blend-mode:multiply}
+html.motion .sp-splat{
+  z-index:2;mix-blend-mode:multiply;
+  transform-origin:var(--ox) var(--oy);will-change:transform;
+  transform:rotate(var(--sr)) scale(var(--s0));
+  animation:oaSplatPop .26s cubic-bezier(.34,1.42,.64,1) both;
+}
+@keyframes oaSplatPop{
+  from{transform:rotate(var(--sr)) scale(var(--s0));opacity:.4}
+  to{transform:rotate(var(--sr)) scale(var(--s1));opacity:1}
+}
 html.motion .sp-stroke{z-index:1}
 
 /* The bleed: a blurred copy of the whole throw under its own edge, at a
