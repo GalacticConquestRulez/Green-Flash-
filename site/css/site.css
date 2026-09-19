@@ -1189,18 +1189,15 @@ html.motion .sp-lap-c{stop-color:var(--pnt-deep)}
    the reload dragged through what was already on the nap. Both are laid on
    normally — there is no blend mode left anywhere in this file, because a
    multiply is what made the overlaps flat. */
-html.motion .sp-lapo-a{stop-color:var(--oth)}
-html.motion .sp-lapo-0{stop-color:var(--oth-0)}
-html.motion .sp-lapm-a{stop-color:var(--mix)}
-html.motion .sp-lapm-0{stop-color:var(--oth-0)}
-html.motion .sp-lapo{fill:url(#oaLapO);opacity:.34}
-html.motion .sp-lapo-mix{fill:url(#oaLapM);opacity:.42}
+html.motion .sp-lapo{fill:var(--oth)}
+html.motion .sp-lapo-mix{fill:var(--mix)}
 /* Dry brush: the streaks the nap leaves behind the leading edge once the
    load starts to go. Deep paint and pale paint, both at low alpha, so the
    body is broken up without a hole in it — a hole would be the page
    showing through a transition whose whole job is to cover it. */
-html.motion .sp-dry0{fill:var(--pnt-deep);opacity:.30}
-html.motion .sp-dry1{fill:var(--pnt-wet);opacity:.26}
+html.motion .sp-dry0{fill:var(--pnt-deep)}
+html.motion .sp-dry1{fill:var(--pnt-wet)}
+html.motion .sp-dry2{fill:var(--pnt-mid)}
 /* The wet edge: the pale, bleeding line right behind the bristles, blurred
    and then pushed about by the same turbulence the bristles get. Crossing
    the splat it is what makes the overlap read as wet rather than as two

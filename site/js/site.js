@@ -1577,20 +1577,18 @@
      nap reloads -- the first cut had them as 6% opaque stripes and read as
      a flag, not a roller. c (the deep tone) stays available but unused. */
   const LAP = [
-    [0, 'a'], [9, 'a'], [10, 'b'], [12, 'b'], [13, 'a'],
-    [32, 'a'], [33, 'b'], [35, 'b'], [36, 'a'],
-    [63, 'a'], [64, 'b'], [66, 'b'], [67, 'a'],
-    [89, 'a'], [90, 'b'], [92, 'b'], [93, 'a'], [100, 'a'],
+    [0, 'a'], [7, 'a'], [11, 'b'], [14, 'b'], [18, 'a'],
+    [29, 'a'], [33, 'b'], [37, 'b'], [41, 'a'],
+    [59, 'a'], [64, 'b'], [68, 'b'], [72, 'a'],
+    [85, 'a'], [90, 'b'], [94, 'b'], [97, 'a'], [100, 'a'],
   ];
-  /* And the other paint, carried across in the same pass: three wide, soft
-     bands of the colour the splat is not, laid where the roller would have
-     been reloaded out of the wrong tin. 0 is that colour at nothing, so the
-     band fades into the body rather than ending on a line. */
-  const LAPO = [
-    [0, '0'], [18, '0'], [23, 'a'], [28, '0'],
-    [46, '0'], [51, 'a'], [56, '0'],
-    [75, '0'], [80, 'a'], [85, '0'], [100, '0'],
-  ];
+  /* And the other paint, carried across in the same pass. Round three's
+     first cut laid it on as two full-width gradient rects and it read as a
+     flag: a lap mark is not a stripe across the whole wall, it is the
+     smear a roller leaves for a few feet after it has been reloaded out of
+     the wrong tin. So these are the three heights it happens at, and
+     build() scatters long, soft-ended smears along each of them. */
+  const LAPO = [0.23, 0.51, 0.80];
   // Thrown off the bristles, ahead of the edge. x is past the longest finger.
   const FLUNG = [
     ['ellipse', 170, 0.19, { rx: 29, ry: 13 }],
@@ -1604,6 +1602,22 @@
      byte-identical build to build. It is the kit's mulberry32, which Wall's
      bristles come out of too. */
   const rng = window.oagKit.rng;
+
+  /* One bristle: full height where it leaves the ferrule and tapered to
+     nothing at the tip, which is what a hair loaded with paint draws and
+     what a rounded rect never will. The round-three first cut used rects
+     10 to 30 tall and the owner's word for the result was "glitch bars".
+     The mock's stroke is the reference: hundreds of streaks 2 to 7 high
+     and 40 to 260 long at every opacity between a half and one, all of it
+     under one anisotropic turbulence. */
+  const finger = (y, h, len) => {
+    const a = (len * 0.34).toFixed(1), b = (len * 0.74).toFixed(1), L = len.toFixed(1);
+    return 'M0 ' + y.toFixed(1) +
+      'C' + a + ' ' + (y + h * 0.04).toFixed(1) + ' ' + b + ' ' + (y + h * 0.26).toFixed(1) +
+      ' ' + L + ' ' + (y + h * 0.5).toFixed(1) +
+      'C' + b + ' ' + (y + h * 0.74).toFixed(1) + ' ' + a + ' ' + (y + h * 0.96).toFixed(1) +
+      ' 0 ' + (y + h).toFixed(1) + 'Z';
+  };
 
   let layer = null, shot = 0, killer = 0, running = false, mrb = null;
   let pass = 0;             // which paint is in the tin this time
@@ -1904,19 +1918,18 @@
     const lap = el('linearGradient', { id: 'oaLap', x1: 0, y1: 0, x2: 0, y2: 1 });
     LAP.forEach(([o, k]) => lap.appendChild(el('stop', { offset: o + '%', class: 'sp-lap-' + k })));
     defs.appendChild(lap);
-    const lapo = el('linearGradient', { id: 'oaLapO', x1: 0, y1: 0, x2: 0, y2: 1 });
-    LAPO.forEach(([o, k]) => lapo.appendChild(el('stop', { offset: o + '%', class: 'sp-lapo-' + k })));
-    defs.appendChild(lapo);
-    const lapm = el('linearGradient', { id: 'oaLapM', x1: 0, y1: 0, x2: 0, y2: 1 });
-    LAPO.forEach(([o, k]) => lapm.appendChild(el('stop', { offset: o + '%', class: 'sp-lapm-' + k })));
-    defs.appendChild(lapm);
 
-    const bf = el('filter', { id: 'oaBristle', x: '-20%', y: '-6%', width: '150%', height: '112%' });
+    /* The mock's own aerosol, and the numbers are its numbers: the
+       frequency is anisotropic on purpose -- almost nothing along the
+       stroke and a great deal across it -- so a long streak wanders up and
+       down its own length instead of being displaced bodily, which is the
+       difference between bristles and noise. */
+    const bf = el('filter', { id: 'oaBristle', x: '-20%', y: '-10%', width: '150%', height: '120%' });
     bf.appendChild(el('feTurbulence', {
-      type: 'fractalNoise', baseFrequency: '0.02 0.4', numOctaves: 2, seed: 7, result: 'n',
+      type: 'fractalNoise', baseFrequency: '0.008 0.6', numOctaves: 2, seed: 7, result: 'n',
     }));
     bf.appendChild(el('feDisplacementMap', {
-      in: 'SourceGraphic', in2: 'n', scale: 10, xChannelSelector: 'R', yChannelSelector: 'G',
+      in: 'SourceGraphic', in2: 'n', scale: 22, xChannelSelector: 'R', yChannelSelector: 'G',
     }));
     defs.appendChild(bf);
 
@@ -1938,48 +1951,84 @@
     const sweep = el('g', { class: 'sp-sweep' });
     sweep.setAttribute('style', `--tx0:${-LEAD}px;--tx1:${run + 40}px`);
 
-    // The body. One rect, no filter: this is the thing that covers the screen.
+    /* The body. One rect, no filter: this is the thing that covers the
+       screen. It stops 18px short of the leading edge so that no straight
+       line is ever the front of the stroke -- the fringe starts behind
+       where the body ends and the two overlap, which is why there is no
+       seam to see. The pass still covers: it travels 40px past the far
+       side to make up for it. */
     sweep.appendChild(el('rect', {
-      class: 'sp-body', x: -(run + TAIL), y: -2, width: run + TAIL, height: across + 4,
+      class: 'sp-body', x: -(run + TAIL), y: -2, width: run + TAIL - 18, height: across + 4,
     }));
-    // The other paint's lap marks, twice over the same bands: once laid on
-    // so the colour reads as itself, once multiplied so the core of the
-    // band is the two paints mixed. Both are rects, both carry the gradient.
-    ['sp-lapo', 'sp-lapo-mix'].forEach((cls) => sweep.appendChild(el('rect', {
-      class: cls, x: -(run + TAIL), y: -2, width: run + TAIL, height: across + 4,
-    })));
+    /* The other paint's lap marks: long, soft-ended smears along three
+       heights of the stroke rather than bands across the whole of it. An
+       ellipse is the shape a reload leaves -- fat in the middle, feathered
+       away at both ends -- and it costs one element. A handful of them at
+       each height, in the other paint and in the mix, at every opacity
+       from a fifth to a half, under the same turbulence as the bristles. */
+    const laps = el('g', { class: 'sp-laps', filter: 'url(#oaBristle)' });
+    const r3 = rng(0x1A9F);
+    LAPO.forEach((f) => {
+      const cy0 = across * f;
+      for (let j = 0; j < 9; j++) {
+        const rx = 110 + r3() * (run * 0.26);
+        laps.appendChild(el('ellipse', {
+          class: r3() < 0.62 ? 'sp-lapo' : 'sp-lapo-mix',
+          cx: (-(run + TAIL) + r3() * (run + TAIL)).toFixed(1),
+          cy: (cy0 + (r3() - 0.5) * across * 0.09).toFixed(1),
+          rx: rx.toFixed(1), ry: (4 + r3() * 13).toFixed(1),
+          opacity: (0.18 + r3() * 0.32).toFixed(2),
+        }));
+      }
+    });
+    sweep.appendChild(laps);
 
     /* Dry brush: the streaks the nap leaves behind the leading edge once
        the load starts to go — deep paint and pale paint, low alpha, never
        a hole, because a hole is the page showing through a transition
        whose whole job is to cover it. Same seeded generator, same file. */
+    /* Dry brush. Ellipses, not rects: a streak the nap leaves is fat in the
+       middle and feathered away at both ends, and a rect with a radius on
+       it is a capsule -- which is what read as a bar. Two hundred of them
+       rather than fifty, thinner, at every opacity, and weighted toward
+       the leading edge, where the load actually runs out. */
     const drys = el('g', { class: 'sp-drys', filter: 'url(#oaBristle)' });
     const r2 = rng(0x0DB1);
-    for (let i = 0; i < 54; i++) {
-      const hh = 2 + r2() * 6;
-      const ww = 40 + r2() * run * 0.3;
-      const yy = -10 + r2() * (across + 20);
-      const xx = -(12 + r2() * run * 0.46) - ww;
-      drys.appendChild(el('rect', {
-        class: 'sp-dry' + (i % 2), x: xx.toFixed(1), y: yy.toFixed(1),
-        width: ww.toFixed(1), height: hh.toFixed(1), rx: (hh / 2).toFixed(2),
+    for (let i = 0; i < 210; i++) {
+      const rx = 22 + r2() * run * 0.11;
+      const near = Math.pow(r2(), 1.5);            // ... more of them near the edge
+      drys.appendChild(el('ellipse', {
+        class: 'sp-dry' + (i % 3),
+        cx: (-18 - near * run * 0.62 - rx).toFixed(1),
+        cy: (-10 + r2() * (across + 20)).toFixed(1),
+        rx: rx.toFixed(1), ry: (1.1 + r2() * 2.9).toFixed(2),
+        opacity: (0.14 + r2() * 0.4).toFixed(2),
       }));
     }
     sweep.appendChild(drys);
 
 
-    // The leading edge: rounded bristle fingers, each overlapping the one
-    // above it by 55-90% of its height, all the way down. Three tones.
+    /* The leading edge: tapered fingers, each full height where it leaves
+       the ferrule and feathered to nothing at its tip, overlapping the one
+       above it by most of its height all the way down. Three tones and
+       every opacity, so the fringe is broken rather than solid -- the
+       marbled paint underneath has to read through it. */
     const edge = el('g', { class: 'sp-edge', filter: 'url(#oaBristle)' });
     const r = rng(0x5AA5);
-    let y = -16, i = 0;
-    while (y < across + 8) {
-      const h = 10 + r() * 20, len = 20 + r() * 120;
-      edge.appendChild(el('rect', {
-        class: 'sp-t' + (i % 3), x: 0, y: y.toFixed(1),
-        width: len.toFixed(1), height: h.toFixed(1), rx: (h / 2).toFixed(2),
+    let y = -18, i = 0;
+    while (y < across + 10) {
+      // Two thirds of the hairs are short and nearly opaque and make the
+      // shoulder that swallows the body's own edge; the rest are the long
+      // feathered ones that carry the fringe out in front of it.
+      const long = r() < 0.34;
+      const h = 3 + r() * 10;
+      const len = long ? 60 + r() * 150 : 14 + r() * 52;
+      edge.appendChild(el('path', {
+        class: 'sp-t' + (i % 3), d: finger(y, h, len),
+        transform: 'translate(-22 0)',
+        opacity: (long ? 0.38 + r() * 0.44 : 0.72 + r() * 0.28).toFixed(2),
       }));
-      y += h * (1 - (0.55 + r() * 0.35));
+      y += h * (0.16 + r() * 0.34);
       i++;
     }
     FLUNG.forEach(([n, x, f, a]) => edge.appendChild(
@@ -2539,15 +2588,21 @@
       g.lineTo(x + ux * 3.2, y + uy * 3.2);
       g.stroke();
     }
+    /* Per stamp, not per brush: the hairs drag a little further or less far
+       each time the brush is put down, and the ones at the outside of the
+       ferrule lift as they go, so the long edges of a stroke feather away
+       instead of ending on two straight lines. That was the same note the
+       owner made about the sweep -- an edge in paint is never a rule. */
+    var jit = 0.74 + rand() * 0.52;
     for (i = 0; i < HAIRS.length; i++) {
       hr = HAIRS[i];
       if (wet < 0.5 && hr.a < (1 - wet) * 0.72) continue;     // dry brush
       o = hr.o * hw;
       bx = x + px * o; by = y + py * o;
-      l = hr.l;
-      g.globalAlpha = clamp(wet * hr.a, 0.02, 1);
+      l = hr.l * jit;
+      g.globalAlpha = clamp(wet * hr.a * (1 - Math.pow(Math.abs(hr.o), 2.4) * 0.55), 0.02, 1);
       g.strokeStyle = (i & 1) ? paint[1] : paint[0];
-      g.lineWidth = hr.w * (0.7 + wet * 0.8);
+      g.lineWidth = hr.w * (0.7 + wet * 0.8) * (1 - Math.abs(hr.o) * 0.3);
       g.beginPath();
       g.moveTo(bx - ux * l, by - uy * l);
       g.lineTo(bx + ux * l, by + uy * l);
