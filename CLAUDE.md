@@ -466,7 +466,12 @@ emoji-like." So, for every paint verb (Splat, the sweep transition, Wall, Spray,
 - **A logo section, like Colossal's (owner, 2026-09-19):** a "Painted for" wall of the brands
   he has painted — Gucci, Crown Royal, Uber, Victoria's Secret, Vitamin Water, Sprite, Ford,
   Showtime, Moncler, Red Bull, Monkey 47, Johnnie Walker, Heineken, Jack Daniel's, Corona — as a
-  monochrome grid on the home page (and the Services page). Until Ephraim supplies each brand's
-  logo file, every mark is a typographic wordmark in the display faces, ink on white; real logos
-  drop in one by one as they arrive (`brands.py`: name, optional svg). Never invent or trace a
-  brand's logo; a name set in our type is honest, a redrawn logo is not.
+  grid on the home page (and the Services page) — **in each brand's actual colours** (owner:
+  "put the logos in actual color for each"). Source each mark as the brand's real logo from its
+  press kit or a Wikimedia Commons SVG (record the source URL in `brands.py`); where none is
+  available yet, a typographic wordmark set in the brand's own colours. Never trace or redraw a
+  logo by hand. **And the faces:** the owner asked to "add in Kylie or mentioned models" — a
+  second strand, "Faces we've painted": Kylie Jenner (the mural project), John Lewis, Malcolm X,
+  Antwuan (the Uber wall), Dexter (the Showtime wall), and the campaign models once Ephraim
+  names them. Named people appear as painted portraits (his photographs of the walls), never as
+  stock photos of the person.
