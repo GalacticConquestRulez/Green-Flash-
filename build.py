@@ -251,10 +251,17 @@ def focus_attr(p):
 
 
 def pcard(p, cls='', sizes=CARD_SIZES):
-    """A project card. The card is the link; the figures are the headline."""
+    """A project card. The card is the link; the figures are the headline.
+
+    data-live is the scroll-live mark (site.js, "Live"): the card rises into
+    place as it comes up the screen and settles back as it leaves, its
+    photograph drifts inside the frame with the scroll, and on a desktop it
+    tilts a few degrees toward the pointer. The attribute is inert without
+    html.motion — with no script it is a card with a photograph in it.
+    """
     place = f"{p['city']}, {p['state']}"
     alt = f"{p['title']} mural by Open Air Gallery, {place}"
-    return f'''<a class="pcard rv {cls}" href="{u('/work/' + p['slug'])}">
+    return f'''<a class="pcard rv {cls}" data-live href="{u('/work/' + p['slug'])}">
   <div class="pcard-img">{pic(p['hero'], alt, sizes, extra=focus_attr(p))}</div>
   <div class="pcard-body">{dims(p['dim_w'], p['dim_h'], 'sm')}<h3>{p['title']}</h3><span class="place">{place}</span></div>
 </a>'''

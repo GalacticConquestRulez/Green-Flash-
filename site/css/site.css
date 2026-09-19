@@ -317,6 +317,39 @@ html.motion .roll-c > span{display:flex;align-items:center;justify-content:cente
    is the whole of both directions. */
 html.motion .roll.in .roll-c{--d:var(--v)}
 
+/* --- the cards --------------------------------------------------------
+   "Add more motion to the cards." Three things, composed on top of the
+   hover the card already had rather than in place of it:
+
+     drift  the photograph lags its frame as the card rides up the screen.
+            The picture is 12% taller than the frame and hung 6% above it,
+            so it can move 6% either way and still cover — no gap, ever,
+            and the frame's box does not change.
+     rise   the card comes up 18px into place and settles back down as it
+            leaves, both ways, off .in. Roll still runs once: .rolled is
+            added on the first crossing and is what holds the wipe open
+            afterwards, so the reveal is not replayed on every pass.
+     tilt   four degrees toward the pointer, desktop only, reset on leave.
+
+   Every one of them is a custom property on one transform, so the hover
+   lift, the tilt and the rise never fight over the same declaration.     */
+html.motion .rv.rolled{opacity:1;-webkit-mask-size:130% 100%;mask-size:130% 100%;animation:none}
+html.motion .pcard[data-live].rv{
+  transform:perspective(900px) translate3d(0,var(--lift,18px),0)
+            rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+  transition:border-color .25s,transform .55s var(--ease);
+}
+html.motion .pcard[data-live].rv.in{--lift:0px;will-change:transform}
+html.motion .pcard[data-live].rv.in:hover,
+html.motion .pcard[data-live].rv.in:focus-visible{--lift:-3px}
+/* Under the pointer the card has to keep up with it. */
+html.motion .pcard[data-live].rv.is-tilt{transition:border-color .25s,transform .1s linear}
+html.motion .pcard[data-live] .pcard-img{position:relative}
+html.motion .pcard[data-live] .pcard-img picture{
+  position:absolute;left:0;right:0;top:-6%;height:112%;
+  transform:translate3d(0,calc(var(--drift,0) * 6%),0);
+}
+
 /* --- and the way out -------------------------------------------------- */
 /* html.motion is already withheld when the visitor asks for reduced motion.
    This is the second lock: if the class ever arrives anyway, nothing here
@@ -329,6 +362,8 @@ html.motion .roll.in .roll-c{--d:var(--v)}
      before it touches the DOM. If they ever are, the figure is the text. */
   html.motion .roll-g{color:inherit}
   html.motion .roll-w{display:none}
+  html.motion .pcard[data-live].rv{transform:none;transition:none}
+  html.motion .pcard[data-live] .pcard-img picture{position:static;height:100%;transform:none}
   html{scroll-behavior:auto}
 }
 

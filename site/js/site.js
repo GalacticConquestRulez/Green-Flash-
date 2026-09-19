@@ -140,6 +140,71 @@
   };
   document.querySelectorAll('.stat-n,.dims .n').forEach(rollUp);
 
+  /* --- Live: the cards -----------------------------------------------
+     Owner: "add more motion to the cards".
+
+     Three things, all composed on top of the hover the card already has
+     (mint hairline, photograph to 1.04) rather than replacing any of it:
+     the photograph drifts inside its frame with where the card is on the
+     screen, the card rises into place coming up and settles back going
+     out, and on a desktop it tilts a few degrees toward the pointer.
+
+     One passive scroll listener and one rAF for the whole of it, and the
+     only cards measured are the ones the observer says are on screen. The
+     frame reads every box first and writes every property after, so a
+     hundred feet of scrolling is still one layout pass.                  */
+  const cards = new Set();
+  let frame = 0, tiltEl = null, tiltX = 0, tiltY = 0;
+
+  const paint = () => {
+    frame = 0;
+    const H = innerHeight || 1;
+    const read = [];
+    cards.forEach(c => read.push([c, c.getBoundingClientRect()]));
+    read.forEach(([c, r]) => {
+      // -1 when the card is at the top of the screen, +1 at the bottom.
+      const p = (r.top + r.height / 2 - H / 2) / ((H + r.height) / 2);
+      // The photograph lags the frame: as the card rides up the screen the
+      // picture slides down inside it. That is the whole of the depth.
+      c.style.setProperty('--drift', (-Math.max(-1, Math.min(1, p))).toFixed(3));
+    });
+    if (tiltEl) {
+      tiltEl.style.setProperty('--ry', tiltX.toFixed(2) + 'deg');
+      tiltEl.style.setProperty('--rx', tiltY.toFixed(2) + 'deg');
+      tiltEl = null;
+    }
+  };
+  const pump = () => { if (!frame) frame = requestAnimationFrame(paint); };
+  addEventListener('scroll', pump, { passive: true });
+  addEventListener('resize', pump, { passive: true });
+
+  /* The tilt is a desktop thing only: a finger is already on the card it
+     is tilting, and a phone has the drift. Four degrees is the cap. */
+  let fine = false;
+  try { fine = matchMedia('(hover:hover) and (pointer:fine)').matches; } catch (e) {}
+  if (fine) document.querySelectorAll('.pcard[data-live]').forEach(c => {
+    const aim = (e) => {
+      const r = c.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      tiltEl = c;
+      tiltX = ((e.clientX - r.left) / r.width - 0.5) * 8;      // toward the pointer
+      tiltY = -((e.clientY - r.top) / r.height - 0.5) * 8;
+      pump();
+    };
+    c.addEventListener('pointerenter', e => {
+      if (e.pointerType === 'touch') return;
+      c.classList.add('is-tilt');
+      aim(e);
+    });
+    c.addEventListener('pointermove', e => { if (c.classList.contains('is-tilt')) aim(e); });
+    c.addEventListener('pointerleave', () => {
+      c.classList.remove('is-tilt');
+      if (tiltEl === c) tiltEl = null;
+      c.style.removeProperty('--rx');
+      c.style.removeProperty('--ry');
+    });
+  });
+
   const targets = [...document.querySelectorAll('.rv,.dims')];
   const live = [...document.querySelectorAll('[data-live]')];
   if (!targets.length && !live.length) return;
@@ -163,13 +228,21 @@
   const io = new IntersectionObserver(entries => entries.forEach(e => {
     const el = e.target;
     if (el.hasAttribute('data-live')) {
+      // A card is a reveal as well as a live thing. Roll still runs once,
+      // at the threshold it has always run at, and .rolled is what holds
+      // it open afterwards — .in comes and goes underneath it.
+      if (e.intersectionRatio >= 0.12 && el.classList.contains('rv')) el.classList.add('rolled');
       el.classList.toggle('in', e.intersectionRatio >= LIVE);
+      if (el.classList.contains('pcard')) {
+        if (e.isIntersecting) cards.add(el); else cards.delete(el);
+        pump();
+      }
       return;
     }
     if (!e.isIntersecting || e.intersectionRatio < 0.12) return;
     el.classList.add('in');
     io.unobserve(el);                // Cure runs once, and only once
-  }), { threshold: [0.12, LIVE], rootMargin: '0px 0px -6% 0px' });
+  }), { threshold: [0, 0.12, LIVE], rootMargin: '0px 0px -6% 0px' });
   targets.concat(live).forEach(el => io.observe(el));
 })();
 
