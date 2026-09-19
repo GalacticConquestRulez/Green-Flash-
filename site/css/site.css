@@ -2880,11 +2880,11 @@ html.motion .tiprule.curing::after{
 .dia:nth-child(8){--l:16.667%;--t:75%}
 .dia:nth-child(9){--l:50%;--t:75%}
 .dia:nth-child(10){--l:83.333%;--t:75%}
-.dia.brand .tx{padding:20%}
+.dia.brand .tx{padding:0;inset:16%}
 .dia.brand .bigmark{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
 /* The wall sizes a mark by its own --bh; on a diamond the mark IS the card,
    so it fills the inscribed square's width instead. */
-.dia.brand .bigmark img.bmark{--bh:auto;--bhm:auto;width:88%;height:auto;max-height:70%;object-fit:contain}
+.dia.brand .bigmark img.bmark{--bh:auto;--bhm:auto;width:78%;height:auto;max-height:78%;object-fit:contain}
 .dia.brand .bigmark .bword{font-size:clamp(26px,3vw,46px)}
 
 /* A tablet packs two across: a diagonal of one half, so a side of 35.36%,
