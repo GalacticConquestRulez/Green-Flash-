@@ -18,7 +18,7 @@ img(), so the same build runs at the domain root and under a preview prefix.
 """
 import os, sys, html, json, struct, hashlib
 from urllib.parse import quote as _urlq
-from art import brush_rule_svg, roller_pass_svg
+from art import brush_rule_svg, roller_pass_svg, spraycan_pass_svg
 
 SRC = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(SRC, 'site')
@@ -581,6 +581,38 @@ def brush_rule(stages):
             f'</div>{stages}</div>')
 
 
+def spray_band(text='Open Air / Gallery', cls=''):
+    """A full-width band with a word sprayed across it (site.js, "Spray").
+
+    Owner, 2026-09-19: "Is there any way to have a can of spray paint spray
+    'Open Air Gallery' underneath the hero as a section builder?" So this is
+    the section builder: give it a word and it gives you a band, the word set
+    in the wordmark's own face at the size of a headline. `text` is split on
+    a slash into the lines it stacks as, which is what the wordmark does in
+    the nav and in the footer; anything else is one line.
+
+    The word is real text in the server HTML and is the only thing that gives
+    the band its height. The can is here too — art.py's spraycan_pass_svg(),
+    one drawing, once — and it is display:none outside html.motion, the way
+    Brush's brush is: markup a crawler can see and nobody else can. The halo,
+    the drips and the mask are site.js's, built under html.motion and nowhere
+    else, so a page with no script and a visitor who asked for reduced motion
+    both get the wordmark as plain text, with no can over it.
+
+    Nothing in it can move a box. The track is absolutely positioned inside a
+    stage that shrink-wraps the word, the band clips what leaves it, and the
+    mask that hides the letters before the can reaches them changes no
+    metric of the text at all.
+    """
+    lines = ''.join(f'<span>{t.strip()}</span>' for t in text.split('/'))
+    return f'''<section class="spray-band{" " + cls if cls else ""}" data-spray>
+  <div class="wrap"><div class="spray-stage">
+    <p class="spray-word">{lines}</p>
+    <span class="spray-track" aria-hidden="true"><span class="spray-pos"><span class="spray-mist"></span><span class="spray-can">{spraycan_pass_svg()}</span></span></span>
+  </div></div>
+</section>'''
+
+
 def swipe(slides, label, cls=''):
     """A slide rail you can throw with a finger, a mouse or the arrow keys.
 
@@ -782,6 +814,8 @@ pages['/index'] = dict(
            media_alt='The Gucci mural by Open Air Gallery, eighty-one feet across a New York City wall',
            video='hero-johnnie-walker',
            crumb=False, cls='tall')}
+
+{spray_band()}
 
 <section class="alt stats-band">{glow()}<div class="wrap">
   <div class="section-head rv"><div class="eyebrow">The measure of it</div>

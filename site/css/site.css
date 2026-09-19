@@ -210,6 +210,30 @@ html.motion .hero-video{display:block;position:absolute;inset:0;width:100%;heigh
 .crumbs{display:flex;gap:.5rem;align-items:center;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:1.2rem}
 .crumbs a:hover{color:var(--paper)}
 
+/* --- the sprayed band -------------------------------------------------
+   build.py spray_band(): a word set in the wordmark's own face at the size
+   of a headline, with room either side of it for a can to travel.
+
+   The word is the only thing in the band with a height. Everything the
+   mechanic adds — the can, the mist ahead of it, the overspray halo and
+   the drips — is absolutely positioned inside the stage, and the stage
+   shrink-wraps the word, so the band is exactly as tall with Spray as it
+   is without it. The band clips: a can entering from the left is off the
+   page, not off the end of the document.
+
+   The can itself is in the server HTML and is shown by nothing but
+   html.motion, the way Brush's brush is — markup a crawler can see and no
+   visitor without motion ever does.                                      */
+.spray-band{position:relative;overflow:hidden;padding:clamp(2.2rem,5.5vw,4rem) 0}
+.spray-stage{position:relative;display:inline-block;max-width:100%}
+.spray-word{
+  display:grid;margin:0;
+  font-family:var(--font-display);font-variation-settings:'wdth' 125,'wght' 800;
+  font-size:clamp(2.6rem,10.2vw,7.2rem);line-height:.92;letter-spacing:.02em;
+  text-transform:uppercase;color:var(--paper);
+}
+.spray-track{display:none}
+
 /* --- closing call to action ------------------------------------------- */
 .cta{border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-2);padding:clamp(1.8rem,5vw,3.4rem)}
 .cta h2{margin-bottom:.7rem}

@@ -257,16 +257,16 @@ def brush_svg(uid='brush', loaded=True):
 
 
 # ---------------------------------------------------------------- the spray can
-def spraycan_svg(uid='can2', pressed=True):
-    """A rattle can, nozzle down, mid-line: the one that writes the wordmark.
-
-    Same standard as the tin: a rolled seam, a dented body, a printed label,
-    a mint cap, and the nozzle with its finger on it. pressed=True draws the
-    cone of spray leaving the nozzle; the band's mask does the actual writing.
-    """
-    r = _rng(21)
+# The rattle can is drawn once and used twice: standing up as the display
+# piece, and laid along a line of letters as the prop that writes the wordmark
+# (spraycan_pass_svg, at the foot of this file). So the three pieces it is made
+# of — the defs it adds to the shared ones, the specks of paint in the air and
+# the can itself — are functions rather than one string, and spraycan_svg()
+# composes exactly the drawing it always composed.
+def _spray_defs(uid):
+    """The can's own gradients and its aerosol filter, on top of _defs()."""
     d = _defs(uid)
-    d = d.replace('</defs>', f'''<linearGradient id="{uid}-body" x1="0" y1="0" x2="1" y2="0">
+    return d.replace('</defs>', f'''<linearGradient id="{uid}-body" x1="0" y1="0" x2="1" y2="0">
  <stop offset="0" stop-color="#4b4e54"/><stop offset=".12" stop-color="#b8bcc3"/><stop offset=".3" stop-color="#e9ebee"/>
  <stop offset=".5" stop-color="#9ea2a9"/><stop offset=".72" stop-color="#d5d8dd"/><stop offset=".9" stop-color="#6a6e75"/><stop offset="1" stop-color="#34373c"/></linearGradient>
 <linearGradient id="{uid}-cap" x1="0" y1="0" x2="1" y2="0">
@@ -276,14 +276,16 @@ def spraycan_svg(uid='can2', pressed=True):
 <filter id="{uid}-mist" x="-30%" y="-40%" width="170%" height="180%">
  <feTurbulence type="fractalNoise" baseFrequency=".08" numOctaves="2" seed="9" result="t"/>
  <feDisplacementMap in="SourceGraphic" in2="t" scale="14"/><feGaussianBlur stdDeviation="2.2"/></filter></defs>''')
-    # specks of paint in the cone, seeded
-    specks = ''.join(f'<circle cx="{132+r.uniform(0,58):.1f}" cy="{86+r.uniform(-26,26)*(1+(r.random()*.6)):.1f}" r="{r.uniform(.4,1.4):.2f}" fill="{MINT}" opacity="{r.uniform(.25,.8):.2f}"/>' for _ in range(70))
-    cone = (f'<g transform="rotate(-90 118 86)"><path d="M118 86 L182 40 Q205 86 182 132 Z" fill="url(#{uid}-cone)" filter="url(#{uid}-mist)"/>{specks}</g>'
-            if pressed else '')
-    body = f'''
-<ellipse cx="86" cy="186" rx="40" ry="6" fill="url(#{uid}-shadow)"/>
-<!-- the can, upright; the cone is rotated to point down-left of the nozzle -->
-<g transform="rotate(14 86 100)">
+
+
+def _spray_specks(r):
+    """Paint hanging in the air: seventy flecks out of the caller's rng."""
+    return ''.join(f'<circle cx="{132+r.uniform(0,58):.1f}" cy="{86+r.uniform(-26,26)*(1+(r.random()*.6)):.1f}" r="{r.uniform(.4,1.4):.2f}" fill="{MINT}" opacity="{r.uniform(.25,.8):.2f}"/>' for _ in range(70))
+
+
+def _spray_can(uid):
+    """The can itself: upright, leaning fourteen degrees, nozzle at the top."""
+    return f'''<g transform="rotate(14 86 100)">
  <path d="M52 44 L52 168 Q86 180 120 168 L120 44 Z" fill="url(#{uid}-body)"/>
  <path d="M52 44 L52 168 Q86 180 120 168 L120 44 Z" fill="#000" opacity=".16" filter="url(#{uid}-grain)"/>
  <path d="M56 100 q8 14 0 28" stroke="#1f2023" stroke-width="3" fill="none" opacity=".4" filter="url(#{uid}-soft)"/>
@@ -311,7 +313,26 @@ def spraycan_svg(uid='can2', pressed=True):
  <path d="M66 62 L66 160" stroke="#fff" stroke-width="4" opacity=".16" stroke-linecap="round" filter="url(#{uid}-soft)"/>
  <!-- a run of mint down the side, from a heavy hand -->
  {_drip(112, 46, 30, 3.6, MINT, 12)}
-</g>
+</g>'''
+
+
+def spraycan_svg(uid='can2', pressed=True):
+    """A rattle can, nozzle down, mid-line: the one that writes the wordmark.
+
+    Same standard as the tin: a rolled seam, a dented body, a printed label,
+    a mint cap, and the nozzle with its finger on it. pressed=True draws the
+    cone of spray leaving the nozzle; the band's mask does the actual writing.
+    """
+    r = _rng(21)
+    d = _spray_defs(uid)
+    # specks of paint in the cone, seeded
+    specks = _spray_specks(r)
+    cone = (f'<g transform="rotate(-90 118 86)"><path d="M118 86 L182 40 Q205 86 182 132 Z" fill="url(#{uid}-cone)" filter="url(#{uid}-mist)"/>{specks}</g>'
+            if pressed else '')
+    body = f'''
+<ellipse cx="86" cy="186" rx="40" ry="6" fill="url(#{uid}-shadow)"/>
+<!-- the can, upright; the cone is rotated to point down-left of the nozzle -->
+{_spray_can(uid)}
 {cone}'''
     return (f'<svg class="prop prop-spray" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true" focusable="false">'
             f'{d}{body}</svg>')
@@ -486,3 +507,67 @@ def roller_pass_svg(uid='rollerpass'):
 </g>'''
     return (f'<svg class="prop prop-roller-pass" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true" focusable="false">'
             f'{defs}{body}</svg>')
+
+
+# --------------------------------------- the spray can that rides a line of type
+def spraycan_pass_svg(uid='spraypass', pressed=True):
+    """The same rattle can, laid along a line of letters and writing it.
+
+    `spraycan_svg()` is the upright display piece: 200 x 200, the can stood on
+    a shadow with its cone going up out of the nozzle. A can writing a word on
+    a wall is a different shape — it lies almost flat with the nozzle leading
+    and the body trailing back over what has just been painted, there is no
+    ground under it to cast a shadow on, and the jet has to leave the nozzle
+    rather than hang above it — so this is that can: the same tin, the same
+    label, the same mint cap and the same dented body out of _spray_can(),
+    turned 82 degrees and anchored on the nozzle's own orifice.
+
+    Eighty-two is not a look, it is the sum: the can leans 14 degrees inside
+    its own drawing, so 82 on top of it puts the jet six degrees below the
+    horizontal — aimed a little down at the letters it is writing — and sets
+    the label a hair past vertical, reading down the can the way a label on a
+    can lying on its side does.
+
+    The contact point is the orifice, at (150, 100) of the 200 x 200 viewBox —
+    75% across and 50% down — and site.css positions the element by those two
+    fractions, so the nozzle sits on the wet edge of the word whatever size the
+    can is drawn at. Everything else is behind it: the body trails up and back
+    to the left over the letters already sprayed, which is how a right hand
+    holds a can moving right.
+
+    pressed=True is the finger down: a short jet out of the nozzle with the
+    paint hanging in the air around it. The letters themselves are written by
+    the band's mask, not by this — the jet is what says the can is open.
+    """
+    r = _rng(31)
+    d = _spray_defs(uid)
+    # The jet leaves the orifice, so its gradient is anchored there in user
+    # space rather than on the bounding box of a shape that is mostly air.
+    d = d.replace('</defs>', f'''<radialGradient id="{uid}-jet" gradientUnits="userSpaceOnUse" cx="99.78" cy="22.02" r="62">
+ <stop offset="0" stop-color="{MINT_HI}" stop-opacity=".72"/><stop offset=".32" stop-color="{MINT}" stop-opacity=".3"/>
+ <stop offset="1" stop-color="{MINT}" stop-opacity="0"/></radialGradient></defs>''')
+    # Paint in the air around the jet: thicker at the nozzle, thinning and
+    # spreading down the cone, seeded so the drawing is the same every build.
+    flecks = []
+    for _ in range(58):
+        t = r.uniform(.06, 1.02)
+        s = r.uniform(-1, 1) * 17 * t
+        x = 99.78 + 44 * t * .2419 + s * .9703
+        y = 22.02 - 44 * t * .9703 + s * .2419
+        flecks.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r.uniform(.35,1.5):.2f}" '
+                      f'fill="{MINT if r.random() < .7 else MINT_HI}" opacity="{r.uniform(.18,.7):.2f}"/>')
+    jet = (f'<g><path d="M99.78 22.02 L93.92 -24.79 Q113.08 -31.35 126.91 -16.56 Z" '
+           f'fill="url(#{uid}-jet)" filter="url(#{uid}-mist)"/>'
+           f'<ellipse cx="101.1" cy="16.7" rx="3.4" ry="2.2" fill="{MINT_HI}" opacity=".5" '
+           f'transform="rotate(14 101.1 16.7)" filter="url(#{uid}-soft)"/>'
+           f'{"".join(flecks)}</g>') if pressed else ''
+    # Scale about the orifice, turn about the orifice, then carry the orifice
+    # to (150, 100): three transforms that between them never move the one
+    # point site.css hangs the whole prop off.
+    body = f'''
+<g transform="translate(50.22 77.98) rotate(82 99.78 22.02) translate(13.97 3.08) scale(.86)">
+{_spray_can(uid)}
+{jet}
+</g>'''
+    return (f'<svg class="prop prop-spray-pass" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true" focusable="false">'
+            f'{d}{body}</svg>')
