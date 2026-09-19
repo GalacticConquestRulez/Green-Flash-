@@ -1,10 +1,16 @@
 Fonts in this folder
 ====================
 
-These three faces are here only so tools/make-tags.py can trace eight words
-into SVG outlines for the Wash wall (wall.py, tag_paths.py). They are a build
-input: no font file is ever served, linked or embedded by the site, and no
-@font-face refers to them.
+These three faces are here so tools/make-tags.py can trace eight words into
+SVG outlines for the Wash wall (wall.py, tag_paths.py) — a build input, not a
+served file.
+
+One of them is now both. Round three gives the site a handstyle of its own
+("a muralist gets a marker", CLAUDE.md), and rather than ask a CDN for a
+fifth family the build copies Permanent Marker into site/fonts/ and sets
+type in it (site.css @font-face, the .marker face). Its Apache licence
+permits that with attribution, which site/fonts/LICENSE.txt carries. The
+other two faces here are still build inputs and are never served.
 
 Sedgwick Ave — SedgwickAve.woff2
 Sedgwick Ave Display — SedgwickAveDisplay.woff2

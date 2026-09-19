@@ -1,21 +1,39 @@
 /* =====================================================================
    Open Air Gallery — site stylesheet
 
-   Dark only. The murals are the colour; the page is not. Every colour in
-   this file is named once in :root and used through var() everywhere else,
-   so a bare hex outside this block is a bug.
+   Round three, and the canvas is flipped (CLAUDE.md, "white ground, his
+   teal, one pop colour"). White is the ground, ink is the type, the mint
+   is the loud colour a band is painted in, and the coral is the one accent
+   that pops against it. Black is kept for three things and no more: the
+   marquee strip, the scrim over a photograph, and the footer. Every colour
+   is named once in :root and used through var() everywhere else, so a bare
+   hex outside this block is a bug.
 
    Contrast, computed in docs/contrast.py and asserted at build time:
-     --mint on --ink        13.8:1  (AAA)
-     --mint-deep on --ink    7.7:1  (AA at every size)
-     --muted on --ink        8.9:1
-     --ink on --mint        13.8:1  (the primary button)
-   Two rules that go with it: mint never carries body copy under 16px, and
+     --ink on --paper       19.8:1  (AAA)
+     --muted on --paper      7.8:1
+     --dim on --paper        5.2:1  (labels, captions, small print)
+     --ink on --mint        13.8:1  (the mint band, and the mint button)
+     --ink on --pop          6.0:1  (the coral button)
+     --on-ink on --ink      17.8:1  (type on one of the three black bands)
+     --on-ink-mute on --ink 11.7:1  (the footer's second voice)
+     --mint on --ink        13.8:1  (the accent where the ground is black)
+   Three rules that go with it: the mint never carries type on white (1.5:1
+   — it is paint, and the type on it is ink), the coral carries type only
+   at 24px and up (3.4:1 is large-text contrast and nothing else), and
    mint never sits on --wall.
    ===================================================================== */
 :root{
-  --ink:#0A0A0B; --ink-2:#121214; --ink-3:#1A1A1D;
-  --paper:#F4F3EF; --muted:#A6A49E; --dim:#6E6C67;
+  /* The ground, and the ink on it. --ink is still the black the three dark
+     bands are painted in — the marquee, the scrim over a photograph and the
+     footer — and on the flipped canvas it is the type as well. --paper-2
+     and --paper-3 are the two steps off white a panel and a well take. */
+  --paper:#FFFFFF; --paper-2:#F6F5F1; --paper-3:#EDEBE5;
+  --ink:#0A0A0B; --ink-2:#141416; --ink-3:#1A1A1D;
+  --muted:#55524C; --dim:#6E6C67;
+  /* Type on one of the three black bands: the footer, the marquee and the
+     caption over a photograph. The page is white, but those are not. */
+  --on-ink:#F4F3EF; --on-ink-mute:#C9C7C1;
   --mint:#71EEB8; --mint-deep:#55B38A; --wall:#E9E7E2;
   /* One step between the two mints, for the places where mint has to be
      shaded against itself rather than against the ink: the roller lap
@@ -60,7 +78,18 @@
   --cream:#FFF1E4;
   --pop-wet:rgba(255,170,146,.72); --pop-wet-0:rgba(255,170,146,0);
   --mix:#714A21;
-  --line:rgba(244,243,239,.10); --line-2:rgba(244,243,239,.20);
+  /* The warm white the paint mechanics marble with: their veins go black
+     without it. It is theirs, it carries no type, and it is declared here
+     because :root is the one place a hex may live. */
+  --cream:#FFF1E4;
+  /* A hairline is ink on the white page and paper on a black band, so
+     there are two pairs of them and no rule uses the wrong one. */
+  --line:rgba(10,10,11,.14); --line-2:rgba(10,10,11,.28);
+  --line-on-ink:rgba(244,243,239,.14); --line-on-ink-2:rgba(244,243,239,.26);
+  /* Stencil's overspray is the paint that misses the cut, so it is the
+     colour of the paint: ink where the figure is ink on the white page,
+     and paper where the figure sits on a photograph or a black band. */
+  --spray-halo:rgba(10,10,11,.55);
   --mint-glow:rgba(113,238,184,.14); --shade:rgba(10,10,11,.72);
   /* The ambient breath, and the two stops that make it soft. The core is
      the ceiling the owner's "tasteful" sets: mint at 9%, never more, and
@@ -110,18 +139,35 @@
   --st-cut:rgba(10,10,11,.55);
   --radius:4px;                 /* near-square — signwriting, not SaaS */
   --max:1240px; --nav-h:72px;
-  /* Archivo carries the width axis the dimension figures need; the fallbacks
-     are metric-near grotesques so a 9rem figure does not reflow the page
-     while the variable font is still in flight. */
+  /* Five faces, used deliberately — the Colossal lesson Ephraim asked for
+     (CLAUDE.md, round three: "multiple typefaces — four or five"). Anton
+     is the headline, condensed and shouted; Archivo carries the width axis
+     the dimension figures and the wordmark need; Fraunces is what you
+     actually read; Inter is the interface; and Permanent Marker is his own
+     hand, for an aside. Every fallback is metric-near, so a 7rem headline
+     does not reflow the page while the face is still in flight. */
+  --font-tall:"Anton","Arial Narrow",Impact,"Haettenschweiler",sans-serif;
   --font-display:"Archivo","Helvetica Neue",Helvetica,Arial,"Liberation Sans",sans-serif;
+  --font-serif:"Fraunces",Georgia,"Times New Roman",serif;
   --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-marker:"Permanent Marker","Marker Felt","Comic Sans MS",cursive;
   --ease:cubic-bezier(.16,1,.3,1); --ease-roll:cubic-bezier(.62,.03,.2,1);
+}
+
+/* The four Google faces come down in one request (build.py FONTS). The
+   marker does not: Permanent Marker is already in the repo as a build
+   input for the Wash wall, so it is served from here rather than asked of
+   a fifth family on a CDN. Apache 2.0, attribution in site/fonts/. */
+@font-face{
+  font-family:"Permanent Marker";
+  src:url(../fonts/PermanentMarker.woff2) format("woff2");
+  font-weight:400;font-style:normal;font-display:swap;
 }
 
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{
-  margin:0;background:var(--ink);color:var(--paper);
+  margin:0;background:var(--paper);color:var(--ink);
   font-family:var(--font-body);font-size:16px;line-height:1.65;
   font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;
 }
@@ -130,15 +176,32 @@ a{color:inherit;text-decoration:none}
 ul{list-style:none;margin:0;padding:0}
 :focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 
-/* --- type ------------------------------------------------------------ */
+/* --- type -------------------------------------------------------------
+   Four jobs, five faces, and a class for each so a heading never has to
+   name a font file:
+
+     .tall    Anton, caps, line-height .9 — every headline on the site
+     .wide    Archivo at wdth 125 / wght 900 — the wordmark, the dimension
+              figures, and a lead that is shouted rather than read
+     .serif   Fraunces — the copy a visitor actually reads
+     (Inter)  the interface: buttons, labels, captions, the form
+     .marker  Permanent Marker — an aside in his own hand, never small
+
+   h1 and h2 are .tall by default, because on this site they always are. */
 h1,h2,h3,h4{margin:0;line-height:1.1;font-weight:400}
-h1,h2,.display{
-  font-family:var(--font-display);text-transform:uppercase;
-  font-variation-settings:'wdth' 110,'wght' 800;
-  letter-spacing:-.005em;line-height:.94;
+h1,h2,.tall{
+  font-family:var(--font-tall);font-weight:400;text-transform:uppercase;
+  letter-spacing:.005em;line-height:.9;
 }
-h1{font-size:clamp(2.6rem,7.4vw,5.6rem)}
-h2{font-size:clamp(2rem,4.6vw,3.6rem)}
+.wide{
+  font-family:var(--font-display);font-weight:900;
+  font-variation-settings:'wdth' 125,'wght' 900;
+  text-transform:uppercase;letter-spacing:.02em;
+}
+.serif{font-family:var(--font-serif);font-weight:400;letter-spacing:0;text-transform:none}
+.marker{font-family:var(--font-marker);font-weight:400;text-transform:none;letter-spacing:0}
+h1{font-size:clamp(3rem,8.6vw,7rem)}
+h2{font-size:clamp(2.4rem,6vw,4.6rem)}
 h3{font-family:var(--font-body);font-weight:700;font-size:1.2rem;letter-spacing:-.01em;line-height:1.3}
 h4{font-family:var(--font-body);font-weight:700;font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 p{margin:0 0 1em}
@@ -146,11 +209,14 @@ b,strong{font-weight:700}
 small{font-size:.82rem}
 .muted{color:var(--muted)}
 .lead{font-size:1.1rem;color:var(--muted);max-width:62ch}
+/* The aside in his own hand, and the one place the coral carries type. So
+   it is never small: --pop on --paper is 3.4:1, which is large-text
+   contrast and nothing else, and 1.5rem is the floor everywhere it lands. */
 .eyebrow{
-  display:inline-block;font-family:var(--font-display);
-  font-variation-settings:'wdth' 75,'wght' 700;
-  font-size:.78rem;letter-spacing:.24em;text-transform:uppercase;
-  color:var(--mint);margin-bottom:.9rem;
+  display:block;font-family:var(--font-marker);font-weight:400;
+  font-size:clamp(1.5rem,2.2vw,1.75rem);line-height:1.15;
+  letter-spacing:0;text-transform:none;
+  color:var(--pop);margin-bottom:.6rem;
 }
 
 /* --- shell ----------------------------------------------------------- */
@@ -158,7 +224,7 @@ small{font-size:.82rem}
 section{padding:clamp(4.5rem,10vw,8rem) 0;position:relative}
 .section-head{max-width:760px;margin-bottom:clamp(2rem,5vw,3.5rem)}
 .section-head .lead{margin-top:1.1rem}
-.alt{background:var(--ink-2)}
+.alt{background:var(--paper-2)}
 .skip{position:absolute;left:-999px;top:0;background:var(--mint);color:var(--ink);padding:.5rem 1rem;z-index:1000;font-weight:700}
 .skip:focus{left:1rem;top:1rem}
 /* The drawn props a page lends its own elements — today the roller every
@@ -167,18 +233,27 @@ section{padding:clamp(4.5rem,10vw,8rem) 0;position:relative}
 .propdefs{position:absolute;width:0;height:0;overflow:hidden}
 
 /* --- buttons --------------------------------------------------------- */
+/* A button is a painted sign: the headline face, caps, a 2px edge and
+   almost no radius. The coral button carries ink rather than white — white
+   on coral is 3.4:1 and a button label is not large type. */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
-  padding:.85rem 1.5rem;border-radius:var(--radius);
-  font-family:var(--font-body);font-weight:700;font-size:.95rem;line-height:1;
-  border:1px solid transparent;cursor:pointer;white-space:nowrap;
+  padding:.8rem 1.4rem;border-radius:var(--radius);
+  font-family:var(--font-tall);font-weight:400;text-transform:uppercase;
+  font-size:1.05rem;letter-spacing:.05em;line-height:1.1;
+  border:2px solid transparent;cursor:pointer;white-space:nowrap;
   transition:background .2s,border-color .2s,color .2s,transform .2s var(--ease);
 }
-.btn-mint{background:var(--mint);color:var(--ink)}
-.btn-mint:hover{background:var(--mint-deep);color:var(--ink)}
-.btn-ghost{background:transparent;border-color:var(--line-2);color:var(--paper)}
-.btn-ghost:hover{border-color:var(--mint);color:var(--mint)}
-.btn-sm{padding:.6rem 1.05rem;font-size:.85rem}
+.btn-mint{background:var(--mint);border-color:var(--mint);color:var(--ink)}
+.btn-mint:hover{background:var(--ink);border-color:var(--ink);color:var(--mint)}
+.btn-pop{background:var(--pop);border-color:var(--pop);color:var(--ink)}
+.btn-pop:hover{background:var(--ink);border-color:var(--ink);color:var(--pop)}
+.btn-ghost{background:transparent;border-color:var(--ink);color:var(--ink)}
+.btn-ghost:hover{background:var(--ink);color:var(--paper)}
+/* The same ghost on one of the black bands. */
+.on-ink .btn-ghost{border-color:var(--on-ink);color:var(--on-ink)}
+.on-ink .btn-ghost:hover{background:var(--on-ink);color:var(--ink)}
+.btn-sm{padding:.5rem 1rem;font-size:.9rem}
 .btn svg{width:17px;height:17px;flex:none}
 .btn-row{display:flex;gap:.7rem;flex-wrap:wrap}
 @media (prefers-reduced-motion:no-preference){
@@ -199,55 +274,89 @@ section{padding:clamp(4.5rem,10vw,8rem) 0;position:relative}
 }
 
 /* =====================================================================
-   Nav — wordmark, five links, one mint pill. No dropdowns: six pages, all
-   one click away. Below 960 the links become a full-height panel behind
-   the hamburger, which is the only thing the toggle does.
+   Nav — the menu runs across the top of the screen (Overall Murals).
+
+   Ephraim's own reference, in the owner's words (CLAUDE.md, round three):
+   "the menu runs across the top of the screen, not tucked on the right — a
+   full horizontal nav beside the wordmark, visible at every width (no
+   hamburger)." So there is no hamburger and no panel: the wordmark is on
+   the left, the five links run across the middle in the headline face, and
+   the consult button is on the right.
+
+   "At every width" is the part that costs something. On a phone five links
+   in Anton are wider than 390px, so the row stays exactly where it is and
+   scrolls sideways under the thumb — the links are never hidden behind a
+   control, which is the whole point of the reference. The bar wraps to two
+   rows there: the wordmark and the button on the first, the scrolling row
+   of links on the second.
+
+   White glass on a 2px ink hairline, sticky rather than fixed: the page
+   below it is white now, so the bar is a painted sign at the top of the
+   page rather than something floating over a photograph, and the hero
+   starts under it instead of behind it.
    ===================================================================== */
-.nav{position:fixed;inset:0 0 auto 0;z-index:100;height:var(--nav-h);border-bottom:1px solid transparent;transition:border-color .3s}
-/* The blur lives on a pseudo-element: backdrop-filter on .nav itself would
-   make it the containing block for the panel and clip it to 72px. */
-.nav::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--ink);opacity:0;transition:opacity .3s;pointer-events:none;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.nav.scrolled::before,.nav.open::before{opacity:.94}
-/* At the top of a page the nav has no background, and every page on this site
-   opens on a photograph — so at rest the links can be sitting on a bright sky.
-   A short gradient under the bar, on all the time and faded out the moment the
-   solid background arrives, keeps them on their own dark ground without ever
-   putting a box around the wordmark. */
-.nav::after{content:"";position:absolute;inset:0 0 -40px 0;z-index:-2;pointer-events:none;background:linear-gradient(180deg,var(--scrim) 0%,transparent 100%);transition:opacity .3s}
-.nav.scrolled::after,.nav.open::after{opacity:0}
-.nav.scrolled,.nav.open{border-color:var(--line)}
-.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:100%;gap:1rem}
-
-.brand{display:grid;font-family:var(--font-display);font-variation-settings:'wdth' 125,'wght' 800;font-size:.98rem;line-height:.94;letter-spacing:.02em;text-transform:uppercase;color:var(--paper)}
-
-.nav-links{
-  position:fixed;top:var(--nav-h);left:0;right:0;bottom:0;
-  height:calc(100dvh - var(--nav-h));
-  display:none;flex-direction:column;align-items:stretch;gap:.1rem;
-  padding:1.2rem 1rem 2.5rem;overflow:auto;
-  background:var(--ink);border-top:1px solid var(--line);
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:2px solid var(--ink);
 }
-.nav.open .nav-links{display:flex}
-.nav-links li:not(.nav-cta) a{display:flex;align-items:center;padding:.85rem .6rem;border-radius:var(--radius);font-size:1.05rem;font-weight:600;color:var(--muted);transition:color .2s,background .2s}
-.nav-links li:not(.nav-cta) a:hover{color:var(--paper)}
-.nav-links li:not(.nav-cta) a.active{color:var(--mint)}
-.nav-cta{margin-top:1.1rem}
-.nav-cta .btn{width:100%}
+.nav .wrap{display:flex;align-items:center;gap:clamp(.8rem,2vw,2.5rem);min-height:var(--nav-h)}
 
-.nav-toggle{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;background:none;border:1px solid var(--line-2);border-radius:var(--radius);color:var(--paper);cursor:pointer}
-.nav-toggle svg{width:22px;height:22px}
+.brand{
+  display:grid;flex:none;font-family:var(--font-display);
+  font-variation-settings:'wdth' 125,'wght' 900;font-weight:900;
+  font-size:.95rem;line-height:1;letter-spacing:.03em;
+  text-transform:uppercase;color:var(--ink);
+}
 
+/* The row itself. margin-inline:auto is what centres it between the
+   wordmark and the button without either of them having to be the same
+   width as the other. */
+.nav-bar{margin-inline:auto;min-width:0}
+.nav-links{display:flex;align-items:center;gap:.1rem;list-style:none;margin:0;padding:0}
+.nav-links a{
+  display:block;font-family:var(--font-tall);font-weight:400;
+  text-transform:uppercase;font-size:1.05rem;letter-spacing:.04em;
+  padding:.6rem .7rem;color:var(--ink);white-space:nowrap;
+  transition:color .2s;
+}
+.nav-links a:hover{color:var(--pop)}
+/* The page you are on, in the one accent that is allowed to shout. It is
+   1.05rem, which is under the coral's 24px floor for type on white — so the
+   current page is marked twice, in colour and with a painted underline, and
+   the colour is never the only signal. */
+.nav-links a.active{color:var(--pop)}
+.nav-links a.active::after{content:"";display:block;height:3px;margin-top:2px;background:var(--pop)}
+.nav-cta{flex:none}
+
+/* The phone. The row stays at the top and takes the thumb sideways;
+   scrollbar-width:none because a scrollbar under the links is furniture,
+   and the fade on the right edge is what says there is more. */
+@media (max-width:959px){
+  .nav .wrap{flex-wrap:wrap;gap:.6rem 1rem;padding-top:.7rem;padding-bottom:.1rem}
+  .nav-cta{order:2;margin-left:auto}
+  .nav-bar{
+    order:3;width:100%;
+    overflow-x:auto;overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(90deg,#000 94%,transparent);
+            mask-image:linear-gradient(90deg,#000 94%,transparent);
+  }
+  .nav-bar::-webkit-scrollbar{display:none}
+  .nav-links{gap:0;padding-bottom:.45rem;width:max-content}
+  .nav-links a{font-size:.95rem;padding:.5rem .55rem}
+  .nav-links li:first-child a{padding-left:0}
+}
 @media (min-width:960px){
-  .nav-toggle{display:none}
-  .nav-links{position:static;height:auto;display:flex;flex-direction:row;align-items:center;gap:.15rem;padding:0;overflow:visible;background:none;border-top:0}
-  .nav-links li:not(.nav-cta) a{padding:.5rem .7rem;font-size:.92rem}
-  .nav-cta{margin:0 0 0 .5rem}
-  .nav-cta .btn{width:auto}
   .brand{font-size:1.05rem}
+  .nav-links a{font-size:1.15rem;padding:.7rem .85rem}
 }
 
 /* --- page hero -------------------------------------------------------- */
-.page-hero{padding:calc(var(--nav-h) + clamp(3.5rem,9vw,7rem)) 0 clamp(3.5rem,9vw,7rem);position:relative;isolation:isolate;overflow:hidden}
+/* The bar is sticky, so it takes its own room at the top of the document
+   and the hero starts under it rather than behind it. */
+.page-hero{padding:clamp(3.5rem,9vw,7rem) 0;position:relative;isolation:isolate;overflow:hidden}
 .page-hero .hero-media{position:absolute;inset:0;z-index:-2}
 .page-hero .hero-media img{width:100%;height:100%;object-fit:cover}
 /* The hero clip sits over the photograph and only plays where motion is
@@ -255,11 +364,23 @@ section{padding:clamp(4.5rem,10vw,8rem) 0;position:relative}
 .hero-video{display:none}
 html.motion .hero-video{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 @media (prefers-reduced-motion:reduce){html.motion .hero-video{display:none}}
-.hero-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,var(--shade) 0%,rgba(10,10,11,.25) 38%,var(--ink) 100%)}
+/* The scrim used to finish in --ink because the page under it was ink. It
+   is white now, so a shade that fades to black would end in a hard edge:
+   this one is even, dark at both ends and lightest through the middle,
+   which is the mockup's. */
+.hero-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,var(--shade) 0%,var(--scrim-soft) 46%,var(--shade) 100%)}
 .hero-inner{max-width:900px}
-.page-hero .lead{margin-top:1.3rem;color:var(--paper);opacity:.86}
+.page-hero .lead{margin-top:1.3rem;font-family:var(--font-serif);color:var(--muted);opacity:1}
 .crumbs{display:flex;gap:.5rem;align-items:center;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:1.2rem}
-.crumbs a:hover{color:var(--paper)}
+.crumbs a:hover{color:var(--ink)}
+
+/* A hero with a photograph under it is the exception: there the words are
+   the light ones and they carry the ink halo that keeps small type off a
+   lit-up mural. A hero without one is the white page, and its words are
+   ink with nothing behind them. */
+.page-hero.has-media .lead{color:var(--on-ink);opacity:.86}
+.page-hero.has-media .crumbs{color:var(--on-ink-mute)}
+.page-hero.has-media .crumbs a:hover{color:var(--on-ink)}
 
 /* --- the tin on the hero's floor, and the rule it fills ----------------
    build.py tip_can() and tip_rule(); the mechanic is under TIP, below.
@@ -316,25 +437,81 @@ html.motion .hero-video{display:block;position:absolute;inset:0;width:100%;heigh
 }
 .spray-track{display:none}
 
+/* --- a band painted in one stroke -------------------------------------
+   build.py stroke_band() and highlight(); the drawing is strokes.py.
+
+   "Maybe make the teal a brush stroke — so it looks like he painted on the
+   screen" (owner, 2026-09-19). So a mint band is never a background colour
+   and never a shape with a clean edge: it is one swept stroke behind the
+   words, drawn at a viewBox the section stretches, and the section itself
+   has no background at all.
+
+   Two things follow. The stroke must not be clipped — the drips run out of
+   the bottom of the drawing and down the white page below it, which is the
+   whole point of a drip — so neither the svg nor the band clips, and the
+   band's own padding is what keeps the words off the ragged edges. And the
+   words sit above it in the ordinary .wrap: the paint is at z-index 0 and
+   aria-hidden, so a screen reader hears a section and not a stroke.        */
+.band{
+  position:relative;color:var(--ink);text-align:center;
+  padding:clamp(5rem,11vw,8.5rem) 0 clamp(5.5rem,12vw,9.5rem);
+}
+/* The stroke is painted past both ends of its box and leans a degree or
+   two, so it is wider than the page. overflow-x:clip takes that off the
+   document without taking the drips with it: clip on one axis leaves the
+   other visible, where hidden or auto would have forced a scrollport and
+   cut the runs off at the bottom edge. */
+.stroke-wrap{position:absolute;inset:0;z-index:0;pointer-events:none;overflow-x:clip;overflow-y:visible}
+.stroke{width:100%;height:100%;display:block;transform-origin:50% 50%;overflow:visible}
+.band > .wrap{position:relative;z-index:1}
+
+/* Words on a stroke: the paint is drawn behind the letters rather than
+   under them, a little larger than the line in both directions, so it runs
+   past the ends the way a highlight laid with a brush does. The span makes
+   its own stacking context, which is what keeps a z-index of -1 inside the
+   headline instead of behind the photograph the headline is on. */
+.hl{position:relative;display:inline-block;isolation:isolate;padding:0 .12em;color:var(--ink)}
+.hl .hl-stroke{position:absolute;inset:-9% -2%;width:104%;height:118%;z-index:-1;overflow:visible}
+.hl em{position:relative;font-style:normal}
+
+/* --- two colours the paint mechanics' own blocks cannot supply ---------
+   The sprayed wordmark and the wall's sound toggle are drawn by blocks
+   that belong to the paint mechanics (SPRAY and WALL, below), and those
+   blocks are not edited here. Both name a colour that was written for a
+   dark page: the wordmark is --paper, which is now the ground it stands
+   on, and the toggle is --muted, which is now ink. They are recoloured
+   from here, scoped rather than shouted — no !important, just a selector
+   that says where it applies.                                            */
+.spray-band .spray-word{color:var(--ink)}
+body .paint-snd{color:var(--on-ink-mute);border-color:var(--line-on-ink)}
+
 /* --- closing call to action ------------------------------------------- */
-.cta{border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-2);padding:clamp(1.8rem,5vw,3.4rem)}
+.cta{border:1px solid var(--line);border-radius:var(--radius);background:var(--paper-2);padding:clamp(1.8rem,5vw,3.4rem)}
 .cta h2{margin-bottom:.7rem}
 .cta p{color:var(--muted);max-width:60ch}
 .cta .btn-row{margin-top:1.6rem}
 
-/* --- footer ----------------------------------------------------------- */
-footer{border-top:1px solid var(--line);background:var(--ink-2);padding:clamp(3rem,7vw,5rem) 0 1.8rem}
+/* --- footer -----------------------------------------------------------
+   One of the three black bands the flipped canvas keeps, and the last
+   thing on every page: the wordmark and how to reach him on the left, the
+   work and the company beside it, headings in the headline face. */
+footer{background:var(--ink);color:var(--on-ink);padding:clamp(3.4rem,7vw,5rem) 0 1.8rem}
+footer .brand{color:var(--on-ink)}
+footer h4{
+  font-family:var(--font-tall);font-weight:400;text-transform:uppercase;
+  font-size:1.35rem;letter-spacing:.04em;color:var(--on-ink);
+}
 .foot-grid{display:grid;gap:2.4rem}
-.foot-brand p{color:var(--muted);max-width:36ch;margin:1.1rem 0}
+.foot-brand p{color:var(--on-ink-mute);max-width:36ch;margin:1.1rem 0}
 .foot-contact li{margin-bottom:.4rem}
-.foot-contact a{display:inline-flex;align-items:center;gap:.55rem;color:var(--muted);transition:color .2s}
+.foot-contact a{display:inline-flex;align-items:center;gap:.55rem;color:var(--on-ink-mute);transition:color .2s}
 .foot-contact a:hover{color:var(--mint)}
-.foot-contact svg{width:16px;height:16px;flex:none;color:var(--dim)}
+.foot-contact svg{width:16px;height:16px;flex:none;color:var(--on-ink-mute)}
 footer h4{margin-bottom:1rem}
 footer .foot-grid ul li{margin-bottom:.5rem}
-footer .foot-grid ul a{color:var(--muted);transition:color .2s}
-footer .foot-grid ul a:hover{color:var(--paper)}
-.foot-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem 1.6rem;margin-top:clamp(2.2rem,5vw,3.2rem);padding-top:1.4rem;border-top:1px solid var(--line);color:var(--dim);font-size:.85rem}
+footer .foot-grid ul a{color:var(--on-ink-mute);transition:color .2s}
+footer .foot-grid ul a:hover{color:var(--on-ink)}
+.foot-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem 1.6rem;margin-top:clamp(2.2rem,5vw,3.2rem);padding-top:1.4rem;border-top:1px solid var(--line-on-ink);color:var(--on-ink-mute);font-size:.85rem}
 
 @media (min-width:640px){.foot-grid{grid-template-columns:1fr 1fr}.foot-brand{grid-column:1 / -1}}
 @media (min-width:960px){.foot-grid{grid-template-columns:1.5fr 1fr 1fr}.foot-brand{grid-column:auto}}
@@ -629,7 +806,7 @@ html.motion .stat-n{position:relative}
    with no live feTurbulence anywhere on it. */
 html.motion .st-halo{inset:0;z-index:3;opacity:0;transition:opacity .42s var(--ease)}
 html.motion .st-halo .roll-w{display:none}
-html.motion .st-halo .roll-g{color:transparent;text-shadow:0 0 5px var(--paper),0 0 11px var(--paper)}
+html.motion .st-halo .roll-g{color:transparent;text-shadow:0 0 5px var(--spray-halo),0 0 11px var(--spray-halo)}
 html.motion .st-halo .f,html.motion .st-halo .x{color:transparent;text-shadow:none}
 html.motion .st-spray .st-halo{opacity:.35;transition-duration:.2s}
 html.motion .st-done .st-halo{opacity:.12}
@@ -1238,8 +1415,12 @@ html.motion .sp-stroke.go .sp-sweep{
   display:block;font-family:var(--font-display);
   font-variation-settings:'wdth' 125,'wght' 800;
   font-size:clamp(3.4rem,11vw,9rem);line-height:.82;letter-spacing:-.02em;
-  color:var(--paper);
+  color:var(--ink);
 }
+/* Where a figure sits on a photograph or a black band it is the other way
+   round — light type, a light hairline under it, and a light overspray. */
+.pcard .dims,.page-hero .dims,.on-ink .dims{color:var(--on-ink);--spray-halo:rgba(244,243,239,.6)}
+.pcard .dims::after,.page-hero .dims::after,.on-ink .dims::after{background:var(--line-on-ink-2)}
 .dims .f,.dims .x{font-size:.38em;color:var(--mint);vertical-align:.34em}
 .dims .x{margin:0 .12em}
 /* The rule Cure sweeps. */
@@ -1256,15 +1437,15 @@ html.motion .sp-stroke.go .sp-sweep{
 /* --- project card ----------------------------------------------------- */
 /* The card is the link. Photo at 4:3, the figures over a scrim at the foot,
    a hairline that goes mint when you reach it. */
-.pcard{position:relative;display:block;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-2);transition:border-color .25s,transform .35s var(--ease)}
+.pcard{position:relative;display:block;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);background:var(--paper-3);transition:border-color .25s,transform .35s var(--ease)}
 .pcard:hover,.pcard:focus-visible{border-color:var(--mint)}
-.pcard-img{aspect-ratio:4/3;background:var(--ink-3)}
+.pcard-img{aspect-ratio:4/3;background:var(--paper-3)}
 .pcard-img picture,.pcard-img img{display:block;width:100%;height:100%}
 .pcard-img img{object-fit:cover;transition:transform .7s var(--ease)}
 .pcard:hover .pcard-img img{transform:scale(1.04)}
 .pcard-body{position:absolute;inset:auto 0 0 0;padding:1.1rem 1.15rem 1.15rem;background:linear-gradient(0deg,var(--scrim) 0%,var(--scrim-soft) 58%,transparent 100%)}
 .pcard h3{margin-top:.55rem;font-size:1.02rem}
-.pcard .place{display:block;margin-top:.2rem;font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.pcard .place{display:block;margin-top:.2rem;font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;color:var(--on-ink-mute)}
 
 .pgrid{display:grid;gap:1rem;grid-template-columns:1fr}
 @media (min-width:640px){.pgrid{grid-template-columns:repeat(2,1fr);gap:1.2rem}}
@@ -1293,7 +1474,7 @@ html.motion .sp-stroke.go .sp-sweep{
 /* And the last few per cent: a mint eyebrow is small type, and small type over
    a photograph of a flower mural needs its own edge. An ink halo does that
    without drawing a box round the words. */
-.page-hero .hero-inner .eyebrow,.page-hero .hero-inner .lead,.page-hero .hero-inner .crumbs{text-shadow:0 1px 14px var(--ink)}
+.page-hero.has-media .hero-inner .eyebrow,.page-hero.has-media .hero-inner .lead,.page-hero.has-media .hero-inner .crumbs{text-shadow:0 1px 14px var(--ink)}
 .page-hero.tall .wrap{width:min(var(--max),calc(100% - 2rem))}
 .page-hero .hero-media picture{width:100%;height:100%}
 @media (min-width:640px){.page-hero.tall .wrap{width:min(var(--max),calc(100% - 3rem))}}
@@ -1310,7 +1491,7 @@ html.motion .sp-stroke.go .sp-sweep{
   display:block;font-family:var(--font-display);
   font-variation-settings:'wdth' 118,'wght' 800;
   font-size:clamp(2.1rem,5.4vw,3.2rem);line-height:.9;letter-spacing:-.02em;
-  color:var(--paper);
+  color:var(--ink);
 }
 .stat-n .f{font-size:.42em;color:var(--mint);vertical-align:.3em}
 .stat-l{display:block;margin-top:.5rem;font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
@@ -1340,8 +1521,188 @@ html.motion .sp-stroke.go .sp-sweep{
 }
 .beat h3::before{content:"";display:block;width:34px;height:2px;background:var(--mint);margin-bottom:.9rem}
 .beat blockquote{margin:0}
-.beat blockquote p{margin:0;color:var(--paper);opacity:.9;max-width:52ch}
+.beat blockquote p{margin:0;color:var(--ink);opacity:.86;max-width:52ch}
 @media (min-width:960px){.beats{grid-template-columns:repeat(3,1fr);gap:2rem}}
+
+/* =====================================================================
+   HOME — the mockup's spine (research/mock-approved.html)
+
+   The approved mockup is the specification, section for section: a hero
+   that is the headline and nothing else, a band painted in one stroke, two
+   rows of wall-and-words, the brand wall and the faces (the other agent's
+   components, rendered here if they have landed), the black marquee strip,
+   the grid of walls, the public-works row, and the closing band.
+
+   The blocks the live site already had and the mockup does not draw — the
+   sprayed wordmark, the measure of it, the two Rochester walls, his three
+   stages and the graffiti-removal band — are all still on the page and in
+   the same order they were: the mockup adds sections, it does not delete
+   copy. The one figure the owner struck out stays struck out — there is no
+   wall count anywhere on this page.
+   ===================================================================== */
+
+/* --- the hero: one headline, on the wall ------------------------------ */
+/* A hero with a photograph is one of the three black bands, so its words
+   are the light ones; page_hero() marks it .has-media so nothing has to
+   guess. Home's is centred on the picture, which is the mockup. */
+.page-hero.has-media{color:var(--on-ink)}
+.page-hero.has-media h1,.page-hero.has-media .lead{color:var(--on-ink)}
+.page-hero.hero-mid{
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:0;min-height:clamp(520px,86vh,860px);
+}
+.page-hero.hero-mid .hero-inner{max-width:none;margin-inline:auto}
+.page-hero.hero-mid .hero-shade{background:linear-gradient(180deg,var(--scrim-soft) 0%,var(--shade) 100%)}
+.page-hero.hero-mid h1{font-size:clamp(3rem,10.4vw,10.4rem);margin:0}
+/* The marker sits a little off level, the way a hand writes it. */
+.page-hero.hero-mid .eyebrow{
+  font-size:clamp(1.5rem,2.4vw,2.1rem);margin-bottom:1rem;
+  transform:rotate(-3deg);
+}
+
+/* --- the words inside a painted band ---------------------------------- */
+.band h2{font-size:clamp(2.6rem,7vw,6.5rem);margin:0 0 1.2rem}
+/* The lead in a band is shouted rather than read: Archivo at its widest,
+   caps, and short lines. The paragraph under it is the one you read. */
+.band-lead{
+  max-width:52rem;margin:0 auto 1.1rem;
+  font-size:clamp(.95rem,1.35vw,1.2rem);line-height:1.4;color:var(--ink);
+}
+.band-copy{max-width:44rem;margin:0 auto;font-size:1.08rem;line-height:1.6;color:var(--ink)}
+
+/* --- a wall down one half of the page, the words down the other -------- */
+.rows{display:grid;grid-template-columns:1fr;padding:0}
+/* The box is a shape, not whatever the photograph that arrived happens to
+   be: a rendition whose encoded aspect is half a pixel off its neighbour
+   would otherwise make the row a different height in two renders of the
+   same document. The picture covers it. */
+.rows-media{position:relative;aspect-ratio:4/3;background:var(--paper-3)}
+.rows-media picture,.rows-media img{display:block;width:100%;height:100%}
+.rows-media img{object-fit:cover}
+.rows-words{
+  display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(2.8rem,8vw,5.5rem) clamp(1rem,5vw,4rem);
+}
+.rows-words h2{font-size:clamp(3.2rem,7.4vw,7rem);margin:0 0 .5rem}
+.rows-words .serif{font-size:1.05rem;line-height:1.65;color:var(--muted);max-width:33rem;margin:0 0 1rem}
+.rows-words .serif:last-child{margin-bottom:0}
+/* The measurement in a row is the mockup's: Archivo at its widest, with the
+   prime marks and the times sign in the coral instead of the mint, because
+   on white the mint is paint and not a colour type can be set in. */
+.dims-row{font-size:clamp(2.1rem,4.4vw,2.9rem);line-height:.9;margin:0 0 1.4rem}
+.dims .f,.dims .x{color:var(--pop)}
+.pcard .dims .f,.pcard .dims .x,.page-hero .dims .f,.page-hero .dims .x,
+.on-ink .dims .f,.on-ink .dims .x{color:var(--mint)}
+.dims-row::after{display:none}
+/* The places a public-works row lists are not a measurement, so they are
+   not .dims — but they are set in the same face, and at the size the coral
+   is allowed to carry type at. */
+.places{font-size:clamp(1.5rem,2.2vw,1.9rem);line-height:1.2;color:var(--pop);margin:0 0 1.1rem}
+.note{font-size:clamp(1.5rem,2vw,1.6rem);line-height:1.2;color:var(--pop);margin:.4rem 0 0}
+@media (min-width:860px){
+  .rows{grid-template-columns:1fr 1fr}
+  .rows-media{aspect-ratio:auto;min-height:min(64vh,580px)}
+}
+
+/* --- the marquee strip ------------------------------------------------- */
+/* Type, a black ground and a coral bar between the words: the second of the
+   three black bands. It runs off both edges because a strip that fits is a
+   list, and it clips rather than scrolling the page. */
+.mq{
+  background:var(--ink);color:var(--on-ink);overflow:hidden;white-space:nowrap;
+  padding:.75rem 0;font-family:var(--font-tall);text-transform:uppercase;
+  font-size:clamp(1.25rem,2.5vw,2.2rem);letter-spacing:.04em;line-height:1.25;
+}
+.mq span{padding:0 .5em}
+.mq b{color:var(--pop);font-weight:400}
+
+/* --- a section head, and the aside under one -------------------------- */
+.section-head h2{font-size:clamp(2.6rem,6.2vw,5.4rem)}
+.section-head .lead{font-size:1.06rem;color:var(--muted);margin-top:1rem}
+.sub{
+  font-family:var(--font-marker);font-weight:400;text-transform:none;
+  font-size:clamp(1.5rem,2.2vw,1.8rem);line-height:1.2;
+  color:var(--pop);margin:.2rem 0 1.1rem;
+}
+.shout{color:var(--pop)}
+.walls-band h2{font-size:clamp(3.2rem,8vw,8rem)}
+
+/* --- the card, as the mockup draws it --------------------------------- */
+/* The title is the headline and the measurement is the line under it, in
+   the wordmark's face and in mint — the one place on the page mint carries
+   type, and it may because the caption sits on a black scrim. */
+.pcard-body{display:flex;flex-direction:column}
+.pcard h3{order:1;margin:0;font-family:var(--font-tall);font-weight:400;text-transform:uppercase;font-size:clamp(1.5rem,2.3vw,2.1rem);line-height:.95;letter-spacing:.01em;color:var(--on-ink)}
+.pcard .dims-sm{
+  order:2;margin-top:.3rem;font-family:var(--font-display);font-weight:900;
+  font-variation-settings:'wdth' 125,'wght' 900;
+  font-size:.92rem;line-height:1.2;letter-spacing:.06em;color:var(--mint);
+}
+.pcard .dims-sm .f,.pcard .dims-sm .x{font-size:.92em;vertical-align:0}
+.pcard .place{order:3;margin-top:.35rem}
+.pcard-lg .dims-sm{font-size:1.05rem}
+
+/* --- the measure of it ------------------------------------------------- */
+.stats-band .stat{border-top:2px solid var(--ink)}
+.stat-n{font-variation-settings:'wdth' 125,'wght' 900;color:var(--ink)}
+.stat-n .f{color:var(--pop)}
+.stat-l{color:var(--muted)}
+
+/* --- the closing band -------------------------------------------------- */
+.cta{border:0;border-radius:0;background:none;padding:0;text-align:center}
+.cta h2{font-size:clamp(3rem,9vw,9.2rem);margin:0 0 .3rem}
+.cta .eyebrow{display:block;transform:rotate(-2deg);margin-bottom:.9rem}
+.cta .serif{max-width:46ch;margin:0 auto 1.7rem;color:var(--ink);font-size:1.05rem;line-height:1.6}
+.cta .btn-row{justify-content:center;margin-top:0}
+
+/* =====================================================================
+   THE CHROME EVERY OTHER PAGE WEARS
+
+   Home is the mockup; these are the parts of it the rest of the site is
+   built out of, so that a page whose body has not been rewritten yet still
+   looks like it belongs to the same site. Nothing here is page content —
+   it is the hero, the section head, the small headings, the chips and the
+   panels, restyled to the system the mockup sets:
+
+     a headline is Anton, a measurement is Archivo at wdth 125, an aside is
+     the marker in coral at 24px and up, and reading copy is Fraunces.
+   ===================================================================== */
+
+/* --- the hero on the white page --------------------------------------- */
+.page-hero h1{font-size:clamp(2.8rem,7.6vw,6.6rem)}
+.page-hero .hero-inner .eyebrow{margin-bottom:.4rem}
+.page-hero .lead{max-width:56ch;font-size:1.08rem;line-height:1.6}
+/* A hero with nothing behind it does not need a page's worth of room under
+   the words; the section that follows brings its own. */
+.page-hero:not(.has-media):not([data-wall]){padding-bottom:clamp(2rem,4vw,3rem)}
+/* The blank wall is white now, like the rest of the page. It is still a
+   wall: the canvas the visitor paints on is the same element, and the
+   three paints the mechanics cycle include the ink that shows on it. */
+.page-hero.blank .btn-row{margin-top:1.8rem}
+
+/* --- section heads, and the small headings under them -----------------
+   Anton's caps rise out of their own line box at line-height .9, so a
+   heading set tight under an aside will climb into it: the marker above a
+   section head gets the room back. */
+.section-head .eyebrow{margin-bottom:1rem}
+/* Every heading on the site is the headline face now, at the size its job
+   asks for: a section head shouts, a stage name and a card title speak. */
+h3{font-family:var(--font-tall);font-weight:400;text-transform:uppercase;font-size:1.3rem;letter-spacing:.02em;line-height:1}
+h4{font-family:var(--font-tall);font-weight:400;font-size:1.15rem;letter-spacing:.04em;color:var(--ink)}
+.beat h3{font-family:var(--font-tall);font-variation-settings:normal;font-size:1.45rem;letter-spacing:.02em}
+.beats-full .beat h3::before{font-variation-settings:'wdth' 125,'wght' 900;color:var(--pop)}
+.city b{font-variation-settings:'wdth' 125,'wght' 900;font-size:1.1rem}
+.svc-h{color:var(--pop)}
+.pull{border-left-width:4px}
+.pull p{font-family:var(--font-serif)}
+
+/* --- the panels ------------------------------------------------------- */
+/* Cards, wells and the form all sit on the page rather than on a dark
+   canvas, so their edge is the ink hairline and their ground is the page. */
+.contact-card,.pnav a,.figframe,.form-status,.roster li{border-width:1px}
+.field input,.field select,.field textarea{border-width:2px;border-radius:var(--radius)}
+.field label{color:var(--muted)}
+.tags li{border-width:2px;border-color:var(--line-2);color:var(--muted)}
 
 /* =====================================================================
    WORK — the index
@@ -1358,13 +1719,16 @@ html.motion .sp-stroke.go .sp-sweep{
 .work{padding-top:clamp(2.5rem,6vw,4rem)}
 .ftarget{display:block;height:0;scroll-margin-top:calc(var(--nav-h) + 1.5rem)}
 .filters{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:clamp(1.6rem,4vw,2.4rem)}
+/* Square, a 2px edge and the headline face: the same sign-painting the
+   buttons are, at the size of a label. */
 .chip{
   display:inline-flex;align-items:center;gap:.5rem;
-  padding:.55rem 1rem;border:1px solid var(--line-2);border-radius:999px;
-  font-size:.86rem;font-weight:600;color:var(--muted);
+  padding:.5rem 1rem;border:2px solid var(--line-2);border-radius:var(--radius);
+  font-family:var(--font-tall);font-weight:400;text-transform:uppercase;
+  font-size:1rem;letter-spacing:.04em;color:var(--ink);
   transition:border-color .2s,color .2s,background .2s;
 }
-.chip:hover{border-color:var(--mint);color:var(--paper)}
+.chip:hover{border-color:var(--ink);color:var(--ink)}
 .chip .ct{font-size:.74rem;color:var(--dim);font-variant-numeric:tabular-nums}
 /* The chip that is doing the filtering, and All when nothing else is. */
 .chip[href="#f-all"],
@@ -1393,7 +1757,7 @@ html.motion .sp-stroke.go .sp-sweep{
    measurements set large, then what is known about the wall and nothing
    that is not.
    ===================================================================== */
-.phero{padding:var(--nav-h) 0 0}
+.phero{padding:0}
 .scale{position:relative;isolation:isolate}
 /* The height is written out rather than left to aspect-ratio with a
    max-height on the same box: given both, the browser keeps the ratio by
@@ -1401,7 +1765,7 @@ html.motion .sp-stroke.go .sp-sweep{
    1440px window with ink down the right-hand side. A height in vh and vw
    says what is meant — as tall as the ratio allows, never taller than the
    window — and the box stays the full width of the page. */
-.scale-media{position:relative;height:min(68vh,120vw);overflow:hidden;background:var(--ink-3)}
+.scale-media{position:relative;height:min(68vh,120vw);overflow:hidden;background:var(--paper-3)}
 .scale-media picture,.scale-media img{width:100%;height:100%;object-fit:cover}
 @media (min-width:640px){.scale-media{height:min(74vh,80vw)}}
 @media (min-width:960px){.scale-media{height:min(80vh,56.25vw)}}
@@ -1440,14 +1804,14 @@ html.motion .sp-stroke.go .sp-sweep{
 /* --- previous and next ------------------------------------------------- */
 .pnav-wrap{padding-top:0}
 .pnav{display:grid;gap:.8rem;border-top:1px solid var(--line);padding-top:1.6rem}
-.pnav a{display:grid;gap:.4rem;padding:1.2rem 1.3rem;border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-2);transition:border-color .25s}
+.pnav a{display:grid;gap:.4rem;padding:1.2rem 1.3rem;border:1px solid var(--line);border-radius:var(--radius);background:var(--paper-2);transition:border-color .25s}
 .pnav a:hover,.pnav a:focus-visible{border-color:var(--mint)}
 .pnav-next{text-align:right}
 .pnav-k{display:flex;align-items:center;gap:.4rem;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .pnav-next .pnav-k{flex-direction:row-reverse}
 .pnav-k svg{width:15px;height:15px}
 .pnav-t{font-weight:700;font-size:1.05rem}
-.pnav-d{font-family:var(--font-display);font-variation-settings:'wdth' 118,'wght' 800;font-size:1.3rem;color:var(--mint)}
+.pnav-d{font-family:var(--font-display);font-variation-settings:'wdth' 118,'wght' 800;font-size:1.3rem;color:var(--ink)}
 @media (min-width:640px){.pnav{grid-template-columns:1fr 1fr;gap:1rem}}
 
 /* =====================================================================
@@ -1473,7 +1837,7 @@ html.js .swipe-rail.dragging{cursor:grabbing;scroll-behavior:auto;scroll-snap-ty
 .swipe.fits .swipe-dots,.swipe.fits .swipe-arw,.swipe.fits .swipe-hint{display:none}
 .swipe-arw{display:none;position:absolute;top:calc(50% - 1rem);translate:0 -50%;z-index:4;
   width:46px;height:46px;border-radius:50%;place-items:center;cursor:pointer;
-  background:var(--ink-2);border:1px solid var(--line-2);color:var(--paper);
+  background:var(--paper);border:2px solid var(--ink);color:var(--ink);
   transition:background .2s,border-color .2s,color .2s,opacity .2s}
 html.js .swipe-arw{display:grid}
 .swipe-arw svg{width:20px;height:20px}
@@ -1485,7 +1849,7 @@ html.js .swipe-arw{display:grid}
 .swipe-dots{display:none;justify-content:center;gap:.4rem;margin-top:.2rem}
 html.js .swipe-dots{display:flex}
 .swipe-dot{width:8px;height:8px;padding:0;border:0;border-radius:999px;background:var(--line-2);cursor:pointer;transition:width .3s var(--ease),background .3s}
-.swipe-dot.is-on{width:26px;background:var(--mint)}
+.swipe-dot.is-on{width:26px;background:var(--ink)}
 .swipe-hint{display:none;position:absolute;right:.2rem;top:-1.9rem;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
 @media (hover:none){html.js .swipe-hint{display:block}}
 
@@ -1512,14 +1876,14 @@ html.js .swipe-dots{display:flex}
 
 /* Every other photograph on this site is a photograph of a wall, so it gets
    the hairline and the near-square corner the cards already use. */
-.figframe{margin:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--ink-3)}
+.figframe{margin:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--paper-3)}
 .figframe img{width:100%;height:auto}
-.figcap{padding:.7rem .9rem .8rem;font-size:.8rem;letter-spacing:.06em;color:var(--dim);background:var(--ink-2);border-top:1px solid var(--line)}
+.figcap{padding:.7rem .9rem .8rem;font-size:.8rem;letter-spacing:.06em;color:var(--dim);background:var(--paper-2);border-top:1px solid var(--line)}
 
 /* His sentences, set as his sentences: a mint rule down the side, larger
    than body copy, and the attribution small underneath. */
 .pull{margin:1.4rem 0 0;border-left:2px solid var(--mint);padding-left:clamp(1rem,3vw,1.6rem)}
-.pull p{font-size:1.08rem;line-height:1.6;color:var(--paper);opacity:.92;max-width:56ch}
+.pull p{font-size:1.08rem;line-height:1.6;color:var(--ink);opacity:.9;max-width:56ch}
 .pull cite{display:block;margin-top:.9rem;font-style:normal;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 @media (min-width:640px){.pull p{font-size:1.15rem}}
 
@@ -1537,7 +1901,7 @@ html.js .swipe-dots{display:flex}
 .beats-full .beat h3::before{
   content:"0" counter(beat);display:block;width:auto;height:auto;background:none;
   font-family:var(--font-display);font-variation-settings:'wdth' 125,'wght' 800;
-  font-size:1.5rem;letter-spacing:-.02em;color:var(--mint);margin-bottom:.45rem;
+  font-size:1.5rem;letter-spacing:-.02em;color:var(--pop);margin-bottom:.45rem;
 }
 .beats-full .beat blockquote p{max-width:62ch;font-size:1.02rem;margin-top:.9rem}
 @media (min-width:860px){.beats-full .beat blockquote p{margin-top:0}}
@@ -1567,7 +1931,7 @@ html.js .swipe-dots{display:flex}
 @media (min-width:960px){.roster{grid-template-columns:repeat(5,1fr)}}
 .roster li{
   display:flex;align-items:center;min-height:5.2rem;
-  border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-3);
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--paper-2);
   padding:1rem;font-family:var(--font-display);text-transform:uppercase;
   font-variation-settings:'wdth' 90,'wght' 800;font-size:1rem;line-height:1.1;
 }
@@ -1600,14 +1964,14 @@ html.js .swipe-dots{display:flex}
 .field{display:grid;gap:.45rem}
 .field label{font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
 .field input,.field textarea,.field select{
-  width:100%;background:var(--ink);border:1px solid var(--line-2);color:var(--paper);
+  width:100%;background:var(--paper);border:1px solid var(--line-2);color:var(--ink);
   padding:.85rem 1rem;border-radius:var(--radius);font:inherit;font-size:1rem;
   transition:border-color .2s,box-shadow .2s;
 }
 .field input::placeholder,.field textarea::placeholder{color:var(--dim)}
 .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--mint);box-shadow:0 0 0 3px var(--mint-glow)}
 .field textarea{min-height:150px;resize:vertical}
-.field option{background:var(--ink);color:var(--paper)}
+.field option{background:var(--paper);color:var(--ink)}
 .field .hint{font-size:.8rem;line-height:1.5;color:var(--dim)}
 /* The chevron is drawn with a border rather than an inline SVG: a background
    image would have to name a colour in hex, and the only hexes on this site
@@ -1623,15 +1987,15 @@ html.js .swipe-dots{display:flex}
    who is not a robot. display:none would keep some bots from filling it. */
 .gotcha{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
 .form-note{margin:0;font-size:.86rem;line-height:1.6;color:var(--dim)}
-.form-note a{color:var(--mint)}
-.form-status{display:none;padding:1rem 1.2rem;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--ink-3)}
+.form-note a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
+.form-status{display:none;padding:1rem 1.2rem;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--paper-2)}
 .form-status.on{display:block}
-.form-status a{color:var(--mint)}
+.form-status a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
 
 .contact-side{display:grid;gap:1rem}
-.contact-card{display:flex;gap:1rem;align-items:flex-start;padding:1.4rem;background:var(--ink-2);border:1px solid var(--line);border-radius:var(--radius);transition:border-color .2s}
+.contact-card{display:flex;gap:1rem;align-items:flex-start;padding:1.4rem;background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);transition:border-color .2s}
 a.contact-card:hover,a.contact-card:focus-visible{border-color:var(--mint)}
-.contact-card .ic{flex:none;display:grid;place-items:center;width:42px;height:42px;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--ink-3);color:var(--mint)}
+.contact-card .ic{flex:none;display:grid;place-items:center;width:42px;height:42px;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--paper-3);color:var(--ink)}
 .contact-card .ic svg{width:20px;height:20px}
 .contact-card b{display:block;margin-bottom:.25rem;font-size:.95rem}
 .contact-card span{display:block;color:var(--muted);font-size:.9rem;line-height:1.6;word-break:break-word}
@@ -1649,7 +2013,7 @@ a.contact-card:hover,a.contact-card:focus-visible{border-color:var(--mint)}
 .gr-hero{padding-bottom:clamp(3rem,7vw,5rem)}
 .gr-hero-grid{display:grid;gap:clamp(2rem,5vw,3.2rem);align-items:center}
 .gr-hero .hero-inner{max-width:38ch}
-.gr-hero .lead{color:var(--paper);opacity:.86}
+.gr-hero .lead{color:var(--muted);opacity:1}
 .gr-hero .btn-row{margin-top:1.8rem}
 /* The wall is the widest thing in the hero, and on a phone it comes after
    the sentence that explains why it is there. */
@@ -1681,7 +2045,7 @@ a.contact-card:hover,a.contact-card:focus-visible{border-color:var(--mint)}
 .ba-before{order:-1}
 .ba-layer{
   position:relative;overflow:hidden;line-height:0;
-  border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-3);
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--paper-2);
 }
 .ba-layer svg{display:block;width:100%;height:auto;aspect-ratio:16/9}
 .ba-lab{
@@ -1689,15 +2053,15 @@ a.contact-card:hover,a.contact-card:focus-visible{border-color:var(--mint)}
   padding:.3rem .7rem;border-radius:999px;
   background:var(--scrim);border:1px solid var(--line-2);
   font-family:var(--font-body);font-size:.7rem;font-weight:700;line-height:1.4;
-  letter-spacing:.18em;text-transform:uppercase;color:var(--paper);
+  letter-spacing:.18em;text-transform:uppercase;color:var(--on-ink);
 }
 .ba-handle{display:none}
 .ba-cap{margin-top:.85rem;font-size:.86rem;line-height:1.5;color:var(--muted)}
-.ba-hint{display:none;color:var(--paper)}
+.ba-hint{display:none;color:var(--on-ink)}
 
 html.motion .ba-stage{
   display:block;position:relative;aspect-ratio:16/9;overflow:hidden;
-  border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-3);
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--paper-2);
   touch-action:pan-y;cursor:ew-resize;
 }
 html.motion .ba-layer{position:absolute;inset:0;border:0;border-radius:0;background:none}
@@ -1769,9 +2133,13 @@ html.motion .ba-handle:focus-visible{outline:2px solid var(--mint);outline-offse
 .gr-band .lead{color:var(--ink-mute);opacity:1;max-width:56ch}
 .gr-band .btn-row{margin-top:1.8rem}
 /* The eyebrow is mint everywhere else on the site; here it is the mint. */
+/* The eyebrow was a mint pill here because mint could not carry type on
+   this panel and ink on mint could. It is the marker now, and on the
+   scrubbed panel the marker is ink: --pop on --wall is under the floor the
+   coral is allowed to carry type at, and this is the one block on the site
+   whose ground is neither the page nor the paint. */
 .gr-band .eyebrow{
-  color:var(--ink);background:var(--mint);
-  padding:.4rem .8rem;border-radius:999px;margin-bottom:1.1rem;
+  color:var(--ink);background:none;padding:0;margin-bottom:.9rem;
 }
 .gr-band .tags{margin-top:1.4rem}
 .gr-band .tags li{border-color:var(--ink-line);color:var(--ink-mute)}
@@ -1791,10 +2159,10 @@ html.motion .ba-handle:focus-visible{outline:2px solid var(--mint);outline-offse
   display:grid;gap:1.2rem;align-items:center;
   padding:1.3rem clamp(1.2rem,3vw,1.8rem);
   border:1px solid var(--line-2);border-radius:var(--radius);
-  background:linear-gradient(90deg,var(--mint-glow),transparent 55%),var(--ink-3);
+  background:linear-gradient(90deg,var(--mint-glow),transparent 55%),var(--paper-2);
 }
 .gr-strip p{margin:0;color:var(--muted);font-size:.98rem;line-height:1.6}
-.gr-strip p b{color:var(--paper)}
+.gr-strip p b{color:var(--ink)}
 .gr-strip-links{display:flex;gap:.5rem;flex-wrap:wrap}
 @media (min-width:860px){.gr-strip{grid-template-columns:1fr auto;gap:1.8rem}}
 
