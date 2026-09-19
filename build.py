@@ -632,8 +632,13 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None)
     # and on no other: one <symbol> the cards and the cursor both borrow.
     props = roller_sprite() if 'class="pcard' in body else ''
     washer = (f'<link rel="stylesheet" href="{u("/css/wash.css")}?v={asset_v("css/wash.css")}">'
-              f'\n<script src="{u("/js/wash.js")}?v={asset_v("js/wash.js")}" defer></script>'
               if wash else '')
+    # wash.js goes after site.js, not in the head with its stylesheet. Both
+    # are deferred, so they run in document order, and wash.js asks site.js
+    # for the shared Sound module the moment it binds — one AudioContext for
+    # the page, one persisted mute state, whichever mechanic asked for it.
+    washer_js = (f'\n<script src="{u("/js/wash.js")}?v={asset_v("js/wash.js")}" defer></script>'
+                 if wash else '')
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -661,7 +666,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None)
 <main id="main">
 {body}
 </main>
-{footer_html()}
+{footer_html()}{washer_js}
 </body>
 </html>'''
 

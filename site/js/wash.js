@@ -36,7 +36,6 @@
   var DONE_AT = 0.78;               // cleaned fraction that finishes it
   var WIPE_MS = 500;                // how long the remainder takes
   var FPS_FRAMES = 20, FPS_FLOOR = 25, WORK_FLOOR = 8;   // 25ms a frame is 40fps
-  var SND_KEY = 'oag:wash:snd';
 
   var fine = false, coarse = false;
   try {
@@ -45,75 +44,19 @@
   } catch (e) {}
 
   /* ---------------------------------------------------------------- sound
-     One AudioContext for the page, built on a real user gesture and only
-     once the visitor has asked for sound. Muted is the default and the
-     choice persists; nothing here ever runs on load. */
-  var Sound = (function () {
-    var ctx = null, buf = null, on = false, spray = null;
-    try { on = localStorage.getItem(SND_KEY) === '1'; } catch (e) {}
-
-    function ensure() {
-      if (!on) return null;
-      if (!ctx) {
-        var AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return null;
-        try { ctx = new AC(); } catch (e) { return null; }
-        // Two seconds of white noise, reused by every stroke.
-        buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-        var d = buf.getChannelData(0);
-        for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-      }
-      if (ctx.state === 'suspended') ctx.resume();
-      return ctx;
-    }
-
-    return {
-      get: function () { return on; },
-      set: function (v) {
-        on = !!v;
-        try { localStorage.setItem(SND_KEY, on ? '1' : '0'); } catch (e) {}
-        if (!on) this.sprayOff(); else ensure();
-      },
-      // A hiss, gain ramped by how fast the stroke is moving.
-      sprayOn: function () {
-        var c = ensure(); if (!c || spray) return;
-        var src = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
-        src.buffer = buf; src.loop = true;
-        bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 0.7;
-        g.gain.value = 0;
-        src.connect(bp); bp.connect(g); g.connect(c.destination);
-        src.start();
-        spray = { src: src, g: g };
-      },
-      spraySpeed: function (v) {
-        if (!spray || !ctx) return;
-        var t = Math.max(0, Math.min(1, v));
-        spray.g.gain.setTargetAtTime(0.015 + t * 0.10, ctx.currentTime, 0.06);
-      },
-      sprayOff: function () {
-        if (!spray || !ctx) { spray = null; return; }
-        var s = spray; spray = null;
-        s.g.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
-        try { s.src.stop(ctx.currentTime + 0.4); } catch (e) {}
-      },
-      // Two rising chirps: the squeak of a finger on clean glass.
-      squeak: function () {
-        var c = ensure(); if (!c) return;
-        [[0, 1500, 2700, 0.11], [0.085, 1900, 3300, 0.08]].forEach(function (s) {
-          var t = c.currentTime + s[0];
-          var o = c.createOscillator(), g = c.createGain();
-          o.type = 'sine';
-          o.frequency.setValueAtTime(s[1], t);
-          o.frequency.exponentialRampToValueAtTime(s[2], t + 0.09);
-          g.gain.setValueAtTime(0.0001, t);
-          g.gain.exponentialRampToValueAtTime(s[3], t + 0.02);
-          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
-          o.connect(g); g.connect(c.destination);
-          o.start(t); o.stop(t + 0.15);
-        });
-      }
-    };
-  })();
+     One AudioContext for the page, and it is not built here: site.js's kit
+     owns it (window.oagKit.sound), because /about and /404 needed the same
+     module for the Wall brush and a second AudioContext in a second file was
+     the wrong answer. Same voices, same persisted key, same rule — muted by
+     default, nothing ever runs on load. site.js is written into the document
+     ahead of this file and both are deferred, so the kit is there by the
+     time this line runs; the stub is for the case where site.js never
+     arrived at all, in which case the wall still washes, in silence. */
+  var Sound = (window.oagKit && window.oagKit.sound) || {
+    get: function () { return false; }, set: function () {},
+    sprayOn: function () {}, spraySpeed: function () {}, sprayOff: function () {},
+    squeak: function () {}
+  };
 
   /* ----------------------------------------------------------------- one wall */
   function Wash(fig) {

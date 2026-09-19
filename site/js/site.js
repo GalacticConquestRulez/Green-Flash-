@@ -5,6 +5,143 @@
    this only adds the mobile menu, the scrolled state on the nav, the
    current-page marker and the copyright year.
    ===================================================================== */
+
+/* =====================================================================
+   The kit — the two things more than one mechanic needs.
+
+   A seeded random and a sound module, on window.oagKit, because they were
+   each about to exist twice. The generator was written for Splat's bristles
+   and is what Wall's bristles are stamped from; the sound module was written
+   inside wash.js and is what /about and /404 now ask for, and wash.js asks
+   the same module rather than building a second AudioContext.
+
+   Nothing here is gated on motion and nothing here starts anything: the
+   generator is pure and the sound module is a closure that has not touched
+   the audio API until the visitor has turned sound on and then done
+   something. Muted is the default, the choice persists under the key wash
+   has always used, and no page ever makes a noise on load.
+
+   This block runs before the mechanics below it and, because both files are
+   deferred and site.js is written into the document ahead of wash.js, before
+   wash.js — which is the whole reason the script tag moved out of the head.
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  /* mulberry32. Seeded on purpose: the same fingers every run, so a brush
+     built in the browser is the same brush every time it is built. */
+  const rng = (seed) => {
+    let t = seed >>> 0;
+    return () => {
+      t = (t + 0x6D2B79F5) >>> 0;
+      let r = Math.imul(t ^ (t >>> 15), 1 | t);
+      r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+      return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+    };
+  };
+
+  /* --- sound ---------------------------------------------------------
+     One AudioContext for the page, built on a real user gesture and only
+     once the visitor has asked for sound. Two kinds of voice:
+
+       a loop     filtered white noise held open while something is being
+                  dragged, its gain following how fast it is moving — the
+                  pressure washer's spray, and the brush's hiss on brick.
+                  Each voice has a name so two mechanics can never fight
+                  over one gain node.
+       a chirp    the squeak of a finger on clean glass, fired once.
+
+     The noise buffer is two seconds long and every voice shares it. */
+  const SND_KEY = 'oag:wash:snd';
+  const sound = (function () {
+    let ctx = null, buf = null, on = false;
+    const voices = Object.create(null);
+    try { on = localStorage.getItem(SND_KEY) === '1'; } catch (e) {}
+
+    function ensure() {
+      if (!on) return null;
+      if (!ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        try { ctx = new AC(); } catch (e) { return null; }
+        buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    }
+
+    // floor/span are this voice's gain range: its faintest and how much
+    // louder the fastest stroke makes it. Both are small on purpose.
+    function voiceOn(name, freq, q, floor, span) {
+      const c = ensure();
+      if (!c || voices[name]) return;
+      const src = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+      src.buffer = buf; src.loop = true;
+      bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = q;
+      g.gain.value = 0;
+      src.connect(bp); bp.connect(g); g.connect(c.destination);
+      src.start();
+      voices[name] = { src, g, floor, span };
+    }
+
+    function voiceAt(name, v) {
+      const o = voices[name];
+      if (!o || !ctx) return;
+      const t = Math.max(0, Math.min(1, v));
+      o.g.gain.setTargetAtTime(o.floor + t * o.span, ctx.currentTime, 0.06);
+    }
+
+    function voiceOff(name) {
+      const o = voices[name];
+      if (!o) return;
+      delete voices[name];
+      if (!ctx) return;
+      o.g.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
+      try { o.src.stop(ctx.currentTime + 0.4); } catch (e) {}
+    }
+
+    function allOff() { for (const k in voices) voiceOff(k); }
+
+    return {
+      get: () => on,
+      set: (v) => {
+        on = !!v;
+        try { localStorage.setItem(SND_KEY, on ? '1' : '0'); } catch (e) {}
+        if (!on) allOff(); else ensure();
+      },
+      // Wash: the pressure washer's spray.
+      sprayOn: () => voiceOn('spray', 2600, 0.7, 0.015, 0.10),
+      spraySpeed: (v) => voiceAt('spray', v),
+      sprayOff: () => voiceOff('spray'),
+      // Wall: a brush dragged over brick — lower, broader, and fainter.
+      hissOn: () => voiceOn('brush', 1250, 0.55, 0.006, 0.042),
+      hissSpeed: (v) => voiceAt('brush', v),
+      hissOff: () => voiceOff('brush'),
+      // Wash: two rising chirps, the squeak of a finger on clean glass.
+      squeak: () => {
+        const c = ensure();
+        if (!c) return;
+        [[0, 1500, 2700, 0.11], [0.085, 1900, 3300, 0.08]].forEach((s) => {
+          const t = c.currentTime + s[0];
+          const o = c.createOscillator(), g = c.createGain();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(s[1], t);
+          o.frequency.exponentialRampToValueAtTime(s[2], t + 0.09);
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(s[3], t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+          o.connect(g); g.connect(c.destination);
+          o.start(t); o.stop(t + 0.15);
+        });
+      },
+    };
+  })();
+
+  window.oagKit = { rng, sound };
+})();
+
 (function () {
   const $ = (s, c = document) => c.querySelector(s);
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -1128,16 +1265,9 @@
 
   /* The bristles are generated rather than written out, and a seeded
      generator is the point: the same fingers every run, so the file stays
-     byte-identical build to build. mulberry32. */
-  const rng = (seed) => {
-    let t = seed >>> 0;
-    return () => {
-      t = (t + 0x6D2B79F5) >>> 0;
-      let r = Math.imul(t ^ (t >>> 15), 1 | t);
-      r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
-      return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-    };
-  };
+     byte-identical build to build. It is the kit's mulberry32, which Wall's
+     bristles come out of too. */
+  const rng = window.oagKit.rng;
 
   let layer = null, shot = 0, killer = 0, running = false;
   let brush = null, brushW = 0, brushH = 0, brushV = false;
@@ -1407,3 +1537,4 @@
   // A page restored from the bfcache must never come back painted.
   addEventListener('pageshow', clear);
 })();
+
