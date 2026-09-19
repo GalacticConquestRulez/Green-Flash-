@@ -979,3 +979,10 @@ html.motion .scale.is-used .scale-hint{opacity:0}
   html.motion .fig{transition:none}
   html.motion .scale-hint{display:none}
 }
+
+/* "Save my number" — the vCard button, on the contact sidebar and under the
+   portrait on About. */
+.contact-card-cta .mt{margin-top:.75rem}
+.contact-card-cta .btn{width:auto}
+.portrait-cta{margin-top:1rem;display:flex;justify-content:center}
+.btn svg{width:1.05em;height:1.05em;margin-right:.45em;vertical-align:-.18em}

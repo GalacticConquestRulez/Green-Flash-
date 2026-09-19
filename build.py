@@ -38,6 +38,68 @@ IG = 'https://www.instagram.com/openairmurals'
 # Formspree or Web3Forms endpoint and the same form POSTs JSON instead.
 FORM_ENDPOINT = os.environ.get('FORM_ENDPOINT', '')
 
+# "Save my number" — a vCard the phone opens straight into Contacts. The owner
+# asked for the button first and the details later, so every field here is a
+# placeholder that is simply omitted when empty: a card with no phone is a
+# minor disappointment, a card with a made-up one is a lie. Fill in as Ephraim
+# supplies them. vCard 3.0, which Apple, Google and Outlook all read.
+CONTACT = dict(
+    given='Ephraim', family='',          # surname unconfirmed (CLAUDE.md)
+    org=SITE_NAME, title='Muralist',
+    phone='',                            # to come
+    email=EMAIL,
+    url=None,                            # filled in from BASE_URL below
+    instagram=IG,
+    note='Murals, banners, signs and graffiti removal — New York and nationwide.',
+)
+VCF_PATH = '/ephraim.vcf'
+
+
+def _vesc(v):
+    # The format's separators must be escaped; values keep their own punctuation.
+    return (v.replace('\\', '\\\\').replace(';', '\\;').replace(',', '\\,')
+             .replace('\r\n', '\\n').replace('\n', '\\n'))
+
+
+def _vfold(line):
+    # Lines are at most 75 octets, not characters; a continuation line starts
+    # with one space (RFC 2426). Fold on bytes so an em dash is never split.
+    b = line.encode('utf-8')
+    if len(b) <= 75:
+        return line
+    out, i, limit = [], 0, 75
+    while i < len(b):
+        j = min(i + limit, len(b))
+        while j < len(b) and (b[j] & 0xC0) == 0x80:  # do not cut a multibyte sequence
+            j -= 1
+        out.append(('' if i == 0 else ' ') + b[i:j].decode('utf-8'))
+        i, limit = j, 74
+    return '\r\n'.join(out)
+
+
+def vcard():
+    c = dict(CONTACT); c['url'] = c['url'] or BASE_URL + '/'
+    name = ' '.join(x for x in (c['given'], c['family']) if x)
+    lines = ['BEGIN:VCARD', 'VERSION:3.0',
+             f"N:{_vesc(c['family'])};{_vesc(c['given'])};;;",
+             f'FN:{_vesc(name)}',
+             f"ORG:{_vesc(c['org'])}"]
+    if c['title']:  lines.append(f"TITLE:{_vesc(c['title'])}")
+    if c['phone']:  lines.append(f"TEL;TYPE=CELL,VOICE:{_vesc(c['phone'])}")
+    if c['email']:  lines.append(f"EMAIL;TYPE=INTERNET:{_vesc(c['email'])}")
+    lines.append(f"URL:{_vesc(c['url'])}")
+    if c['instagram']: lines.append(f"X-SOCIALPROFILE;TYPE=instagram:{_vesc(c['instagram'])}")
+    if c['note']:   lines.append(f"NOTE:{_vesc(c['note'])}")
+    lines += ['END:VCARD']
+    return '\r\n'.join(_vfold(l) for l in lines) + '\r\n'
+
+
+def save_number(cls='btn btn-mint'):
+    """The button. `download` names the file; the .vcf URL is what makes iOS
+    Safari hand it to Contacts rather than Files."""
+    return (f'<a class="{cls}" href="{u(VCF_PATH)}" download="ephraim.vcf" '
+            f'type="text/vcard">{ICONS["person"]}Save my number</a>')
+
 # The two colours the HTML itself has to name (a <meta> tag and the inline
 # favicon cannot read a CSS custom property). They mirror --ink and --mint in
 # site/css/site.css, and docs/contrast.py fails the build if they ever drift.
@@ -223,6 +285,7 @@ check_projects()
 
 
 ICONS = {
+ 'person': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>',
  'arrow': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
  'mail': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
  'ig': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>',
@@ -842,7 +905,8 @@ pages['/about'] = dict(
 
 <section><div class="wrap">
   <div class="duo">
-    <div class="portrait rv">{pic('ephraim-portrait', 'Ephraim, the muralist who leads Open Air Gallery', PORTRAIT_SIZES)}</div>
+    <div class="portrait rv">{pic('ephraim-portrait', 'Ephraim, the muralist who leads Open Air Gallery', PORTRAIT_SIZES)}
+      <div class="portrait-cta">{save_number()}</div></div>
     <div class="rv rv-d1">
       <div class="eyebrow">The muralist</div>
       <h2>Ephraim</h2>
@@ -1257,6 +1321,9 @@ pages['/contact'] = dict(
     </div>
 
     <div class="contact-side rv rv-d1">
+      <div class="contact-card contact-card-cta"><div class="ic">{ICONS['person']}</div>
+        <div><b>Save my number</b><span>One tap adds Ephraim to your contacts.</span>
+        <div class="mt">{save_number()}</div></div></div>
       <a class="contact-card" href="mailto:{EMAIL}"><div class="ic">{ICONS['mail']}</div>
         <div><b>Email</b><span>{EMAIL}</span></div></a>
       <a class="contact-card" {ext(IG)}><div class="ic">{ICONS['ig']}</div>
@@ -1450,6 +1517,10 @@ for path, p in pages.items():
                        p.get('noindex', False), p.get('wash', False), p.get('og'),
                        p.get('splat', False)))
     print('wrote', fn)
+
+# the vCard behind "Save my number"
+with open(os.path.join(OUT, VCF_PATH.lstrip('/')), 'w', newline='') as f:
+    f.write(vcard())
 
 # sitemap + robots
 # A page marked noindex is a working page, not a public one: it must not be
