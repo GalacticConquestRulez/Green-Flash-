@@ -2372,3 +2372,148 @@ html.motion .tiprule.curing::after{
 .gr-strip p{color:var(--ink,#0A0A0B)}
 .gr-strip p b{color:var(--pop,#FF4F2E);font-family:var(--face-wide,ArchivoW),Archivo,sans-serif;
   font-weight:900;font-stretch:125%;text-transform:uppercase;letter-spacing:.04em;font-size:.92em}
+
+/* --- the Services diamond board -------------------------------------
+   The drop-cloth palette. The mint and the pop are the round-three
+   tokens; the yellow and the violet are the "few other colours" the
+   owner asked for on the cards. They are paint and never type, so no
+   contrast pair is claimed for either. splatter.py carries the same
+   four hexes, because an SVG fill cannot read a custom property that
+   is only declared here — the stylesheet is still where they change.  */
+:root{--drop-yellow:#FFD23F;--drop-violet:#7B5CFF}
+
+.sboard-head{padding:clamp(56px,7vw,92px) 0 clamp(28px,4vw,44px);text-align:center;background:var(--paper,#fff)}
+.sboard-head .marker{color:var(--pop,#FF4F2E);font-size:clamp(19px,2.2vw,26px);margin:0 0 6px}
+.sboard-head h2{font-size:clamp(38px,5.6vw,84px);line-height:.95;margin:0;color:var(--ink,#0A0A0B)}
+.sboard-head h2 em{font-style:normal;color:var(--pop,#FF4F2E)}
+
+/* The board is full bleed, because the windows between the diamonds are
+   the point and a gutter would put white down both sides of the wall.  */
+.sboard-wrap{position:relative;overflow:hidden;background:var(--ink,#0A0A0B);
+  aspect-ratio:1440/1560}
+.sboard{position:absolute;inset:0;z-index:1}
+
+/* One strip, five walls, no seam. Each wall is pulled up over the one
+   before it and masked in from transparent, so the changeover happens
+   across a gradient and lands in the gaps between diamonds — which is
+   what makes it invisible.                                            */
+.sboard-wrap{--deep-run:30vw;--feather:7vw}
+.deep{position:absolute;left:0;right:0;top:0;z-index:0;will-change:transform;
+  height:calc(100% + var(--deep-run))}
+/* Five walls filling the strip exactly, each overlapping the one before
+   it by --feather and masked in across exactly that distance, so the
+   hand-over is a cross-fade with no seam and no gap. Both numbers are the
+   same length rather than two percentages: a percentage margin resolves
+   against the container's *width* and a percentage mask against the
+   element's own height, and the first version of this mixed the two — the
+   fade came out longer than the overlap and the board showed through as a
+   black band between every wall. The heights then solve for the strip:
+   five walls less four overlaps is the strip, which is the board plus
+   exactly the distance it travels.                                      */
+.dwall{height:calc((100% + 4 * var(--feather)) / 5);
+  background-size:cover;background-position:center}
+.dwall + .dwall{margin-top:calc(-1 * var(--feather));
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 var(--feather));
+  mask-image:linear-gradient(180deg,transparent 0,#000 var(--feather))}
+
+/* The parallax. A scroll timeline rather than a scroll handler: no
+   second rAF on the page, nothing to tear against the Live loop, and
+   the compositor does the moving. Where the browser has no scroll
+   timelines the strip simply stands still at its first position, which
+   is the same state reduced motion and no-script get — and the design
+   is drawn for that state, not rescued into it. data-deep and
+   data-deep-rate are on the element so site.js can take it over from
+   the Live loop; .deep-js on <html> stands this animation down.        */
+/* The timeline is named and declared on the board, not on the strip.
+   .sboard-wrap has overflow:hidden, which makes it a scroll container —
+   so an anonymous view() on the strip inside it measures the strip
+   against *that* box, where it never moves, and the parallax comes out
+   frozen at a constant offset. Declaring the view timeline on the board
+   itself measures the board against the document, which is the motion
+   the design is asking for.                                             */
+@supports (animation-timeline:view()){
+  .sboard-wrap{view-timeline:--oa-deep block}
+  @media (prefers-reduced-motion:no-preference){
+    html:not(.deep-js) .deep{
+      animation:oaDeep linear both;
+      animation-timeline:--oa-deep;
+      animation-range:cover 0% cover 100%;
+    }
+  }
+}
+@keyframes oaDeep{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,calc(-1 * var(--deep-run)),0)}}
+
+/* A diamond: a square turned forty-five degrees, its white card inset
+   inside it so the points are paint and card rather than card and
+   hairline. The type is counter-rotated into the square inscribed in
+   the diamond — 70.7% of it, which is exactly the largest upright box
+   that fits — so nothing can ever clip at a point.                     */
+.dia{position:absolute;left:var(--l);top:var(--t);width:30%;aspect-ratio:1;
+  transform:translate(-50%,0) rotate(45deg)}
+/* The lattice: three across, then two on the half step, then one. The
+   numbers are worked out from the diamond's own geometry — a square of
+   side S turned 45 degrees is S x 1.414 across its points, so the rows
+   are set 0.35 of the board apart against a 0.42 diagonal and interlock
+   by the difference, which is what leaves diamond-shaped windows.       */
+.dia:nth-child(1){--l:20%;--t:5%}
+.dia:nth-child(2){--l:50%;--t:5%}
+.dia:nth-child(3){--l:80%;--t:5%}
+.dia:nth-child(4){--l:35%;--t:40%}
+.dia:nth-child(5){--l:65%;--t:40%}
+.dia:nth-child(6){--l:50%;--t:75%}
+
+/* A tablet is too narrow for three across — the card comes out smaller
+   than a phone's and the copy has to shrink under it. So the lattice
+   drops to two across and the diamonds get bigger, not smaller.        */
+@media (min-width:861px) and (max-width:1199px){
+  .sboard-wrap{aspect-ratio:1/2}
+  .dia{width:44%}
+  .dia:nth-child(1){--l:32%;--t:5%}
+  .dia:nth-child(2){--l:68%;--t:5%}
+  .dia:nth-child(3){--l:50%;--t:27.5%}
+  .dia:nth-child(4){--l:32%;--t:50%}
+  .dia:nth-child(5){--l:68%;--t:50%}
+  .dia:nth-child(6){--l:50%;--t:72.5%}
+  .sboard-wrap{--deep-run:24vw;--feather:8vw}
+}
+.sq{position:absolute;inset:8%;container-type:size;overflow:hidden;
+  background:var(--paper,#fff);border:1px solid var(--ink,#0A0A0B);
+  box-shadow:0 18px 44px rgba(10,10,11,.22)}
+.spat{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.tx{position:absolute;left:14.65%;top:14.65%;width:70.7%;height:70.7%;z-index:1;
+  transform:rotate(-45deg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;gap:0}
+.tx .num{font-size:max(34px,17cqw);line-height:.8;color:var(--ink,#0A0A0B)}
+.tx .rule{display:block;width:13cqw;min-width:38px;height:max(3px,1.1cqw);
+  background:var(--pop,#FF4F2E);margin:max(10px,3cqw) 0 max(8px,2.4cqw)}
+.tx h3{font-size:max(19px,7.2cqw);margin:0 0 max(6px,2cqw);color:var(--ink,#0A0A0B);font-weight:400}
+.tx p{font-size:max(12.5px,3.8cqw);line-height:1.45;margin:0 0 max(10px,3.2cqw);
+  color:var(--muted-ink,#2b2a2e)}
+.tx .more{font-size:max(11.5px,3.7cqw);letter-spacing:.06em;color:var(--ink,#0A0A0B);
+  text-decoration:none;font-weight:400}
+.tx .more span{color:var(--pop,#FF4F2E)}
+.tx .more:hover{color:var(--pop,#FF4F2E)}
+
+/* A phone gets one column of diamonds, 82% of the width across the
+   points, with the strip still running behind them.                   */
+/* A phone gets one column of diamonds with the strip still running
+   behind them. The diamond is 70% of the width as a square, which is
+   99% across its points — full bleed, and nothing clipped at the sides.
+   The type floors come down with it: a diamond only offers its
+   inscribed square to a paragraph, and on a 390 that square is 160px.  */
+@media (max-width:860px){
+  .sboard-wrap{aspect-ratio:auto;padding:7vw 0;--deep-run:20vw;--feather:12vw}
+  .sboard{position:static;display:flex;flex-direction:column;align-items:center}
+  .dia,.dia:nth-child(n){position:relative;left:auto;top:auto;width:70%;margin:4.5% 0;
+    transform:rotate(45deg)}
+  .tx .num{font-size:max(22px,17cqw)}
+  .tx .rule{min-width:26px;height:max(2px,1.1cqw);margin:max(6px,3cqw) 0 max(5px,2.4cqw)}
+  .tx h3{font-size:max(15px,7.2cqw);margin-bottom:max(4px,2cqw)}
+  .tx p{font-size:max(11px,3.8cqw);line-height:1.34;margin-bottom:max(7px,3.2cqw)}
+  .tx .more{font-size:max(10px,3.7cqw)}
+}
+
+/* /services — the figures over the tin's rule, and the sign roster.    */
+.svc-rule{background:var(--paper,#fff)}
+.stats-3{display:grid;gap:1.2rem;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  list-style:none;margin:clamp(1.6rem,4vw,2.6rem) 0 0;padding:0}

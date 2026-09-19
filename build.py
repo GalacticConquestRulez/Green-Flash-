@@ -971,6 +971,109 @@ def public_works(cls=''):
 </div></section>'''
 
 
+# --------------------------------------------------------- THE DIAMOND BOARD
+# The Services page. Overall Murals' *idea* — cards as negative space over a
+# deep, parallaxing mural layer that hands over seamlessly — in Ephraim's own
+# form. The owner, 2026-09-19: "Maybe we switch ours up and use some sort of
+# diamond concept, add his teal and a few other colours as splatter on the
+# crisp white cards before we add the text — let's not copy."
+#
+# So the grid is turned forty-five degrees. The white diamonds are the cards
+# and the gaps between them are the windows: one strip of his walls laid end
+# to end behind the whole board, each wall feathered into the next with a mask
+# gradient so there is never a seam to see, moving slower than the page so the
+# wall sits behind it rather than on it.
+#
+# Every card is splattered first and lettered after (splatter.py): two or three
+# clusters of the drop-cloth palette thrown at the diamond's points, where the
+# type never goes, each with a rim, a gloss and a drip. Seeded per card, so no
+# two match and every build is byte for byte the last one.
+from splatter import splatter_svg
+
+# The drop-cloth palette. The same four hexes are declared as tokens in the
+# stylesheet's PAGES block; splatter.py needs real values rather than var()
+# names, so they are written once here and once there and nowhere else.
+DROP_PALETTE = ('#71EEB8', '#FF4F2E', '#FFD23F', '#7B5CFF')
+
+# The strip behind the board: five of his walls, in the order they hand over.
+DEEP_WALLS = ('gucci-new-york-hero', 'crown-royal-trail-blazers-hero',
+              'john-lewis-rochester-hero', 'uber-san-francisco-hero',
+              'malcolm-x-rochester-hero')
+
+# Six services, and the lattice they sit on: three across, then two on the
+# half step, then one. `l` and `t` are per cent of the board.
+BOARD = [
+  ('01', 'Murals', '20%', '5%',
+   'It starts from a small image and explodes onto a massive canvas &mdash; brand '
+   'walls, portraits and public works, painted by hand at building scale.',
+   'See the walls', '/work'),
+  ('02', 'Banners &amp; signs', '50%', '5%',
+   'Hand-lettered signage and painted banners for storefronts and campaigns, '
+   'done with the same brush as the walls.',
+   'See the signs', consult_path('Banners and signs')),
+  ('03', 'Graffiti removal', '80%', '5%',
+   'Industrial-strength cleaning for tags, stains and overspray in NYC. Send a '
+   'picture; we send back a quote and a date.',
+   'Send a photo', consult_path('Graffiti removal')),
+  ('04', 'Public works', '35%', '40%',
+   'Community walls, civil-rights portraits and teen-empowerment murals in '
+   'Mexico, Brazil, Rochester and New York.',
+   'See the public works', '/work#f-civic'),
+  ('05', 'Paint science', '65%', '40%',
+   'We analyze how the paint will decay and how the light will affect its '
+   'colour, so we use only what we need and what will last.',
+   'How a wall is preserved', '/about'),
+  ('06', 'Commercial painting', '50%', '75%',
+   'Facades, interiors and the coating that keeps a finished wall easy to '
+   'clean &mdash; the crew that paints it knows how to keep it.',
+   'Book a consult', consult_path('Commercial painting')),
+]
+
+
+def _diamond(i, row):
+    # The lattice positions are not here. They are per breakpoint — three
+    # across at desktop, two on a tablet, one on a phone — and a position in
+    # the markup would be an inline style that no media query could move.
+    num, name, _l, _t, words, more, href = row
+    # A different pair of the palette on every card, rotated so the teal he
+    # asked for is on all of them and the other three take turns beside it.
+    cols = [DROP_PALETTE[0], DROP_PALETTE[1 + i % 3], DROP_PALETTE[1 + (i + 1) % 3]]
+    spat = splatter_svg(f'd{i}', cols, 4100 + i * 137)
+    return (f'<div class="dia"><div class="sq">{spat}'
+            f'<div class="tx"><span class="num marker">{num}</span>'
+            f'<span class="rule" aria-hidden="true"></span>'
+            f'<h3 class="tall">{name}</h3><p class="serif">{words}</p>'
+            f'<a class="more tall" href="{u(href)}">{more} '
+            f'<span aria-hidden="true">&rarr;</span></a></div></div></div>')
+
+
+def services_board(eyebrow='our services',
+                   title=('There&rsquo;s a wall for everyone<br>when you choose '
+                          '<em class="pop">hand-painted</em> murals.')):
+    """The board: one deep strip of walls, six diamonds floating over it.
+
+    The strip is the only thing that moves, it moves at about half the page's
+    speed, and it moves through a CSS scroll timeline rather than through a
+    scroll handler of its own — so there is no second rAF loop on this page,
+    nothing to run on a browser that has no scroll timelines, and reduced
+    motion and no-script both get the strip standing still at its first
+    position, which is the state the design is drawn for. It carries
+    data-deep and data-deep-rate so site.js can take it over from the Live
+    loop later; the stylesheet stands the CSS animation down the moment
+    <html> gains .deep-js, so the two can never both be driving.
+    """
+    walls = ''.join(
+        f'<div class="dwall" style="background-image:url('
+        f'{u("/assets/img/" + w + "-1600.webp")})"></div>' for w in DEEP_WALLS)
+    dias = ''.join(_diamond(i, row) for i, row in enumerate(BOARD))
+    return (f'<section class="sboard-head"><div class="wrap">'
+            f'<p class="marker">{eyebrow}</p><h2 class="tall">{title}</h2>'
+            f'</div></section>\n'
+            f'<section class="sboard-wrap">'
+            f'<div class="deep" data-deep data-deep-rate="0.5" aria-hidden="true">{walls}</div>'
+            f'<div class="sboard">{dias}</div></section>')
+
+
 # ---------------------------------------------------------------- HOME
 # Every number on this page is computed from projects.py. None of them is
 # typed: "Twelve walls. Over 23,000 square feet." is the roster adding itself
@@ -1338,53 +1441,25 @@ pages['/services'] = dict(
                      'with traffic and pedestrians below it for scale',
            crumb='Services', tip=True)}
 
-<section><div class="wrap">
+<section class="svc-rule"><div class="wrap">
   {tip_rule()}
-  <div class="section-head rv"><div class="eyebrow"><span class="marker">Murals</span></div>
-  <h2 class="tall">A small image, exploded onto a massive canvas</h2>
-  <p class="lead serif">Brand walls, painted portraits and civic commissions, projected and
-  painted by hand, in {spell(len(CITIES))} cities and counting — the largest {WIDEST['dim_w']} feet across.</p></div>
-  <div class="duo duo-wide">
-    <div class="rv">
-      <blockquote class="pull serif"><p>{PROCESS[0][1]}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
-      <div class="btn-row" style="margin-top:1.8rem">
-        <a class="btn btn-mint" href="{consult('Murals')}">Start a mural {ICONS['arrow']}</a>
-        <a class="btn btn-ghost" href="{u('/work')}">See the work</a>
-      </div>
-    </div>
-    <ul class="stats rv rv-d1 stats-2">
-      {stat(f'{SQ_FT:,}', 'square feet, and counting')}
-      {stat(WIDEST['dim_w'], f'widest wall, {WIDEST["city"]}', mark=PRIME)}
-      {stat(len(CITIES), 'cities, coast to coast')}
-    </ul>
-  </div>
+  <ul class="stats rv stats-3">
+    {stat(f'{SQ_FT:,}', 'square feet, and counting')}
+    {stat(WIDEST['dim_w'], f'widest wall, {WIDEST["city"]}', mark=PRIME)}
+    {stat(len(CITIES), 'cities, coast to coast')}
+  </ul>
 </div></section>
+
+{services_board()}
 
 <section class="alt"><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow"><span class="marker">Banners and signs</span></div>
-  <h2 class="tall">Hand-painted, at any size</h2>
-  <p class="lead serif">The same brushes on smaller surfaces: storefront signs, hand-painted
-  banners and interior lettering. Ephraim’s own line for the company, and it has been
-  the line since the first version of this site — murals, banners, art.</p></div>
-  <ul class="roster">{''.join(f'<li class="rv">{html.escape(n)}</li>' for n in SIGN_ROSTER)}</ul>
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">in his own words</span></div>
+  <h2 class="tall">There is a science to paint</h2>
+  <p class="lead serif">Two of Ephraim&rsquo;s three stages are about what happens to the paint
+  after the crew goes home: how it will fade, and how it survives what is thrown at it.</p></div>
+  {beats(PROCESS, 'beats-gr', rule=True)}
+  <ul class="roster rv">{''.join(f'<li>{html.escape(n)}</li>' for n in SIGN_ROSTER)}</ul>
   <div class="row-end rv"><a class="btn btn-ghost" href="{consult('Banners and signs')}">Ask about a sign {ICONS['arrow']}</a></div>
-</div></section>
-
-<section><div class="wrap">
-  <div class="duo">
-    <figure class="figframe rv">{pic('about-preservation', 'Four Open Air Gallery painters on a suspended platform, finishing a painted portrait wall', HALF_SIZES)}
-      <figcaption class="figcap">A crew on a suspended platform, finishing a portrait wall.</figcaption></figure>
-    <div class="rv rv-d1">
-      <div class="eyebrow"><span class="marker">Paint science</span></div>
-      <h2 class="tall">There is a science to paint</h2>
-      <p class="lead serif">Two of Ephraim’s three stages are about what happens to the paint
-      after the crew goes home: how it will fade, and how it survives what is thrown at it.</p>
-      <h3 class="svc-h tall">{PROCESS[1][0]}</h3>
-      <blockquote class="pull serif"><p>{PROCESS[1][1]}</p></blockquote>
-      <h3 class="svc-h tall">{PROCESS[2][0]}</h3>
-      <blockquote class="pull serif"><p>{PROCESS[2][1]}</p><cite>Ephraim, Open Air Gallery</cite></blockquote>
-    </div>
-  </div>
 </div></section>
 
 {brand_wall()}
