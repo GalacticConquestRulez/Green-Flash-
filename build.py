@@ -461,8 +461,19 @@ def asset_v(rel):
         return hashlib.md5(f.read()).hexdigest()[:8]
 
 
+def _uid(text):
+    """A stroke's name, out of the words it is painted behind.
+
+    Lower case, letters and digits, hyphens for everything else: the seed a
+    stroke is generated from has to be stable across builds, and a heading is
+    the only thing on hand that is both stable and unique to its page.
+    """
+    out = ''.join(c if c.isalnum() else '-' for c in text.lower())
+    return '-'.join(p for p in out.split('-') if p)[:48] or 'stroke'
+
+
 def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_alt='',
-              video=None, wall=False, extra='', tip=False):
+              video=None, wall=False, extra='', tip=False, hl=''):
     """The top of a page: a photograph, a shade over it, and the words.
 
     The photograph goes through pic() rather than img() so the browser picks a
@@ -487,6 +498,12 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
 
     extra is markup dropped inside the hero's words, under the lead: the 404's
     two ways back, and nothing else so far.
+
+    hl is a second line of the headline, painted on a stroke of mint the way
+    Home's is (highlight(), strokes.py) — the option, on every page that
+    wants it. The words on the paint are ink, which is the only thing mint
+    may carry; the stroke is seeded from the words themselves, so it is the
+    same stroke on every build and a different one on every page.
 
     tip stands a paint tin on the floor of the hero's text column ("Tip",
     tip_can()). Unlike wall, it is not one inert attribute: the tin is drawn
@@ -517,6 +534,8 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
     # it are light. A hero without one is the white page, and its words are
     # ink. The class says which, so no rule has to guess.
     cls = (cls + ' has-media').strip() if media_slug else cls
+    if hl:
+        title = f'{title}<br>{highlight(hl, "hl-" + _uid(hl))}'
     return f'''<section class="page-hero{" " + cls if cls else ""}"{' data-wall' if wall else ''}>{media}
   <div class="wrap"><div class="hero-inner">{crumbs}<div class="eyebrow">{eyebrow}</div><h1>{title}</h1>{lead_html}{extra}{tip_can() if tip else ''}</div></div></section>'''
 

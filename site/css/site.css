@@ -358,11 +358,23 @@ section{padding:clamp(4.5rem,10vw,8rem) 0;position:relative}
 .hero-video{display:none}
 html.motion .hero-video{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 @media (prefers-reduced-motion:reduce){html.motion .hero-video{display:none}}
-.hero-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,var(--shade) 0%,rgba(10,10,11,.25) 38%,var(--ink) 100%)}
+/* The scrim used to finish in --ink because the page under it was ink. It
+   is white now, so a shade that fades to black would end in a hard edge:
+   this one is even, dark at both ends and lightest through the middle,
+   which is the mockup's. */
+.hero-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,var(--shade) 0%,var(--scrim-soft) 46%,var(--shade) 100%)}
 .hero-inner{max-width:900px}
-.page-hero .lead{margin-top:1.3rem;color:var(--on-ink);opacity:.86}
+.page-hero .lead{margin-top:1.3rem;font-family:var(--font-serif);color:var(--muted);opacity:1}
 .crumbs{display:flex;gap:.5rem;align-items:center;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:1.2rem}
-.crumbs a:hover{color:var(--on-ink)}
+.crumbs a:hover{color:var(--ink)}
+
+/* A hero with a photograph under it is the exception: there the words are
+   the light ones and they carry the ink halo that keeps small type off a
+   lit-up mural. A hero without one is the white page, and its words are
+   ink with nothing behind them. */
+.page-hero.has-media .lead{color:var(--on-ink);opacity:.86}
+.page-hero.has-media .crumbs{color:var(--on-ink-mute)}
+.page-hero.has-media .crumbs a:hover{color:var(--on-ink)}
 
 /* --- the tin on the hero's floor, and the rule it fills ----------------
    build.py tip_can() and tip_rule(); the mechanic is under TIP, below.
@@ -1417,7 +1429,7 @@ html.motion .sp-stroke.go .sp-sweep{
 /* And the last few per cent: a mint eyebrow is small type, and small type over
    a photograph of a flower mural needs its own edge. An ink halo does that
    without drawing a box round the words. */
-.page-hero .hero-inner .eyebrow,.page-hero .hero-inner .lead,.page-hero .hero-inner .crumbs{text-shadow:0 1px 14px var(--ink)}
+.page-hero.has-media .hero-inner .eyebrow,.page-hero.has-media .hero-inner .lead,.page-hero.has-media .hero-inner .crumbs{text-shadow:0 1px 14px var(--ink)}
 .page-hero.tall .wrap{width:min(var(--max),calc(100% - 2rem))}
 .page-hero .hero-media picture{width:100%;height:100%}
 @media (min-width:640px){.page-hero.tall .wrap{width:min(var(--max),calc(100% - 3rem))}}
@@ -1515,7 +1527,11 @@ html.motion .sp-stroke.go .sp-sweep{
 
 /* --- a wall down one half of the page, the words down the other -------- */
 .rows{display:grid;grid-template-columns:1fr;padding:0}
-.rows-media{position:relative;min-height:62vw;background:var(--paper-3)}
+/* The box is a shape, not whatever the photograph that arrived happens to
+   be: a rendition whose encoded aspect is half a pixel off its neighbour
+   would otherwise make the row a different height in two renders of the
+   same document. The picture covers it. */
+.rows-media{position:relative;aspect-ratio:4/3;background:var(--paper-3)}
 .rows-media picture,.rows-media img{display:block;width:100%;height:100%}
 .rows-media img{object-fit:cover}
 .rows-words{
@@ -1540,7 +1556,7 @@ html.motion .sp-stroke.go .sp-sweep{
 .note{font-size:clamp(1.5rem,2vw,1.6rem);line-height:1.2;color:var(--pop);margin:.4rem 0 0}
 @media (min-width:860px){
   .rows{grid-template-columns:1fr 1fr}
-  .rows-media{min-height:min(64vh,580px)}
+  .rows-media{aspect-ratio:auto;min-height:min(64vh,580px)}
 }
 
 /* --- the marquee strip ------------------------------------------------- */
@@ -1595,6 +1611,51 @@ html.motion .sp-stroke.go .sp-sweep{
 .cta .btn-row{justify-content:center;margin-top:0}
 
 /* =====================================================================
+   THE CHROME EVERY OTHER PAGE WEARS
+
+   Home is the mockup; these are the parts of it the rest of the site is
+   built out of, so that a page whose body has not been rewritten yet still
+   looks like it belongs to the same site. Nothing here is page content —
+   it is the hero, the section head, the small headings, the chips and the
+   panels, restyled to the system the mockup sets:
+
+     a headline is Anton, a measurement is Archivo at wdth 125, an aside is
+     the marker in coral at 24px and up, and reading copy is Fraunces.
+   ===================================================================== */
+
+/* --- the hero on the white page --------------------------------------- */
+.page-hero h1{font-size:clamp(2.8rem,7.6vw,6.6rem)}
+.page-hero .hero-inner .eyebrow{margin-bottom:.4rem}
+.page-hero .lead{max-width:56ch;font-size:1.08rem;line-height:1.6}
+/* A hero with nothing behind it does not need a page's worth of room under
+   the words; the section that follows brings its own. */
+.page-hero:not(.has-media):not([data-wall]){padding-bottom:clamp(2rem,4vw,3rem)}
+/* The blank wall is white now, like the rest of the page. It is still a
+   wall: the canvas the visitor paints on is the same element, and the
+   three paints the mechanics cycle include the ink that shows on it. */
+.page-hero.blank .btn-row{margin-top:1.8rem}
+
+/* --- section heads, and the small headings under them ----------------- */
+/* Every heading on the site is the headline face now, at the size its job
+   asks for: a section head shouts, a stage name and a card title speak. */
+h3{font-family:var(--font-tall);font-weight:400;text-transform:uppercase;font-size:1.3rem;letter-spacing:.02em;line-height:1}
+h4{font-family:var(--font-tall);font-weight:400;font-size:1.15rem;letter-spacing:.04em;color:var(--ink)}
+.beat h3{font-family:var(--font-tall);font-variation-settings:normal;font-size:1.45rem;letter-spacing:.02em}
+.beats-full .beat h3::before{font-variation-settings:'wdth' 125,'wght' 900;color:var(--pop)}
+.city b{font-variation-settings:'wdth' 125,'wght' 900;font-size:1.1rem}
+.svc-h{color:var(--pop)}
+.pull{border-left-width:4px}
+.pull p{font-family:var(--font-serif)}
+
+/* --- the panels ------------------------------------------------------- */
+/* Cards, wells and the form all sit on the page rather than on a dark
+   canvas, so their edge is the ink hairline and their ground is the page. */
+.contact-card,.pnav a,.figframe,.form-status,.roster li{border-width:1px}
+.field input,.field select,.field textarea{border-width:2px;border-radius:var(--radius)}
+.field label{color:var(--muted)}
+.tags li{border-width:2px;border-color:var(--line-2);color:var(--muted)}
+
+/* =====================================================================
    WORK — the index
 
    One grid of twelve with four chips over it, and the filtering is CSS.
@@ -1609,10 +1670,13 @@ html.motion .sp-stroke.go .sp-sweep{
 .work{padding-top:clamp(2.5rem,6vw,4rem)}
 .ftarget{display:block;height:0;scroll-margin-top:calc(var(--nav-h) + 1.5rem)}
 .filters{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:clamp(1.6rem,4vw,2.4rem)}
+/* Square, a 2px edge and the headline face: the same sign-painting the
+   buttons are, at the size of a label. */
 .chip{
   display:inline-flex;align-items:center;gap:.5rem;
-  padding:.55rem 1rem;border:1px solid var(--line-2);border-radius:999px;
-  font-size:.86rem;font-weight:600;color:var(--muted);
+  padding:.5rem 1rem;border:2px solid var(--line-2);border-radius:var(--radius);
+  font-family:var(--font-tall);font-weight:400;text-transform:uppercase;
+  font-size:1rem;letter-spacing:.04em;color:var(--ink);
   transition:border-color .2s,color .2s,background .2s;
 }
 .chip:hover{border-color:var(--ink);color:var(--ink)}
@@ -1900,7 +1964,7 @@ a.contact-card:hover,a.contact-card:focus-visible{border-color:var(--mint)}
 .gr-hero{padding-bottom:clamp(3rem,7vw,5rem)}
 .gr-hero-grid{display:grid;gap:clamp(2rem,5vw,3.2rem);align-items:center}
 .gr-hero .hero-inner{max-width:38ch}
-.gr-hero .lead{color:var(--on-ink);opacity:.86}
+.gr-hero .lead{color:var(--muted);opacity:1}
 .gr-hero .btn-row{margin-top:1.8rem}
 /* The wall is the widest thing in the hero, and on a phone it comes after
    the sentence that explains why it is there. */
