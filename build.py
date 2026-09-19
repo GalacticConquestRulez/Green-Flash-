@@ -18,7 +18,7 @@ img(), so the same build runs at the domain root and under a preview prefix.
 """
 import os, sys, html, json, struct, hashlib
 from urllib.parse import quote as _urlq
-from art import brush_rule_svg, roller_pass_svg, spraycan_pass_svg
+from art import brush_rule_svg, roller_pass_svg, spraycan_pass_svg, can_tipping_svg
 
 SRC = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(SRC, 'site')
@@ -434,7 +434,7 @@ def asset_v(rel):
 
 
 def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_alt='',
-              video=None, wall=False, extra=''):
+              video=None, wall=False, extra='', tip=False):
     """The top of a page: a photograph, a shade over it, and the words.
 
     The photograph goes through pic() rather than img() so the browser picks a
@@ -459,6 +459,13 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
 
     extra is markup dropped inside the hero's words, under the lead: the 404's
     two ways back, and nothing else so far.
+
+    tip stands a paint tin on the floor of the hero's text column ("Tip",
+    tip_can()). Unlike wall, it is not one inert attribute: the tin is drawn
+    in the server HTML and is there in every render, so the hero carries
+    .has-tip and the stylesheet reserves the tin its room in all three. The
+    tipping, the pour, the pool and the rule below are site.js's, under
+    html.motion.
     """
     clip = ''
     if video:
@@ -473,8 +480,9 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
     crumbs = (f'<div class="crumbs"><a href="{u("/")}">Home</a><span>/</span><span>{crumb or title}</span></div>'
               if crumb is not False else '')
     assert not (wall and media_slug), 'page_hero: a wall to paint is a hero with no photograph'
+    cls = (cls + ' has-tip').strip() if tip else cls
     return f'''<section class="page-hero{" " + cls if cls else ""}"{' data-wall' if wall else ''}>{media}
-  <div class="wrap"><div class="hero-inner">{crumbs}<div class="eyebrow">{eyebrow}</div><h1>{title}</h1><p class="lead">{lead}</p>{extra}</div></div></section>'''
+  <div class="wrap"><div class="hero-inner">{crumbs}<div class="eyebrow">{eyebrow}</div><h1>{title}</h1><p class="lead">{lead}</p>{extra}{tip_can() if tip else ''}</div></div></section>'''
 
 
 # The six things a visitor can ask for. The Contact form's <select> is built
@@ -611,6 +619,54 @@ def spray_band(text='Open Air / Gallery', cls=''):
     <span class="spray-track" aria-hidden="true"><span class="spray-pos"><span class="spray-mist"></span><span class="spray-can">{spraycan_pass_svg()}</span></span></span>
   </div></div>
 </section>'''
+
+
+def tip_can():
+    """The paint tin on the hero's floor, and nothing else (site.js, "Tip").
+
+    Owner, 2026-09-19: "Maybe a paint bucket you click and it spills." So a
+    tin sits on the baseline of the hero's text column and, clicked or dragged
+    over, tips and empties itself down the hero.
+
+    Everything here is in the server HTML and everything here is upright: the
+    tin is art.py's can_tipping_svg(), which is can_svg()'s drawing with the
+    paint in the rim in a group of its own, and with no script — or for a
+    visitor who asked for reduced motion, who never gets html.motion — it is
+    simply a drawn tin standing beside the headline, as still as the
+    photograph behind it. It is not a <button> in that document either: a
+    control that does nothing is worse than a picture, so site.js is what
+    gives it a role, a tab stop and a name, under html.motion and nowhere
+    else. The sheet of paint, the pool at the hero's foot and the run onto
+    the section below are all site.js's too, and none of them exists here.
+
+    Nothing in it can move a box: .tip is absolutely positioned in the
+    bottom-left corner of the hero's words, in room the stylesheet has
+    already reserved for it in every render — page_hero(tip=True) puts
+    .has-tip on the hero, and .has-tip's padding is the tin's own height.
+    """
+    return (f'<div class="tip" data-tip>'
+            f'<span class="tip-can" data-tip-can>{can_tipping_svg()}</span></div>')
+
+
+def tip_rule():
+    """The mint rule the paint becomes when it drips through (site.js, "Tip").
+
+    The rule is real, it is mint, and it is finished in the server HTML — a
+    hairline across the top of the section the way Brush's rule sits across
+    the top of the stage list. Only the motion is gated: under html.motion it
+    waits at scaleX(0) and is filled outward from the point the pool drips
+    through, and then it takes the Cure sheen.
+
+    The bail-out is the other way round from the rest of this file. Everything
+    else hidden under html.motion reveals itself after 2.8s in case the script
+    never arrives; a rule that did that would be painted before the visitor
+    had touched the tin, which is the whole mechanic given away. So the 2.8s
+    self-reveal is here — a page whose site.js never lands still ends up with
+    its rule — and site.js calls it off the moment it binds (html.tipready),
+    exactly as Roll it in calls off the primer's.
+    """
+    return ('<div class="tiprule" data-tip-rule>'
+            '<span class="tiprule-line" aria-hidden="true"></span></div>')
 
 
 def swipe(slides, label, cls=''):
@@ -1117,6 +1173,11 @@ pages['/about'] = dict(
 # shows no picture: a sign roster with invented artwork would be worse than a
 # list. Move an entry into `extras` in wix-sources.json and re-run fetch-wix.py
 # the day the photographs are wanted here.
+#
+# The hero also carries the paint tin ("Tip", tip_can()) and the first section
+# under it carries the rule the tin's paint becomes (tip_rule()). Both are
+# drawn in the server HTML and both are finished there — an upright tin and a
+# mint rule — so this page reads the same with no script as it does with one.
 SIGN_ROSTER = ('Heineken', 'Jack Daniels', 'Corona', 'Black Crow',
                'House of Pizza & Calzones')
 
@@ -1134,9 +1195,10 @@ pages['/services'] = dict(
            media_slug='moncler-wide',
            media_alt='A hand-painted wall advertisement high above a New York street, '
                      'with traffic and pedestrians below it for scale',
-           crumb='Services')}
+           crumb='Services', tip=True)}
 
 <section><div class="wrap">
+  {tip_rule()}
   <div class="section-head rv"><div class="eyebrow">Murals</div>
   <h2>A small image, exploded onto a massive canvas</h2>
   <p class="lead">Brand walls, painted portraits and civic commissions, projected and

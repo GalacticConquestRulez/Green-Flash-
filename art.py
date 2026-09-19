@@ -68,16 +68,30 @@ def _drip(x, y, length, width, color, seed=1):
 
 
 # ---------------------------------------------------------------- the can
-def can_svg(uid='can'):
+# The tin is drawn in pieces for the same reason the rattle can is: the
+# tipping variant below needs the paint inside the rim to be its own group so
+# it can pour, and a second copy of the drawing would be a second drawing.
+# So each part of it — the defs, the tin, the rim, the paint, the dried skin
+# and the handle — is a function, and can_svg() composes exactly the drawing
+# it always composed, byte for byte.
+def _can_defs(uid):
+    """The tin's own label gradient and its clip, on top of _defs()."""
     d = _defs(uid)
     label = f'''<linearGradient id="{uid}-label" x1="0" y1="0" x2="1" y2="0">
  <stop offset="0" stop-color="#b9b6ae"/><stop offset=".16" stop-color="#f4f3ef"/>
  <stop offset=".5" stop-color="#e9e7e2"/><stop offset=".86" stop-color="#d0cdc6"/><stop offset="1" stop-color="#9f9c95"/></linearGradient>
 <clipPath id="{uid}-labelclip"><path d="M45 90 L48 158 Q100 169 152 158 L155 90 Q100 101 45 90 Z"/></clipPath>'''
-    d = d.replace('</defs>', label + '</defs>')
-    body = f'''
-<ellipse cx="100" cy="184" rx="66" ry="8" fill="url(#{uid}-shadow)"/>
-<!-- tin body: a cylinder read through one vertical gradient -->
+    return d.replace('</defs>', label + '</defs>')
+
+
+def _can_shadow(uid):
+    """What it stands on. Its own piece: a tin on its side does not cast it."""
+    return f'<ellipse cx="100" cy="184" rx="66" ry="8" fill="url(#{uid}-shadow)"/>'
+
+
+def _can_tin(uid):
+    """The body: the cylinder, its ribs, its dent and its label."""
+    return f'''<!-- tin body: a cylinder read through one vertical gradient -->
 <path d="M42 62 L46 178 Q100 190 154 178 L158 62 Z" fill="url(#{uid}-steel)"/>
 <path d="M42 62 L46 178 Q100 190 154 178 L158 62 Z" fill="#000" opacity=".18" filter="url(#{uid}-grain)"/>
 <!-- rolled ribs -->
@@ -102,20 +116,36 @@ def can_svg(uid='can'):
  <rect x="45" y="156" width="110" height="1.4" fill="{INK}" opacity=".6"/>
  <!-- a wear scuff on the label -->
  <path d="M52 120 q10 -6 22 2" stroke="#fff" stroke-width="3" opacity=".35" stroke-linecap="round" fill="none" filter="url(#{uid}-soft)"/>
-</g>
-<!-- rim: lip with thickness, then the dark inside, then the paint with a meniscus -->
+</g>'''
+
+
+def _can_rim(uid):
+    """The lip with its thickness and the dark inside — no paint in it."""
+    return f'''<!-- rim: lip with thickness, then the dark inside, then the paint with a meniscus -->
 <path d="M39 62 Q100 76 161 62 Q100 48 39 62 Z" fill="url(#{uid}-steelv)"/>
 <path d="M39 62 Q100 76 161 62 L161 65 Q100 79 39 65 Z" fill="#3a3c40"/>
-<path d="M46 62 Q100 72 154 62 Q100 52 46 62 Z" fill="#17181a"/>
-<path d="M51 62 Q100 70.5 149 62 Q100 54 51 62 Z" fill="url(#{uid}-paint)"/>
-<path d="M58 60.5 Q100 55.5 142 60.5 Q100 57.5 58 60.5 Z" fill="#fff" opacity=".35"/>
-<!-- skin of dried paint over the lip, and two runs -->
+<path d="M46 62 Q100 72 154 62 Q100 52 46 62 Z" fill="#17181a"/>'''
+
+
+def _can_paint(uid):
+    """What is in the tin: the surface seen through the rim, and its meniscus."""
+    return f'''<path d="M51 62 Q100 70.5 149 62 Q100 54 51 62 Z" fill="url(#{uid}-paint)"/>
+<path d="M58 60.5 Q100 55.5 142 60.5 Q100 57.5 58 60.5 Z" fill="#fff" opacity=".35"/>'''
+
+
+def _can_skin(uid):
+    """Paint that has already been over the lip once, and dried there."""
+    return f'''<!-- skin of dried paint over the lip, and two runs -->
 <path d="M57 62 q7 -3 14 0 q6 3 13 -1 q8 -4 16 0 q6 3 13 -1 q7 -3 14 1" stroke="{MINT}" stroke-width="3.4" fill="none" stroke-linecap="round" opacity=".95"/>
 <path d="M57 62 q7 -3 14 0 q6 3 13 -1 q8 -4 16 0 q6 3 13 -1 q7 -3 14 1" stroke="#fff" stroke-width="1" fill="none" stroke-linecap="round" opacity=".35" transform="translate(0,-1.2)"/>
 {_drip(139, 64, 46, 5.2, MINT, 2)}
 {_drip(66, 65, 22, 3.8, MINT, 3)}
-{_drip(104, 66, 9, 3, MINT, 4)}
-<!-- specular stripe down the tin -->
+{_drip(104, 66, 9, 3, MINT, 4)}'''
+
+
+def _can_furniture(uid):
+    """The specular stripe, the wire handle, its lugs and its grip."""
+    return f'''<!-- specular stripe down the tin -->
 <path d="M66 84 L69 176" stroke="#fff" stroke-width="5" opacity=".14" stroke-linecap="round" filter="url(#{uid}-soft)"/>
 <!-- wire handle with its bend and lugs -->
 <path d="M41 63 Q100 -10 159 63" stroke="#3a3c40" stroke-width="4.4" fill="none" stroke-linecap="round"/>
@@ -123,8 +153,14 @@ def can_svg(uid='can'):
 <path d="M41 63 Q100 -10 159 63" stroke="#fff" stroke-width=".9" fill="none" stroke-linecap="round" opacity=".5" transform="translate(-.6,-.8)"/>
 <rect x="91" y="13.5" width="18" height="8" rx="3" fill="#2b2c2f"/><rect x="92" y="14.5" width="16" height="3" rx="1.5" fill="#55575c"/>
 <circle cx="41.5" cy="63" r="2.6" fill="#2b2c2f"/><circle cx="158.5" cy="63" r="2.6" fill="#2b2c2f"/>'''
+
+
+def can_svg(uid='can'):
+    """The tin, upright, full, with the runs of an afternoon down its side."""
+    body = '\n' + '\n'.join((_can_shadow(uid), _can_tin(uid), _can_rim(uid),
+                             _can_paint(uid), _can_skin(uid), _can_furniture(uid)))
     return (f'<svg class="prop prop-can" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true" focusable="false">'
-            f'{d}{body}</svg>')
+            f'{_can_defs(uid)}{body}</svg>')
 
 
 # ---------------------------------------------------------------- the roller
@@ -571,3 +607,60 @@ def spraycan_pass_svg(uid='spraypass', pressed=True):
 </g>'''
     return (f'<svg class="prop prop-spray-pass" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true" focusable="false">'
             f'{d}{body}</svg>')
+
+
+# ------------------------------------------------- the tin that can be tipped
+# Where the drawing turns, and where the paint leaves it. Both are fractions
+# of the 200 x 200 box, because site.css hangs the mechanic off them at any
+# size, the way it hangs the brush off brush_rule_svg()'s contact point.
+CAN_TIP_PIVOT = (0.770, 0.890)   # (154, 178): the base's right-hand edge
+CAN_TIP_DEG = 76                 # how far over it settles once it has gone
+CAN_TIP_POUR = (1.341, 0.784)    # (268.25, 156.73): the low lip, after the turn
+
+
+def can_tipping_svg(uid='cantip'):
+    """The same tin, drawn so it can be tipped over and poured out.
+
+    `can_svg()` is the display piece: the tin standing on its shadow, full to
+    the rim, with the runs of an afternoon down its side. A tin being tipped
+    is the same drawing and not a second one — every part of it comes out of
+    the same six functions above, so a change to the label or the dent is a
+    change to both — with three differences, and only three:
+
+      * the paint inside the rim is its own group, `.can-paint`, so the
+        stylesheet can hold it level as the tin goes over and then drain it
+        away. In can_svg() it is two paths in the middle of the body; here it
+        is the same two paths in a group with a name.
+      * a tongue of wet paint over the outer lip, `.can-pour`, which is
+        invisible until the tin is pouring. Paint does not leave a rim in a
+        clean line and this is the lens that says so.
+      * the shadow is its own group, `.can-shadow`, because a tin lying at
+        seventy-six degrees does not cast the shadow of one standing up: the
+        stylesheet takes it away as the tin goes over and gives it back as
+        the tin comes up, and a shadow that stays put while the drawing turns
+        is worse than no shadow at all.
+
+    Nothing turns in here. The tin is drawn upright and the stylesheet turns
+    the element, about CAN_TIP_PIVOT — the right-hand edge of the base, which
+    is the edge a tin tipped to the right actually rolls on — so the drag can
+    hold it at any angle on its way over. CAN_TIP_DEG is where it settles and
+    CAN_TIP_POUR is where the paint leaves it at that angle: a third of the
+    box's width to the right of the box, because the tin lies out of its own
+    box once it is over, which is why the element is overflow:visible and the
+    hero it sits in clips.
+    """
+    body = '\n' + '\n'.join((
+        f'<g class="can-shadow">{_can_shadow(uid)}</g>',
+        _can_tin(uid), _can_rim(uid),
+        f'<g class="can-paint">{_can_paint(uid)}</g>',
+        _can_skin(uid),
+        # The lens of paint going over the lip: drawn at the outer edge of the
+        # rim, which is the low point once the tin is over, so it rides round
+        # with the drawing rather than being placed again in the tipped frame.
+        f'''<g class="can-pour">
+ <path d="M144 59.5 Q157 57.4 167 62.6 Q172 65.6 168.4 69.8 Q159 74.4 148.6 68.4 Q142.6 64.4 144 59.5 Z" fill="url(#{uid}-wet)"/>
+ <path d="M149 61 Q157.5 59.6 164 63.2" stroke="#fff" stroke-width="1.5" opacity=".42" fill="none" stroke-linecap="round"/>
+</g>''',
+        _can_furniture(uid)))
+    return (f'<svg class="prop prop-can-tip" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true" focusable="false">'
+            f'{_can_defs(uid)}{body}</svg>')
