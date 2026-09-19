@@ -402,3 +402,17 @@ reduced-motion, data-saver and no-script visitors see.
   it then becomes the thirteenth wall and the hero copy can name it.
 - nginx serves `/assets/video/` with `mp4;` and immutable caching (snippet
   updated); `deploy.sh` syncs `out/video/`.
+
+## Round three — Ephraim's own references (owner, 2026-09-19)
+Ephraim wants the site "more like" **colossalmedia.com** and **overallmurals.com**:
+- From **Overall Murals**: the menu runs across the **top of the screen**, not tucked on the
+  right — a full horizontal nav beside the wordmark, visible at every width (no hamburger).
+- From **Colossal Media**: the **colour contrast** (black / a single loud brand colour / white
+  in full-bleed bands, the wavy band edge, the marquee strip) and **multiple typefaces — four or
+  five** — used deliberately to make it stand out (Colossal: Druk Wide, TimmonsNY, aktiv-grotesk,
+  Tiempos). For Ephraim the loud colour is his mint, and one of the faces is the handstyle
+  already in `tools/fonts/` (Permanent Marker) — a muralist gets a marker.
+- **Restore point:** the site as it stood before this round is tagged `pre-redesign-2026-09-19`
+  and pushed to GitHub as branch `openairgallery-live` of `GalacticConquestRulez/Green-Flash-`;
+  the redesign is built on `openairgallery-redesign`. "If he doesn't like it" = check out the
+  tag / the live branch and `./deploy.sh`.
