@@ -1414,16 +1414,16 @@
      (every page, and      pointer landed on, drawn as inline SVG under a
       the Send the brief   turbulence displacement so no two edges are the
       submit button)       same shape, in one of three variants so two
-                           clicks never match; 120ms later the roller comes
+                           clicks never match; 260ms later the roller comes
                            in from the side the button is on and covers the
-                           viewport in 420ms. Click to navigation: 555ms.
+                           viewport in 900ms. Click to navigation: 1300ms.
 
      .brand, .nav-links a  the page transition. The roller alone — nothing
      footer a (internal)   was hit, so nothing splatters — entering from the
-                           side the link is on: the wordmark from the left,
-                           the desktop nav from the right, and the phone
-                           menu, which drops from the top of the screen,
-                           from above. Click to navigation: 460ms.
+                           side the link is on: the wordmark from the left
+                           and the nav from the right, at every width, since
+                           the menu runs across the top of the screen on a
+                           phone too. Click to navigation: 1000ms.
 
    Nothing here is load-bearing, and the interception is deliberately narrow:
 
@@ -1637,7 +1637,7 @@
 
   let layer = null, shot = 0, killer = 0, running = false, mrb = null;
   let pass = 0;             // which paint is in the tin this time
-  let brush = null, brushTop = null, brushW = 0, brushH = 0, brushV = false;
+  let brush = null, brushTop = null, brushW = 0, brushH = 0;
   let pt = null;            // where the last plain click on a submit button fell
   let replay = false;       // the form's own submit, let back through
 
@@ -1833,11 +1833,12 @@
      The reveal: the stroke's leading edge is affine in the animation's
      eased progress, so an inset clip with the same duration and easing
      tracks it exactly. --i0 and --i1 are the two ends of that inset,
-     worked out here from which side the stroke comes in on. */
+     worked out here from which side the stroke comes in on — and there are
+     only the two now that the nav no longer drops from above. */
   function mix(x, y, v, c, side, W, H, s, k, fid, rid) {
     const mid = 'oaSpMG' + k, dfid = 'oaSpMD' + k, mkid = 'oaSpMK' + k;
     const bx = x - BOX_X, by = y - BOX_Y;
-    const run = side === 'top' ? H : W;
+    const run = W;
     /* AHEAD is why the cut is never seen: the clip runs a little past the
        body's own leading edge, so the line it leaves falls under the
        bristle fingers and the wet edge on the sheet above rather than
@@ -1846,10 +1847,7 @@
     const t0 = -LEAD + AHEAD, t1 = run + 40 + AHEAD;
     const pc = (n) => n.toFixed(2) + '%';
     let i0, i1;
-    if (side === 'top') {                       // down the screen: reveal from the top
-      i0 = `inset(0% 0% ${pc((by + BOX_H - t0) / BOX_H * 100)} 0%)`;
-      i1 = `inset(0% 0% ${pc((by + BOX_H - t1) / BOX_H * 100)} 0%)`;
-    } else if (side === 'right') {              // in from the right: reveal from the right
+    if (side === 'right') {                     // in from the right: reveal from the right
       i0 = `inset(0% 0% 0% ${pc((W - t0 - bx) / BOX_W * 100)})`;
       i1 = `inset(0% 0% 0% ${pc((W - t1 - bx) / BOX_W * 100)})`;
     } else {                                    // in from the left
@@ -1934,19 +1932,19 @@
   }
 
   /* --- the brush ------------------------------------------------------ */
-  /* Built once and kept, because the fingers are ~200 rects and nothing
+  /* Built once and kept, because the fingers are ~200 paths and nothing
      about them depends on the click: only the direction does, and that is
      one attribute on the wrapper, and the paint, which is one class on the
-     <svg>. Rebuilt when the viewport changes size, or when the pass turns
-     from horizontal to vertical.
+     <svg>. Rebuilt when the viewport changes size.
 
-     The vertical pass is the same brush, built in a box laid on its side —
-     it travels `run` and is `across` wide either way — and stood up by the
-     one transform on .sp-mirror. So there is a single stroke to maintain,
-     and the animation stays the one translateX in the group's own frame. */
-  function build(W, H, vert) {
-    const run = vert ? H : W;            // how far the pass travels
-    const across = vert ? W : H;         // and how wide it is
+     Every pass is across the screen now. The brush used to be buildable on
+     its side as well, for the phone menu that dropped from the top of the
+     screen; the menu runs across the top at every width and there is no
+     downward pass left to draw, so the box is simply the viewport and the
+     animation stays the one translateX in the group's own frame. */
+  function build(W, H) {
+    const run = W;                       // how far the pass travels
+    const across = H;                    // and how wide it is
     const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, class: 'sp-stroke' });
     /* The leading edge travels on a second sheet, over the mix zone. The
        mix zone is revealed by a clip, and a clip is a straight line; the
@@ -2096,21 +2094,17 @@
   }
 
   function paint(side, W, H, c) {
-    const vert = side === 'top';
-    if (!brush || brushW !== W || brushH !== H || brushV !== vert) {
-      const built = build(W, H, vert);
+    if (!brush || brushW !== W || brushH !== H) {
+      const built = build(W, H);
       brush = built[0]; brushTop = built[1];
-      brushW = W; brushH = H; brushV = vert;
+      brushW = W; brushH = H;
     }
     brush.classList.remove('go');
     brushTop.classList.remove('go');
     brush.setAttribute('class', 'sp-stroke ' + tone(c));
     brushTop.setAttribute('class', 'sp-stroke-top ' + tone(c));
-    // Down the screen: the side-on brush turned a quarter and slid over, so
-    // its own +x runs down the page and its width covers the page's.
     // The right-hand pass is the same brush, flipped about the viewport.
-    const t = vert ? `translate(${W},0) rotate(90)`
-      : (side === 'right' ? `translate(${W},0) scale(-1,1)` : null);
+    const t = side === 'right' ? `translate(${W},0) scale(-1,1)` : null;
     [brush, brushTop].forEach((sheet) => {
       const m = sheet.querySelector('.sp-mirror');
       if (t) m.setAttribute('transform', t); else m.removeAttribute('transform');
@@ -2141,16 +2135,16 @@
   const sideOf = (x, W) => (x < W / 2 ? 'left' : 'right');
 
   /* Which class of link this is, and which way the stroke comes in from.
-     The phone menu is a panel dropped from the top of the screen, and the
-     hamburger is display:none above the breakpoint — so a visible toggle is
-     how we know the link was tapped in the panel rather than in the bar. */
+     The nav runs across the top of the screen at every width now (Overall
+     Murals, CLAUDE.md round three) and on a phone the row of links scrolls
+     sideways under the thumb, so there is no panel dropped from above and
+     no hamburger to ask about: a nav link is a nav link, and the stroke
+     comes in from the side the nav sits on. The downward pass this used to
+     choose, and the brush built on its side to draw it, are gone with it. */
   function role(a, x, W) {
     if (a.classList.contains('btn')) return ['btn', sideOf(x, W)];
     if (a.classList.contains('brand')) return ['stroke', 'left'];
-    if (a.closest('.nav-links')) {
-      const t = document.querySelector('.nav-toggle');
-      return ['stroke', t && t.offsetParent !== null ? 'top' : 'right'];
-    }
+    if (a.closest('.nav-links')) return ['stroke', 'right'];
     if (a.closest('footer')) return ['stroke', sideOf(x, W)];
     return [null, null];
   }
