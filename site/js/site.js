@@ -145,6 +145,37 @@
           src.start(t); src.stop(t + 0.07);
         });
       },
+      // Tip: a tin of paint going over. Two sounds in one: the slosh, a
+      // band of noise swept downward as the body of paint leans over and
+      // leaves, and behind it three glugs — the air going back into the
+      // tin, each one lower than the last as it empties.
+      glug: () => {
+        const c = ensure();
+        if (!c) return;
+        const t0 = c.currentTime;
+        const src = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+        src.buffer = buf; src.loop = true;
+        bp.type = 'bandpass'; bp.Q.value = 1.1;
+        bp.frequency.setValueAtTime(900, t0);
+        bp.frequency.exponentialRampToValueAtTime(330, t0 + 0.34);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.042, t0 + 0.06);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
+        src.connect(bp); bp.connect(g); g.connect(c.destination);
+        src.start(t0); src.stop(t0 + 0.44);
+        [[0.21, 210], [0.34, 172], [0.46, 142]].forEach((s) => {
+          const t = t0 + s[0];
+          const o = c.createOscillator(), og = c.createGain();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(s[1], t);
+          o.frequency.exponentialRampToValueAtTime(s[1] * 0.55, t + 0.09);
+          og.gain.setValueAtTime(0.0001, t);
+          og.gain.exponentialRampToValueAtTime(0.055, t + 0.015);
+          og.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+          o.connect(og); og.connect(c.destination);
+          o.start(t); o.stop(t + 0.14);
+        });
+      },
       // Wash: two rising chirps, the squeak of a finger on clean glass.
       squeak: () => {
         const c = ensure();
@@ -165,7 +196,46 @@
     };
   })();
 
-  window.oagKit = { rng, sound };
+  /* --- the sound toggle ------------------------------------------------
+     The button a mechanic puts in the corner of its hero to ask for sound.
+     It was the wall's; the tin on /services wanted the same one, and the
+     second time something is about to be written twice is exactly what
+     this kit is for — so it lives here and both call it.
+
+     Muted is the default and the state is the one key every mechanic on
+     the site shares, so turning sound on for the wall turns it on for the
+     tin. The click is also the gesture the audio API wants: nothing here
+     builds an AudioContext until a visitor has pressed this. It is only
+     ever built under html.motion, by the mechanic that wants it, so the
+     no-script and reduced-motion documents have no toggle in them at all.
+     .paint-snd in site.css is absolutely positioned, so it costs the hero
+     it is dropped into no height.                                        */
+  const SND_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>' +
+    '<path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  const SND_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M16 9.5 21 15"/><path d="M21 9.5 16 15"/></svg>';
+
+  const sndToggle = (label) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'paint-snd';
+    b.setAttribute('aria-pressed', String(sound.get()));
+    b.setAttribute('aria-label', label || 'Sound');
+    b.innerHTML = '<span class="paint-snd-on" aria-hidden="true">' + SND_ON + '</span>' +
+      '<span class="paint-snd-off" aria-hidden="true">' + SND_OFF + '</span>' +
+      '<span class="paint-snd-t">Sound</span>';
+    b.addEventListener('click', () => {
+      const next = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', String(next));
+      sound.set(next);                      // this click is the gesture
+    });
+    return b;
+  };
+
+  window.oagKit = { rng, sound, sndToggle };
 })();
 
 (function () {
@@ -1826,14 +1896,6 @@
     return out;
   })();
 
-  var SND_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>' +
-    '<path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
-  var SND_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M16 9.5 21 15"/><path d="M21 9.5 16 15"/></svg>';
-
   var Sound = kit.sound;
   var clamp = function (v, a, b) { return v < a ? a : (v > b ? b : v); };
 
@@ -1862,7 +1924,6 @@
   Wall.prototype.build = function () {
     if (this.built) return;
     this.built = true;
-    var self = this;
 
     var cv = document.createElement('canvas');
     cv.className = 'paint-wall';
@@ -1872,19 +1933,8 @@
     this.g = cv.getContext('2d');
     this.g.lineCap = 'round';
 
-    var b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'paint-snd';
-    b.setAttribute('aria-pressed', String(Sound.get()));
-    b.setAttribute('aria-label', 'Sound');
-    b.innerHTML = '<span class="paint-snd-on" aria-hidden="true">' + SND_ON + '</span>' +
-      '<span class="paint-snd-off" aria-hidden="true">' + SND_OFF + '</span>' +
-      '<span class="paint-snd-t">Sound</span>';
-    b.addEventListener('click', function () {
-      var next = b.getAttribute('aria-pressed') !== 'true';
-      b.setAttribute('aria-pressed', String(next));
-      Sound.set(next);                      // this click is the gesture
-    });
+    // The toggle is the kit's — the tin on /services puts up the same one.
+    var b = kit.sndToggle();
     this.hero.appendChild(b);
     this.btn = b;
 
@@ -2211,4 +2261,345 @@
   }
 
   window.oagWall = { instances: walls };
+})();
+
+/* =====================================================================
+   Tip — the tin you knock over.
+
+   Owner, 2026-09-19: "Maybe a paint bucket you click and it spills."
+
+   The eleventh verb, and the second a visitor sets off on purpose. A tin
+   of mint stands on the floor of the Services hero, beside the headline.
+   Click it, or drag it past forty degrees, and it goes over: it rolls on
+   the edge of its own base with an overshoot, the paint inside leans to
+   the lip and leaves as a sheet, the sheet runs down the hero and gathers
+   in a pool along its bottom edge, and the pool drips through onto the
+   section below and becomes that section's mint rule — which then takes
+   its Cure sheen. Four seconds later the tin rights itself, the sheet
+   retracts, the pool drains into the rule and it can be tipped again.
+
+   Nothing here is in the document without it. The tin is (build.py
+   tip_can(), art.py can_tipping_svg()) and so is the rule (tip_rule()),
+   and both are finished in the server HTML — an upright tin and a painted
+   rule — but the sheet, the pool, the run, the sound toggle and the tin's
+   own role as a control are all built here, under html.motion. So a page
+   with no script, and a visitor who asked for reduced motion, get the
+   page that was always there.
+
+   Nothing here can move a box either. The sheet is absolutely positioned
+   inside the tin's own box, the pool inside the hero at z-index -1 — the
+   layer the hero's shade sits in, so the words are never painted over —
+   and the run inside the section below. The hero clips, which is where a
+   pour that ran too far stops. The one thing that has a height is the
+   pool, and it has it in a box that is already absolutely positioned.
+
+   The geometry is art.py's and is read out of the stylesheet rather than
+   written twice: --tip-pvx/--tip-pvy are CAN_TIP_PIVOT, the edge of the
+   base the tin rolls on, and --tip-px/--tip-py are CAN_TIP_POUR, where
+   the paint leaves it once it is over. Every measurement below is taken
+   in client coordinates and turned into an offset inside an element in
+   the same breath, so there is nothing here that a scroll could stale and
+   this file adds no listener to one.
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  var root = document.documentElement;
+  if (!root.classList.contains('motion')) return;
+  var reduced = false;
+  try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  if (reduced) return;
+  var kit = window.oagKit;
+  if (!kit) return;
+
+  var hero = document.querySelector('.page-hero.has-tip');
+  var tip = hero && hero.querySelector('[data-tip]');
+  var can = tip && tip.querySelector('[data-tip-can]');
+  if (!can) return;
+  var rule = document.querySelector('[data-tip-rule]');
+  var sect = rule && rule.closest('section');
+
+  /* The rule's 2.8s bail-out is the one on this site that runs the other
+     way — it paints the rule for a page whose script never arrived — so
+     the first thing the script does when it does arrive is call it off.
+     Roll it in says the same thing with .rollin and the primer. */
+  root.classList.add('tipready');
+
+  var THRESH = 40;                  // degrees of drag before it goes over
+  var POUR_AT = 260;                // the rim is past the vertical by here
+  var POOL_AT = 720;                // the sheet has reached the bottom
+  var DROP_AT = 900;                // and starts through onto the section
+  var FILL_AT = 1180;               // the rule fills from where it lands
+  var CURE_AT = 2040;               // and cures once it is full
+  var HOLD = 4000;                  // then the tin rights itself
+  var UP = 780;                     // and this long later it is idle again
+  var DROP_MS = 460;                // how long the run takes to reach the rule
+
+  var coarse = false;
+  try { coarse = matchMedia('(pointer:coarse)').matches; } catch (e) {}
+
+  /* Tilt is an extra on a phone that already has the tap, so it is only
+     offered where it costs nothing: browsers that hand out
+     deviceorientation with no permission prompt. Where iOS would put up a
+     dialog — requestPermission is a function there and nowhere else — it
+     is silently not offered. The same test the scale figure makes. */
+  var TILT_FREE = (function () {
+    try {
+      return 'DeviceOrientationEvent' in window &&
+             typeof DeviceOrientationEvent.requestPermission !== 'function';
+    } catch (e) { return false; }
+  })();
+
+  var num = function (name, dflt) {
+    var v = parseFloat(getComputedStyle(hero).getPropertyValue(name));
+    return isNaN(v) ? dflt : v;
+  };
+  var PVX = 0, PVY = 0, PX = 0, PY = 0;   // read off the stylesheet in build()
+
+  var built = false, state = 0, used = false;
+  var sheet = null, pool = null, drop = null, timers = [];
+  var after = function (ms, fn) { timers.push(setTimeout(fn, ms)); };
+
+  /* ------------------------------------------------------- what it needs */
+  function build() {
+    if (built) return;
+    built = true;
+    PVX = num('--tip-pvx', 0.77); PVY = num('--tip-pvy', 0.89);
+    PX = num('--tip-px', 1.341); PY = num('--tip-py', 0.784);
+
+    sheet = document.createElement('span');
+    sheet.className = 'tip-sheet';
+    sheet.setAttribute('aria-hidden', 'true');
+    sheet.innerHTML = '<i class="tip-stream"></i><i class="tip-gloss"></i>' +
+      '<i class="tip-head"></i><i class="tip-lip"></i>';
+    tip.appendChild(sheet);
+
+    pool = document.createElement('span');
+    pool.className = 'tip-pool';
+    pool.setAttribute('aria-hidden', 'true');
+    pool.innerHTML = '<i class="tip-pool-body"><i class="tip-pool-lip"></i></i>' +
+      '<i class="tip-pool-mound"></i>';
+    hero.appendChild(pool);
+
+    // The same toggle the wall puts in the corner of its hero, off the
+    // same persisted key: muted until a visitor asks, here or there.
+    hero.appendChild(kit.sndToggle('Sound'));
+
+    // And this is where the tin stops being a picture. It is a <span> in
+    // the document on purpose — a control that does nothing without a
+    // script is worse than a drawing of a tin — so the role, the tab stop
+    // and the name are put on here and nowhere else.
+    can.setAttribute('role', 'button');
+    can.setAttribute('tabindex', '0');
+    can.setAttribute('aria-label', 'Tip the paint can');
+
+    // And the sheet is given its real height straight away. It is invisible
+    // until the tin goes over, but it is a box, and a box that is taller
+    // than the hero is scrollable overflow inside a hero that clips — the
+    // lesson the pool is built around, two elements up.
+    measure();
+  }
+
+  /* Where the paint leaves the tin, how far it has to fall, and where it
+     lands — in client coordinates, turned into offsets inside the hero,
+     the section and the rule before anything is written. */
+  function measure() {
+    var hr = hero.getBoundingClientRect(), tr = tip.getBoundingClientRect();
+    var px = tr.left + tr.width * PX, py = tr.top + tr.width * PY;
+    hero.style.setProperty('--sheet-h', Math.max(8, Math.round(hr.bottom - py)) + 'px');
+    hero.style.setProperty('--tip-x',
+      Math.max(0, Math.min(100, (px - hr.left) / hr.width * 100)).toFixed(2) + '%');
+    if (rule) {
+      var rr = rule.getBoundingClientRect();
+      rule.style.setProperty('--tip-x',
+        Math.max(0, Math.min(100, (px - rr.left) / rr.width * 100)).toFixed(2) + '%');
+    }
+    return { px: px, w: tr.width };
+  }
+
+  /* The run through onto the section below. It is Spray's drip, markup
+     and keyframes and all — a body of mint scaled down from where it
+     starts and a bead carried to the end of it — because a run of paint
+     is a run of paint and this site already draws one. */
+  function makeDrop(m) {
+    if (!sect || !rule) return null;
+    var sr = sect.getBoundingClientRect(), rr = rule.getBoundingClientRect();
+    var dw = Math.max(2, Math.round(m.w * 0.038));
+    var dh = Math.max(10, Math.round(rr.top - sr.top));
+    var d = document.createElement('span');
+    d.className = 'spray-drip tip-drop';
+    d.setAttribute('aria-hidden', 'true');
+    d.style.cssText = 'left:' + (m.px - sr.left - dw / 2).toFixed(1) + 'px;top:0;--dw:' +
+      dw + 'px;--dh:' + dh + 'px;--dt:' + DROP_MS + 'ms';
+    d.innerHTML = '<i class="spray-run"></i><i class="spray-bead"></i>';
+    sect.appendChild(d);
+    return d;
+  }
+
+  /* ------------------------------------------------------------- the tip */
+  function go() {
+    if (state) return;                        // one tin at a time
+    state = 1;
+    build();
+    var m = measure();
+    if (drop) { drop.remove(); drop = null; }
+    hero.classList.add('tipping');
+    // Muted is the default and the key is the one every mechanic shares:
+    // this asks for a sound, it never turns one on.
+    kit.sound.glug();
+    used = true; tiltOn();
+
+    after(POUR_AT, function () { hero.classList.add('pouring'); });
+    after(POOL_AT, function () { hero.classList.add('pooled'); });
+    after(DROP_AT, function () {
+      drop = makeDrop(m);
+      if (drop) { void drop.offsetWidth; drop.classList.add('run'); }
+    });
+    after(FILL_AT, function () {
+      if (rule) rule.classList.add('filling');
+    });
+    after(CURE_AT, function () {
+      if (!rule) return;
+      // .cured is the state — this rule has been painted — and .curing is
+      // the pass that just happened, the way the brush cures a stage.
+      rule.classList.add('cured');
+      rule.classList.remove('curing');
+      void rule.offsetWidth;
+      rule.classList.add('curing');
+    });
+    after(HOLD, right);
+  }
+
+  /* It rights itself so it can be tipped again: the tin springs back up,
+     the sheet retracts into the rim, and the pool drains away down the
+     run it has already made. The rule keeps its paint — paint does not
+     come off a wall because the tin stood up. */
+  function right() {
+    state = 2;
+    hero.classList.remove('tipping', 'pouring', 'pooled');
+    hero.classList.add('righting');
+    if (drop) { drop.classList.remove('run'); drop.classList.add('dry'); }
+    after(UP, reset);
+  }
+
+  function reset() {
+    timers.forEach(clearTimeout);
+    timers = [];
+    hero.classList.remove('tipping', 'pouring', 'pooled', 'righting', 'is-dragging');
+    hero.style.removeProperty('--tipdeg');
+    if (drop) { drop.remove(); drop = null; }
+    state = 0;
+  }
+
+  /* --------------------------------------------------- click, and drag */
+  var dragging = false, moved = false, deg = 0, a0 = 0, draf = 0, skip = false;
+
+  // The angle the pointer has carried the tin through, measured about the
+  // edge of the base it rolls on. It is a difference from where the drag
+  // started, not an absolute bearing, so it does not matter where on the
+  // tin the visitor took hold of it.
+  function angle(e) {
+    var tr = tip.getBoundingClientRect();
+    var ox = tr.left + tr.width * PVX, oy = tr.top + tr.height * PVY;
+    return Math.atan2(e.clientX - ox, oy - e.clientY) * 180 / Math.PI;
+  }
+
+  can.addEventListener('pointerdown', function (e) {
+    if (e.button || state) return;
+    build();
+    dragging = true; moved = false; deg = 0;
+    a0 = angle(e);
+    try { can.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+
+  can.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    var d = angle(e) - a0;
+    if (!moved && Math.abs(d) < 2) return;    // a tap is not a drag
+    moved = true;
+    deg = Math.max(0, Math.min(96, d));
+    hero.classList.add('is-dragging');
+    if (!draf) draf = requestAnimationFrame(function () {
+      draf = 0;
+      hero.style.setProperty('--tipdeg', deg.toFixed(1) + 'deg');
+    });
+    e.preventDefault();                       // no text selection, no pan
+  });
+
+  var release = function (e) {
+    if (!dragging) return;
+    dragging = false;
+    try { can.releasePointerCapture(e.pointerId); } catch (_) {}
+    if (!moved) return;                       // a plain press: click has it
+    skip = true;                              // and a drag is not a click
+    hero.classList.remove('is-dragging');
+    if (deg >= THRESH) go();
+    else hero.style.removeProperty('--tipdeg');   // not far enough: it rocks back
+  };
+  can.addEventListener('pointerup', release);
+  can.addEventListener('pointercancel', release);
+
+  can.addEventListener('click', function () {
+    if (skip) { skip = false; return; }
+    go();
+  });
+
+  // It is a span with a role, so Enter and Space are this file's to honour.
+  can.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+    e.preventDefault();
+    go();
+  });
+
+  /* ------------------------------------------------------------- the tilt */
+  // After the first tap and never before: a pool that moves because the
+  // phone is in a hand is a bug until the visitor knows they tipped it.
+  // Damped, capped at 30 Hz, and let go the moment the hero leaves.
+  var tilting = false, tlast = 0, slosh = 0, sraf = 0;
+
+  function onTilt(e) {
+    var g = e.gamma;
+    if (g == null) return;
+    var now = e.timeStamp || Date.now();
+    if (now - tlast < 33) return;
+    tlast = now;
+    var target = Math.max(-25, Math.min(25, g)) / 25;
+    slosh += (target - slosh) * 0.12;         // low-pass: a wobble, not a jump
+    if (!sraf) sraf = requestAnimationFrame(function () {
+      sraf = 0;
+      hero.style.setProperty('--slosh', slosh.toFixed(3));
+    });
+  }
+
+  function tiltOn() {
+    if (tilting || !TILT_FREE || !coarse || !used) return;
+    tilting = true;
+    addEventListener('deviceorientation', onTilt, { passive: true });
+  }
+
+  function tiltOff() {
+    if (!tilting) return;
+    tilting = false;
+    removeEventListener('deviceorientation', onTilt);
+    hero.style.removeProperty('--slosh');
+  }
+
+  /* The sheet, the pool and the toggle are made the first time the hero is
+     on screen and never before — the wall does the same — so a visitor who
+     lands further down the page costs one <span>. The tilt is attached at
+     the same moment and let go when the hero leaves. */
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) {
+      es.forEach(function (en) {
+        if (en.isIntersecting) { build(); tiltOn(); } else tiltOff();
+      });
+    }, { threshold: 0.05 }).observe(hero);
+  } else {
+    build();
+  }
+
+  // A bfcache back must never land on a half-poured hero.
+  addEventListener('pageshow', function (e) { if (e.persisted) reset(); });
+
+  window.oagTip = { tip: go, reset: reset, state: function () { return state; } };
 })();

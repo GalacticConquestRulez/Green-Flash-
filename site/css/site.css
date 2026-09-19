@@ -62,6 +62,10 @@
      --glow-0 is this same mint at nothing, which is where the mist ends. */
   --mist:rgba(113,238,184,.38); --drip:rgba(113,238,184,.9);
   --drip-0:rgba(113,238,184,.3);
+  /* Tip: how much of the pool is left at the far ends of the wall. It is a
+     mask and nothing else, so only the alpha of it counts — the paint under
+     it is the mint gradient, and this is how thin the paint runs out there. */
+  --pool-thin:rgba(244,243,239,.42);
   --matte:#9A9284; --matte-2:#7F776A;
   --matte-edge:rgba(10,10,11,.45); --st-shade:rgba(10,10,11,.55);
   --st-cut:rgba(10,10,11,.55);
@@ -323,6 +327,10 @@ footer .foot-grid ul a:hover{color:var(--paper)}
      Stencil a card of matte board, cut to the figure's own glyphs, comes
             down over a figure as it arrives; the numbers are sprayed
             through the cut and the card lifts off, leaving the overspray.
+     Tip    the tin on the Services hero goes over when it is clicked or
+            dragged past forty degrees, pours a sheet of mint down the
+            hero, pools at its foot and drips through onto the section
+            below, where it becomes that section's rule. See TIP, below.
    ===================================================================== */
 
 /* --- Roll ------------------------------------------------------------- */
@@ -1696,3 +1704,293 @@ html.motion .page-hero[data-wall].is-painting{touch-action:none}
    it the way they do on every other hero. */
 .page-hero.blank{min-height:clamp(420px,60vh,600px)}
 .page-hero.blank .btn-row{margin-top:1.8rem}
+
+/* =====================================================================
+   TIP — the tin you knock over (site.js, "Tip").
+
+   Owner, 2026-09-19: "Maybe a paint bucket you click and it spills."
+
+   The tin and the rule are in the server HTML and are finished there (see
+   the block under `page hero`, above). Everything in here is the mechanic,
+   and every selector in it is under html.motion: the sheet, the pool and
+   the run are built by site.js and exist nowhere else, and a visitor who
+   asked for reduced motion never gets html.motion at all, so there is
+   nothing to hold still — the tin stands up and the rule is mint.
+
+   The geometry is art.py's, named once here and read back out of here by
+   site.js rather than written twice:
+     --tip-pvx/--tip-pvy   CAN_TIP_PIVOT, the edge of the base it rolls on
+     --tip-px/--tip-py     CAN_TIP_POUR, where the paint leaves it at rest
+     --tip-deg             CAN_TIP_DEG, where it settles once it is over
+   --sheet-h is how far the paint has to fall (site.js measures it), and
+   --tip-x is where it lands: a per cent of the hero for the pool, and a
+   per cent of the rule for the rule, which are different boxes and so are
+   two values of the same name on two elements.
+
+   No filter is used anywhere in it. The sheet is gradients and radii, the
+   pool is a height and a wobble, and the only filters on this page are
+   the ones inside the drawing of the tin, which are as static as the
+   drawing is.                                                          */
+html.motion .page-hero.has-tip{
+  --tip-pvx:.77; --tip-pvy:.89;
+  --tip-px:1.341; --tip-py:.784;
+  --tip-deg:76deg;
+  --sheet-w:calc(var(--tip-w) * .17);
+  --sheet-h:0px;
+  --pool-h:14px;
+  --tip-x:20%;
+}
+@media (max-width:700px){html.motion .page-hero.has-tip{--pool-h:10px}}
+
+/* --- the tin going over ----------------------------------------------
+   One rotation about one point. The drag writes --tipdeg and holds the
+   tin wherever the pointer has carried it; let go past forty degrees and
+   oaTipOver takes it the rest of the way from exactly there, overshoots
+   past its resting angle and settles back on it — a tin has weight, and
+   a tin that arrives at its angle and stops has none. */
+html.motion .tip-can{
+  transform-origin:calc(var(--tip-pvx) * 100%) calc(var(--tip-pvy) * 100%);
+  transform:rotate(0deg);
+  transition:transform .55s var(--ease);
+}
+html.motion .page-hero.has-tip.is-dragging .tip-can{
+  transform:rotate(var(--tipdeg,0deg));transition:none;animation:none;
+}
+html.motion .page-hero.has-tip.tipping .tip-can{
+  animation:oaTipOver .82s cubic-bezier(.3,.7,.4,1) both;
+}
+html.motion .page-hero.has-tip.righting .tip-can{
+  animation:oaTipUp .78s cubic-bezier(.3,.8,.35,1) both;
+}
+@keyframes oaTipOver{
+  0%{transform:rotate(var(--tipdeg,0deg))}
+  46%{transform:rotate(92deg)}
+  66%{transform:rotate(66deg)}
+  84%{transform:rotate(81deg)}
+  100%{transform:rotate(var(--tip-deg))}
+}
+@keyframes oaTipUp{
+  0%{transform:rotate(var(--tip-deg))}
+  56%{transform:rotate(-7deg)}
+  80%{transform:rotate(3deg)}
+  100%{transform:rotate(0deg)}
+}
+/* A tin on its side casts no shadow on the floor it has left. */
+html.motion .tip-can .can-shadow{transition:opacity .4s var(--ease),transform .4s var(--ease)}
+html.motion .page-hero.has-tip.tipping .tip-can .can-shadow,
+html.motion .page-hero.has-tip.is-dragging .tip-can .can-shadow{opacity:.15}
+
+/* The paint inside. It is level whatever the tin does, so as the tin turns
+   it turns the other way by the same amount; then it leans to the lip and
+   drains, and the lens of paint over the lip comes up as it goes. */
+html.motion .tip-can .can-paint{
+  transform-box:view-box;transform-origin:100px 62px;
+  transition:transform .5s var(--ease),opacity .5s var(--ease);
+}
+html.motion .tip-can .can-pour{opacity:0;transition:opacity .3s var(--ease)}
+html.motion .page-hero.has-tip.tipping .tip-can .can-paint{
+  transform:rotate(calc(var(--tip-deg) * -1)) translateX(16px);
+}
+html.motion .page-hero.has-tip.pouring .tip-can .can-paint{
+  transform:rotate(calc(var(--tip-deg) * -1)) translateX(30px) scaleX(.16);
+  opacity:.85;transition-duration:.9s;
+}
+html.motion .page-hero.has-tip.pouring .tip-can .can-pour{opacity:1}
+
+/* --- the sheet -------------------------------------------------------
+   A glossy body of mint leaving the rim: the lip swells at the top, the
+   body falls out of it and a head runs down in front of the fall. Every
+   part of it is a gradient with a radius on it — the highlight is the
+   pale mint a loaded bristle carries, so "glossy" is a colour in this
+   file and not a blur of one. */
+html.motion .tip-sheet{
+  position:absolute;pointer-events:none;z-index:1;
+  left:calc(var(--tip-w) * var(--tip-px) - var(--sheet-w) * .5);
+  top:calc(var(--tip-w) * var(--tip-py));
+  width:var(--sheet-w);height:var(--sheet-h);
+  opacity:0;transition:opacity .3s linear;
+}
+html.motion .page-hero.has-tip.pouring .tip-sheet,
+html.motion .page-hero.has-tip.righting .tip-sheet{opacity:1}
+html.motion .tip-stream{
+  position:absolute;left:0;top:0;width:100%;height:100%;
+  border-radius:0 0 calc(var(--sheet-w) * .7) calc(var(--sheet-w) * .7);
+  background:linear-gradient(90deg,var(--mint-deep) 0%,var(--mint) 24%,
+             var(--mint-wet) 44%,var(--mint) 64%,var(--mint-deep) 100%);
+  transform:scaleY(0);transform-origin:top center;
+}
+html.motion .tip-gloss{
+  position:absolute;left:26%;top:0;width:16%;height:100%;border-radius:2px;
+  background:linear-gradient(180deg,var(--mint-wet-0),var(--mint-wet) 30%,var(--mint-wet-0) 82%);
+  transform:scaleY(0);transform-origin:top center;
+}
+/* The head of the pour: the fat leading edge, always a little ahead of
+   the body, the way the first of a pour always is. */
+html.motion .tip-head{
+  position:absolute;left:50%;top:0;
+  width:calc(var(--sheet-w) * 1.55);height:calc(var(--sheet-w) * 1.55);
+  margin-left:calc(var(--sheet-w) * -.775);margin-top:calc(var(--sheet-w) * -.775);
+  border-radius:50%;
+  background:radial-gradient(circle at 36% 30%,var(--mint-wet),var(--mint) 54%,var(--mint-deep));
+  transform:translateY(0) scale(0);
+}
+/* And the meniscus at the rim, where the sheet is still attached to the
+   tin: a bead of paint pulled out of round by what is leaving it. */
+html.motion .tip-lip{
+  position:absolute;left:50%;top:0;
+  width:calc(var(--sheet-w) * 2.2);height:calc(var(--sheet-w) * 1.15);
+  margin-left:calc(var(--sheet-w) * -1.1);margin-top:calc(var(--sheet-w) * -.66);
+  border-radius:50%;
+  background:radial-gradient(ellipse at 50% 26%,var(--mint-wet),var(--mint) 58%,var(--mint-deep));
+  transform:scale(0);transform-origin:50% 36%;
+}
+html.motion .page-hero.has-tip.pouring .tip-stream{animation:oaTipFall .46s cubic-bezier(.4,0,.85,.6) both}
+html.motion .page-hero.has-tip.pouring .tip-gloss{animation:oaTipGloss .46s cubic-bezier(.4,0,.85,.6) both}
+html.motion .page-hero.has-tip.pouring .tip-head{animation:oaTipHead .46s cubic-bezier(.4,0,.85,.6) both}
+html.motion .page-hero.has-tip.pouring .tip-lip{animation:oaTipLip .3s var(--ease) both}
+@keyframes oaTipFall{
+  0%{transform:scaleY(0) scaleX(.45)}
+  58%{transform:scaleY(.74) scaleX(1.1)}
+  100%{transform:scaleY(1) scaleX(1)}
+}
+@keyframes oaTipGloss{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+/* The head stops with its own bottom on the hero's bottom edge rather than
+   its centre — it runs into the pool, it does not run through it, and the
+   hero is a scrollport, so a box hanging below it is scrollable overflow
+   a focus() could scroll the hero's words by. Same lesson as the pool. */
+@keyframes oaTipHead{
+  from{transform:translateY(0) scale(.55)}
+  to{transform:translateY(calc(var(--sheet-h) - var(--sheet-w) * .78)) scale(1)}
+}
+@keyframes oaTipLip{from{transform:scale(0)}to{transform:scale(1)}}
+/* Righting: the sheet goes back the way it came, up into the rim. */
+html.motion .page-hero.has-tip.righting .tip-stream{animation:oaTipSuck .54s var(--ease) both}
+html.motion .page-hero.has-tip.righting .tip-gloss{animation:oaTipSuck .54s var(--ease) both}
+html.motion .page-hero.has-tip.righting .tip-head{animation:oaTipHeadUp .54s var(--ease) both}
+html.motion .page-hero.has-tip.righting .tip-lip{animation:oaTipLipOff .42s var(--ease) both}
+@keyframes oaTipSuck{from{transform:scaleY(1)}to{transform:scaleY(0) scaleX(.45)}}
+@keyframes oaTipHeadUp{
+  from{transform:translateY(calc(var(--sheet-h) - var(--sheet-w) * .78)) scale(1)}
+  to{transform:translateY(0) scale(0)}
+}
+@keyframes oaTipLipOff{from{transform:scale(1)}to{transform:scale(0)}}
+
+/* --- the pool --------------------------------------------------------
+   A height and a wobble, exactly as the concept says, along the bottom
+   edge of the hero. It sits at z-index -1 inside .page-hero's own
+   stacking context — the layer the hero's shade sits in — so the paint is
+   over the photograph and under every word, and it is pointer-events
+   none. On a phone --slosh leans it toward the low side: half a degree at
+   full tilt, which on a hero's width is a few pixels of surface either
+   way, which is what a shallow pool of paint does.
+
+   The pool is two boxes, not one, and the reason is the lesson written up
+   under Cure: .page-hero is overflow:hidden, which makes it a scrollport,
+   and anything that leaves its padding box — a meniscus two pixels proud
+   of the water, a surface leaning two per cent past the ends — becomes
+   scrollable overflow that a scrollIntoView or a focus() can then scroll
+   the hero's own words by. So the outer box is fixed, sits exactly on the
+   hero's bottom edge and clips; the water inside it is the thing with the
+   animated height, and the meniscus and the lean are the water's. */
+html.motion .tip-pool{
+  position:absolute;left:0;right:0;bottom:0;height:calc(var(--pool-h) * 3);
+  z-index:-1;pointer-events:none;overflow:hidden;
+}
+/* The water. It is deepest where the sheet came down and runs thin toward
+   the ends of the wall, which is what paint on a floor does and is also
+   what keeps a band of mint across the foot of the hero from reading as a
+   second rule. It clips, so the meniscus inside it is gone the moment the
+   water is gone and there is never a mint hairline on an untipped hero. */
+html.motion .tip-pool-body{
+  position:absolute;left:-2%;right:-2%;bottom:0;height:0;overflow:hidden;
+  background:linear-gradient(180deg,var(--mint-wet) 0,var(--mint) 20%,var(--mint-deep) 100%);
+  -webkit-mask-image:radial-gradient(140% 100% at var(--tip-x) 100%,var(--paper) 26%,var(--pool-thin) 100%);
+          mask-image:radial-gradient(140% 100% at var(--tip-x) 100%,var(--paper) 26%,var(--pool-thin) 100%);
+  transform-origin:50% 100%;
+  transform:rotate(calc(var(--slosh,0) * .5deg));
+  transition:height .42s var(--ease-roll),transform .3s linear;
+}
+html.motion .page-hero.has-tip.pooled .tip-pool-body{height:var(--pool-h)}
+html.motion .page-hero.has-tip.righting .tip-pool-body{height:0;transition-duration:.7s}
+/* The meniscus, at the waterline and inside it: it thickens and thins
+   rather than rising, because a surface that rose would be clipped — and
+   a pool whose surface left its own box is the overflow story again. */
+html.motion .tip-pool-lip{
+  position:absolute;left:0;right:0;top:0;height:3px;border-radius:50%;
+  transform-origin:50% 0;
+  background:linear-gradient(90deg,var(--mint-wet-0),var(--mint-wet) 28%,
+             var(--mint-wet) 72%,var(--mint-wet-0));
+}
+html.motion .page-hero.has-tip.pooled .tip-pool-lip{animation:oaTipWobble 2.6s ease-in-out infinite}
+@keyframes oaTipWobble{
+  0%,100%{transform:translateY(0) scaleY(1)}
+  28%{transform:translateY(.7px) scaleY(1.7)}
+  55%{transform:translateY(0) scaleY(.7)}
+  80%{transform:translateY(.4px) scaleY(1.3)}
+}
+/* Where the sheet lands the paint piles up before it spreads. */
+html.motion .tip-pool-mound{
+  position:absolute;bottom:0;left:var(--tip-x);
+  width:calc(var(--sheet-w) * 4.4);height:calc(var(--pool-h) * 2.4);
+  margin-left:calc(var(--sheet-w) * -2.2);
+  background:radial-gradient(ellipse at 50% 100%,var(--mint) 0,var(--mint-deep) 54%,var(--glow-0) 74%);
+  opacity:0;transition:opacity .32s var(--ease);
+}
+html.motion .page-hero.has-tip.pooled .tip-pool-mound{opacity:.9}
+
+/* --- the run onto the section below ----------------------------------
+   Spray's drip, markup and keyframes and all: a run of paint is a run of
+   paint and this file already draws one. It hangs from the top edge of
+   the section, which is the hero's bottom edge, so the pool and the run
+   meet across a boundary the hero's own overflow would otherwise cut.
+   .dry is the last of it going into the rule as the pool drains. */
+html.motion .tip-drop.dry .spray-run{animation:oaTipDryRun .5s var(--ease) both}
+html.motion .tip-drop.dry .spray-bead{animation:oaTipDryBead .5s var(--ease) both}
+@keyframes oaTipDryRun{from{transform:scaleY(1)}to{transform:scaleY(0)}}
+@keyframes oaTipDryBead{
+  from{transform:translateY(calc(var(--dh) - 50%));opacity:1}
+  to{transform:translateY(calc(var(--dh) - 50%));opacity:0}
+}
+
+/* --- the rule it becomes ---------------------------------------------
+   The rule fills outward from the point the run came through — --tip-x
+   is its transform-origin — and then takes the Cure sheen, which is the
+   same pass of mint the figures take, at the same speed, off the same
+   keyframes. .cured is the state and .curing the pass: the rule is
+   painted once and stays painted, because paint does not come off a wall
+   because the tin stood back up.
+
+   The bail-out here is the only one in this file that runs the other way.
+   Everything else hidden under html.motion reveals itself after 2.8s in
+   case the script never lands; a rule that did that would be mint before
+   the visitor had touched the tin, which is the mechanic given away. So
+   it is 2.8s for a page whose site.js never arrives, and site.js calls it
+   off the moment it binds — html.tipready, exactly as .rollin calls off
+   the primer's. */
+html.motion .tiprule-line{
+  transform:scaleX(var(--tip-fill,0));
+  transition:transform .86s var(--ease-roll);
+  animation:oaTipFail 0s linear 2.8s forwards;
+}
+@keyframes oaTipFail{to{transform:none}}
+html.tipready .tiprule-line{animation:none}
+html.motion .tiprule.filling .tiprule-line{--tip-fill:1}
+html.motion .tiprule.curing::after{
+  content:"";position:absolute;left:0;right:0;top:0;height:2px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--mint-wet),transparent) no-repeat;
+  background-size:40% 100%;
+  animation:oaCure 1.8s var(--ease) 1 both;
+}
+
+@media (prefers-reduced-motion:reduce){
+  /* Tip: the tin stands up, the rule is mint, and there is no sheet, no
+     pool and no run — site.js builds none of them here and never gives
+     the tin a role. This says it a second time, in case the class ever
+     arrives anyway. */
+  html.motion .tip-can{transform:none;transition:none;animation:none}
+  html.motion .tip-can .can-paint,html.motion .tip-can .can-shadow{transform:none;opacity:1}
+  html.motion .tip-can .can-pour{opacity:0}
+  html.motion .tip-sheet,html.motion .tip-pool,html.motion .tip-drop{display:none}
+  html.motion .tiprule-line{transform:none;animation:none}
+  html.motion .tiprule.curing::after{content:none;animation:none}
+}

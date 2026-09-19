@@ -296,6 +296,52 @@ Ephraim before any production code.
   three renders, and `/`'s `--nojs` and `--reduced --compare` are still identical on every count.
   It runs off the Live IIFE's one observer, which now has a fourth contract: a `[data-spray]`
   band is sprayed once at half visibility and then unobserved.
+- **Tip — the eleventh verb (owner, 2026-09-19), and the second a visitor sets off on purpose.**
+  Concept 1 of the paint mechanics, in his words: *"Maybe a paint bucket you click and it
+  spills."* So the vocabulary is **Roll · Scale · Cure · Wash · Splat · Live · Brush · Stencil ·
+  Wall · Spray · Tip**, and Tip is the only one whose payoff lands on a *different section* from
+  the one it happens in.
+  **A tin of mint stands on the floor of the Services hero**, bottom-left of the text column, at
+  150px on a desktop and 96px on a phone. It is `art.py`'s own tin — `can_tipping_svg()`, which
+  is `can_svg()`'s drawing rather than a second one: the file's six pieces (defs, shadow, tin,
+  rim, paint, handle) are shared, `can_svg()` still emits the same bytes it always did, and the
+  variant differs in three things only — the paint in the rim is its own group so it can be held
+  level and drained, a lens of wet paint over the outer lip that is invisible until it pours, and
+  the shadow in a group of its own, because a tin at seventy-six degrees does not cast the shadow
+  of one standing up.
+  **Click it, or drag it past forty degrees, and it goes over.** It rolls on the right-hand edge
+  of its own base (`CAN_TIP_PIVOT`) and overshoots to ninety-two before settling on
+  seventy-six (`CAN_TIP_DEG`) — a tin has weight, and one that arrives at its angle and stops has
+  none. The drag holds it wherever the pointer has carried it and the spring takes over from
+  exactly there; let go short of forty and it rocks back upright. **The paint leaves it as a
+  glossy sheet** from the point the rim is low at that angle (`CAN_TIP_POUR`, a third of the
+  tin's width outside its own box), with a meniscus at the rim, a highlight down the body and a
+  fat head running in front of the fall; it **pools along the hero's bottom edge** — a CSS height
+  with a wobble on the waterline, deepest where the sheet came down and thinning to the ends —
+  and **drips through onto the first section, where it becomes that section's mint rule**, filling
+  outward from the drip point and then taking its Cure sheen. The run is Spray's drip, markup and
+  keyframes and all. **After four seconds it rights itself** — the tin springs up, the sheet
+  retracts into the rim, the pool drains down the run — and it can be tipped again. The rule keeps
+  its paint: paint does not come off a wall because the tin stood back up.
+  **On a phone a tap tips it, and after that first tap `deviceorientation` leans the pool toward
+  the low side** — damped, 30Hz, half a degree at full tilt, and only where no permission prompt
+  is needed (Android; on iOS `requestPermission` is a function and it is silently not offered).
+  **Sound is a slosh and three glugs** — a band of noise swept down as the body of paint leaves,
+  then the air going back into the tin — behind the same muted-by-default toggle the wall and the
+  washer share, on the same persisted key. That toggle now lives in the kit (`oagKit.sndToggle`)
+  rather than inside Wall, because Tip was the second thing about to build one.
+  **Nothing in it moves a box**: the tin, the sheet, the pool and the run are all absolutely
+  positioned, the hero reserves the tin's own height in every render, and the section's rule is
+  already in the server HTML. `.page-hero` is `overflow:hidden`, which makes it a *scrollport* —
+  so a meniscus two pixels proud of the water, or a sheet taller than the hero, is scrollable
+  overflow that a `scrollIntoView` or a `focus()` will scroll the hero's own words by. That is
+  why the pool is two boxes, the meniscus is inside the water, and the pour's head stops with its
+  bottom on the hero's bottom edge. **No JS / reduced motion: the tin stands upright and the rule
+  is already mint** — there is no pool, no sheet and no toggle, and the tin is not even a control
+  there (site.js is what gives it its role, its tab stop and its name, because a button that does
+  nothing is worse than a picture of a tin). The rule's 2.8s bail-out is the one on the site that
+  runs the other way — it paints the rule for a page whose `site.js` never arrived — so site.js
+  calls it off the moment it binds (`html.tipready`), exactly as `.rollin` calls off the primer's.
 - **The graffiti has to read as a real tagged wall — never cartoon bubble letters.** The first
   drawn version was three bubble-letter pieces in magenta, blue and amber, evenly spaced, all
   plainly painted the same afternoon by the same hand; the owner's verdict was *"that graffiti
