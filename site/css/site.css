@@ -1973,7 +1973,10 @@ html.motion .tiprule-line{
   animation:oaTipFail 0s linear 2.8s forwards;
 }
 @keyframes oaTipFail{to{transform:none}}
-html.tipready .tiprule-line{animation:none}
+/* Owner's call (2026-09-19): the section must never sit without its rule.
+   Once site.js has bound, the rule still paints itself -- just late enough
+   (8s) that a visitor who reaches for the tin gets the pour first. */
+html.tipready .tiprule-line{animation:oaTipFail 0s linear 8s forwards}
 html.motion .tiprule.filling .tiprule-line{--tip-fill:1}
 html.motion .tiprule.curing::after{
   content:"";position:absolute;left:0;right:0;top:0;height:2px;pointer-events:none;
