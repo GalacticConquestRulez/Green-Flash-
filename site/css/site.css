@@ -94,6 +94,10 @@ section{padding:clamp(4.5rem,10vw,8rem) 0;position:relative}
 .alt{background:var(--ink-2)}
 .skip{position:absolute;left:-999px;top:0;background:var(--mint);color:var(--ink);padding:.5rem 1rem;z-index:1000;font-weight:700}
 .skip:focus{left:1rem;top:1rem}
+/* The drawn props a page lends its own elements — today the roller every
+   card borrows (build.py roller_sprite()). Absolutely positioned and zero
+   sized, so a <symbol> in the document can never take part in the layout. */
+.propdefs{position:absolute;width:0;height:0;overflow:hidden}
 
 /* --- buttons --------------------------------------------------------- */
 .btn{

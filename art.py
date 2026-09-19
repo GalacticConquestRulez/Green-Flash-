@@ -336,3 +336,92 @@ def brush_rule_svg(uid='brushrule', loaded=True):
 <ellipse cx="50" cy="166" rx="4.2" ry="2.4" fill="{MINT_HI}" opacity=".55"/>'''
     return (f'<svg class="prop prop-brush-rule" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true" focusable="false">'
             f'{defs}{body}</svg>')
+
+
+# ------------------------------------------- the roller that rides a wet edge
+def roller_pass_svg(uid='rollerpass'):
+    """The same roller, stood up to ride a wet edge left to right.
+
+    `roller_svg()` is the upright display piece: 200 x 200, the roller lying
+    over at 28 degrees with the pass it has just made, its drips and its
+    shadow underneath it. A roller mid-pass on a wall is a different shape —
+    the sleeve stands across the direction of travel, the nap has to sit *on*
+    the wet edge, and nothing may hang below the art to be clipped — so this
+    is that roller, same nap, same mint load, same cage and grip, stood up
+    74 degrees and anchored on the point where the nap meets the wall.
+
+    Two things change besides the angle, and neither is a redraw. The load
+    line moves down the sleeve (WET) because this roller is in the middle of
+    a pass rather than sitting on a bench, so all but the last inch of it is
+    carrying paint; and the fibre and texture counts come down from 520 and
+    260, because this is drawn at 40-76 px — for the cursor, and for the copy
+    riding the edge inside a card — where a hundred hairs is already more
+    than a retina screen can resolve.
+
+    The contact point is at (139.6, 133.8) of the 200 x 200 viewBox — 69.8%
+    across and 66.9% down — and site.css positions the element by those two
+    fractions, so the nap sits on the wet edge whatever size it is drawn at.
+    Everything else is behind that point: the arm and the grip trail back
+    over the paint just laid, the way a right hand holds a roller going right.
+    """
+    r = _rng(11)
+    WET = 140          # the load line, most of the way up the sleeve
+    fibres = []
+    for i in range(100):
+        x = 21 + r.uniform(0, 138)
+        top = r.random() < .5
+        y = 96.5 if top else 139.5
+        ln = r.uniform(.8, 2.6)
+        wet = x < WET
+        col = (MINT if wet else '#e8e6df') if r.random() < .75 else (MINT_LO if wet else '#b9b6ad')
+        dx = r.uniform(-1.2, 1.2)
+        fibres.append(f'<path d="M{x:.0f} {y} l{dx:.0f} {-ln if top else ln:.0f}" stroke="{col}" stroke-width="{r.uniform(.45,.8):.1f}"/>')
+    texture = []
+    for i in range(55):
+        x = 24 + r.uniform(0, 132); y = 99 + r.uniform(0, 38)
+        wet = x < WET
+        col = (MINT_LO if r.random() < .6 else MINT_HI) if wet else ('#d3d0c8' if r.random() < .6 else '#fff')
+        texture.append(f'<path d="M{x:.0f} {y:.0f} l{r.uniform(-2,2):.0f} {r.uniform(-1.5,1.5):.0f}" stroke="{col}" stroke-width="{r.uniform(.5,.9):.1f}"/>')
+    defs = f'''<defs>
+<linearGradient id="{uid}-nap" x1="0" y1="0" x2="0" y2="1">
+ <stop offset="0" stop-color="#fbfaf6"/><stop offset=".55" stop-color="#d6d3cb"/><stop offset="1" stop-color="#8c8a82"/></linearGradient>
+<linearGradient id="{uid}-grip" x1="0" y1="0" x2="1" y2="0">
+ <stop offset="0" stop-color="#8f3a12"/><stop offset=".35" stop-color="#f08a45"/><stop offset=".55" stop-color="#ffb27c"/><stop offset="1" stop-color="#7a2f0d"/></linearGradient>
+<linearGradient id="{uid}-wet" x1="0" y1="0" x2="0" y2="1">
+ <stop offset="0" stop-color="{MINT_HI}"/><stop offset=".35" stop-color="{MINT}"/><stop offset="1" stop-color="{MINT_DEEP}"/></linearGradient>
+<linearGradient id="{uid}-gloss" x1="0" y1="0" x2="0" y2="1">
+ <stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<linearGradient id="{uid}-steel" x1="0" y1="0" x2="1" y2="0">
+ <stop offset="0" stop-color="#5c5f65"/><stop offset=".14" stop-color="#c9ccd2"/>
+ <stop offset=".34" stop-color="#7d8188"/><stop offset=".5" stop-color="#eef0f3"/>
+ <stop offset=".68" stop-color="#8a8e95"/><stop offset=".86" stop-color="#d7dadf"/>
+ <stop offset="1" stop-color="#43464b"/></linearGradient>
+<clipPath id="{uid}-sleeve"><rect x="20" y="96" width="140" height="44" rx="21"/></clipPath>
+</defs>'''
+    body = f'''
+<g transform="translate(41.8 24.6) scale(.88) rotate(-74 90 118)">
+ <rect x="20" y="96" width="140" height="44" rx="21" fill="url(#{uid}-nap)"/>
+ <g clip-path="url(#{uid}-sleeve)">
+  <rect x="20" y="96" width="{WET - 20}" height="44" fill="url(#{uid}-wet)"/>
+  <!-- the ragged edge where the load runs out -->
+  <path d="M{WET} 96 q4 6 -2 11 q6 5 0 11 q5 6 -1 11 q4 5 3 11 L{WET - 4} 140 L{WET - 4} 96 Z" fill="{MINT}"/>
+  <path d="M{WET + 2} 96 q-5 6 1 11 q-6 5 0 11 q-5 6 1 11 q-4 5 -2 11 L{WET} 140 L{WET} 96 Z" fill="{MINT_LO}" opacity=".8"/>
+  <g fill="none" stroke-linecap="round" opacity=".7">{''.join(texture)}</g>
+  <rect x="20" y="96" width="140" height="14" fill="url(#{uid}-gloss)"/>
+  <rect x="20" y="128" width="140" height="12" fill="#000" opacity=".22"/>
+ </g>
+ <g fill="none" stroke-linecap="round" opacity=".9">{''.join(fibres)}</g>
+ <!-- end cap and the cage -->
+ <ellipse cx="160" cy="118" rx="7.5" ry="22" fill="#d9d6ce"/>
+ <ellipse cx="160" cy="118" rx="4.2" ry="15" fill="#3a3a37"/><ellipse cx="160" cy="118" rx="2" ry="8" fill="#141413"/>
+ <path d="M160 118 h16 q12 0 12 -12 v-58" stroke="#2a2b2e" stroke-width="7.5" fill="none" stroke-linecap="round"/>
+ <path d="M160 118 h16 q12 0 12 -12 v-58" stroke="url(#{uid}-steel)" stroke-width="5.4" fill="none" stroke-linecap="round"/>
+ <path d="M160 118 h16 q12 0 12 -12 v-58" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" opacity=".55" transform="translate(-1.2,-1)"/>
+ <!-- the grip: shaped, ribbed, with a hang hole -->
+ <path d="M176 -2 q12 -4 24 0 l2 60 q-14 6 -28 0 z" fill="url(#{uid}-grip)"/>
+ <g stroke="#000" stroke-width="1.2" opacity=".28"><path d="M178 12 h20 M178 22 h20 M178 32 h20 M178 42 h20"/></g>
+ <path d="M181 4 v48" stroke="#fff" stroke-width="1.6" opacity=".35" stroke-linecap="round"/>
+ <circle cx="188" cy="6" r="2.4" fill="{INK}" opacity=".8"/>
+</g>'''
+    return (f'<svg class="prop prop-roller-pass" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true" focusable="false">'
+            f'{defs}{body}</svg>')

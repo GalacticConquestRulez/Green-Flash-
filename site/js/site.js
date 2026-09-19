@@ -263,6 +263,35 @@
     });
   });
 
+  /* --- Roll it in: the pointer over a grid is a roller ----------------
+     Concept 2. Over the project grids the pointer stops being a pointer
+     and becomes the roller itself — not a second drawing of one: the
+     <symbol> build.py put in the page (roller_sprite()) is serialised at
+     40 px into a data URI, so the roller the pointer wears and the roller
+     that will ride the card are one drawing. The hotspot is the nap —
+     69.8% across and 66.9% down its box, which is art.py's contact point
+     — so the paint lands under the nap rather than under the handle.
+
+     Desktop only, and only while there is something left to paint: a
+     finger has no cursor to change, and a wall that is painted does not
+     want a roller held over it. `pointer` is the fallback, so a browser
+     that will not take an SVG cursor still says the card is a link.   */
+  const RCUR = 40;                     // how big the cursor is drawn, in px
+  const sprite = document.getElementById('oa-roller');
+  const grids = [...document.querySelectorAll('.pgrid')];
+  let rollerCursor = '';
+  if (fine && sprite && grids.length) {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="'
+      + RCUR + '" height="' + RCUR + '">' + sprite.innerHTML + '</svg>';
+    rollerCursor = 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)
+      + '") ' + Math.round(RCUR * 0.698) + ' ' + Math.round(RCUR * 0.669) + ', pointer';
+  }
+  const wearRoller = (on) => grids.forEach(g => {
+    if (on && rollerCursor) g.style.cursor = rollerCursor;
+    else g.style.removeProperty('cursor');
+  });
+  wearRoller(true);
+
   const targets = [...document.querySelectorAll('.rv,.dims')];
   const live = [...document.querySelectorAll('[data-live]')];
   const glowing = [...document.querySelectorAll('[data-glow]')];

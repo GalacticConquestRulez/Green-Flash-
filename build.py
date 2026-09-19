@@ -18,7 +18,7 @@ img(), so the same build runs at the domain root and under a preview prefix.
 """
 import os, sys, html, json, struct, hashlib
 from urllib.parse import quote as _urlq
-from art import brush_rule_svg
+from art import brush_rule_svg, roller_pass_svg
 
 SRC = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(SRC, 'site')
@@ -268,6 +268,28 @@ def focus_attr(p):
     """
     f = p.get('focus')
     return f'style="object-position:{f}"' if f else ''
+
+
+def roller_sprite():
+    """The roller, drawn once a page, for every card on it to borrow.
+
+    art.py's roller_pass_svg() is a detailed piece of kit — a nap drawn fibre
+    by fibre — and a page can hold twelve cards, so it goes into the document
+    once as a <symbol> and each card carries a <use> of it. The hidden <svg>
+    is absolutely positioned and zero-sized (site.css .propdefs), so it can
+    never take part in the layout.
+
+    It is also where the cursor comes from: site.js serialises this symbol at
+    40 px into a data URI and hangs it on the grid, so the roller the pointer
+    wears and the roller riding the card are the same drawing, not two.
+
+    layout() puts it on any page whose body holds a card and on no other, so
+    a page with no grid does not carry a roller it will never draw.
+    """
+    svg = roller_pass_svg('oaroller')
+    inner = svg[svg.index('>') + 1:-len('</svg>')]
+    return ('<svg class="propdefs" width="0" height="0" aria-hidden="true" focusable="false">'
+            f'<symbol id="oa-roller" viewBox="0 0 200 200">{inner}</symbol></svg>')
 
 
 def pcard(p, cls='', sizes=CARD_SIZES):
@@ -596,6 +618,9 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None)
                  f'<meta property="og:image:width" content="{w}">'
                  f'<meta property="og:image:height" content="{h}">'
                  f'<meta property="og:image:alt" content="{html.escape(title)}">')
+    # The roller sprite rides along on any page that has a card to roll in,
+    # and on no other: one <symbol> the cards and the cursor both borrow.
+    props = roller_sprite() if 'class="pcard' in body else ''
     washer = (f'<link rel="stylesheet" href="{u("/css/wash.css")}?v={asset_v("css/wash.css")}">'
               f'\n<script src="{u("/js/wash.js")}?v={asset_v("js/wash.js")}" defer></script>'
               if wash else '')
@@ -622,7 +647,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None)
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-{nav_html()}
+{props}{nav_html()}
 <main id="main">
 {body}
 </main>
