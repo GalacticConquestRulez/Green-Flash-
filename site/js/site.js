@@ -153,21 +153,38 @@
      only cards measured are the ones the observer says are on screen. The
      frame reads every box first and writes every property after, so a
      hundred feet of scrolling is still one layout pass.                  */
-  const cards = new Set();
+  const cards = new Set(), glows = new Set();
   let frame = 0, tiltEl = null, tiltX = 0, tiltY = 0;
+
+  // Where a box sits on the screen: -1 at the top, 0 dead centre, +1 at
+  // the bottom. Both the drift and the glow are this one number.
+  const place = (r, H) => (r.top + r.height / 2 - H / 2) / ((H + r.height) / 2);
 
   const paint = () => {
     frame = 0;
     const H = innerHeight || 1;
-    const read = [];
-    cards.forEach(c => read.push([c, c.getBoundingClientRect()]));
-    read.forEach(([c, r]) => {
-      // -1 when the card is at the top of the screen, +1 at the bottom.
-      const p = (r.top + r.height / 2 - H / 2) / ((H + r.height) / 2);
+    // Every box is read before anything is written: one layout pass, no
+    // matter how many cards and glows are on screen.
+    const read = [], lit = [];
+    cards.forEach(c => read.push([c, place(c.getBoundingClientRect(), H)]));
+    glows.forEach(g => lit.push([g, place(g.getBoundingClientRect(), H)]));
+
+    read.forEach(([c, p]) => {
       // The photograph lags the frame: as the card rides up the screen the
       // picture slides down inside it. That is the whole of the depth.
       c.style.setProperty('--drift', (-Math.max(-1, Math.min(1, p))).toFixed(3));
     });
+    /* One glow at a time, and it is the rule rather than an accident of
+       where the sections fell: the one nearest the middle of the screen is
+       lit and every other one on screen is put out. It is brightest as its
+       section centres and gone by the time it is half a screen away. */
+    let near = null, best = Infinity;
+    lit.forEach(([g, p]) => { if (Math.abs(p) < best) { best = Math.abs(p); near = g; } });
+    lit.forEach(([g, p]) => {
+      const v = g === near ? Math.max(0, 1 - Math.abs(p) * 1.3) : 0;
+      g.style.setProperty('--g', v.toFixed(3));
+    });
+
     if (tiltEl) {
       tiltEl.style.setProperty('--ry', tiltX.toFixed(2) + 'deg');
       tiltEl.style.setProperty('--rx', tiltY.toFixed(2) + 'deg');
@@ -207,13 +224,15 @@
 
   const targets = [...document.querySelectorAll('.rv,.dims')];
   const live = [...document.querySelectorAll('[data-live]')];
-  if (!targets.length && !live.length) return;
+  const glowing = [...document.querySelectorAll('[data-glow]')];
+  if (!targets.length && !live.length && !glowing.length) return;
 
   // No observer means no way to unhide: show everything now rather than
   // making the visitor wait for the 2.8s self-reveal. A live element with
   // no observer is simply at its value, which is what the page says.
   if (!('IntersectionObserver' in window)) {
     targets.concat(live).forEach(el => el.classList.add('in'));
+    glowing.forEach(g => g.style.setProperty('--g', '.45'));   // the mid value
     return;
   }
 
@@ -227,6 +246,12 @@
   const LIVE = 0.35;
   const io = new IntersectionObserver(entries => entries.forEach(e => {
     const el = e.target;
+    if (el.hasAttribute('data-glow')) {
+      if (e.isIntersecting) glows.add(el);
+      else { glows.delete(el); el.style.setProperty('--g', '0'); }
+      pump();
+      return;
+    }
     if (el.hasAttribute('data-live')) {
       // A card is a reveal as well as a live thing. Roll still runs once,
       // at the threshold it has always run at, and .rolled is what holds
@@ -243,7 +268,7 @@
     el.classList.add('in');
     io.unobserve(el);                // Cure runs once, and only once
   }), { threshold: [0, 0.12, LIVE], rootMargin: '0px 0px -6% 0px' });
-  targets.concat(live).forEach(el => io.observe(el));
+  targets.concat(live, glowing).forEach(el => io.observe(el));
 })();
 
 /* =====================================================================

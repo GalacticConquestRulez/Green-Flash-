@@ -23,6 +23,13 @@
   --mint-mid:#63D0A0;
   --line:rgba(244,243,239,.10); --line-2:rgba(244,243,239,.20);
   --mint-glow:rgba(113,238,184,.14); --shade:rgba(10,10,11,.72);
+  /* The ambient breath, and the two stops that make it soft. The core is
+     the ceiling the owner's "tasteful" sets: mint at 9%, never more, and
+     the softness is the gradient's own falloff — nothing on this site is
+     ever blurred with a filter. --glow-0 is the same mint at nothing, so
+     the fade ends in the colour it started as rather than in grey. */
+  --glow:rgba(113,238,184,.09); --glow-soft:rgba(113,238,184,.035);
+  --glow-0:rgba(113,238,184,0);
   --scrim:rgba(10,10,11,.88); --scrim-soft:rgba(10,10,11,.45);
   /* Ink on the one light panel: the ghost of a buff job across its corner,
      its hairlines, and the muted grey that stands in for --muted there.
@@ -350,6 +357,50 @@ html.motion .pcard[data-live] .pcard-img picture{
   transform:translate3d(0,calc(var(--drift,0) * 6%),0);
 }
 
+/* --- the ambient glow --------------------------------------------------
+   "an ambient glow in places that's tasteful." Tasteful is written down
+   here as four rules, and the code keeps all four: mint at 9% at its very
+   brightest and nothing over that; the softness is the gradient's own
+   falloff, because a filter blur on page content is not something this
+   site does; the core never sits under type and never crosses a
+   photograph — the four cores land on empty canvas, and the one under the
+   call to action is behind an opaque panel, so only the halo escaping
+   round it is ever seen; and one glow is lit at a time, which site.js
+   enforces by lighting only the one nearest the middle of the screen.
+
+   The box is the section, exactly, so the light can never widen the
+   document or reach for a scrollbar. --g is the scroll value site.js
+   writes, --gx/--gy place the core, and the breath is on ::before so the
+   six-second idle and the scroll value never fight over one property.  */
+.glow{position:absolute;inset:0;pointer-events:none}
+html.motion .glow{
+  z-index:-1;overflow:hidden;
+  opacity:var(--g,.45);transition:opacity .3s linear;
+}
+html.motion .glow::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(26% 46% at var(--gx,50%) var(--gy,50%),
+             var(--glow) 0%,var(--glow-soft) 46%,var(--glow-0) 100%);
+  animation:oaBreath 6s ease-in-out infinite;
+}
+@keyframes oaBreath{
+  0%,100%{opacity:.74;transform:scale(.96)}
+  50%{opacity:1;transform:scale(1.04)}
+}
+/* A section holding a glow has to be its own stacking context, or z-index:-1
+   drops the light behind the section's background — which on the two .alt
+   bands means behind --ink-2, where nothing can be seen of it. Isolated, the
+   negative layer lands where it is meant to: above the panel's own
+   background, below every word and photograph on it. */
+html.motion .stats-band,html.motion .pair-band,
+html.motion .cta-wrap,html.motion .pintro{isolation:isolate}
+/* Where each core sits: off the type, off the photographs, and far enough
+   apart down the page that two are never on one screen anyway. */
+html.motion .stats-band .glow{--gx:68%;--gy:76%}
+html.motion .pair-band .glow{--gx:76%;--gy:26%}
+html.motion .cta-wrap .glow{--gy:82%}
+html.motion .pintro .glow{--gx:74%;--gy:20%}
+
 /* --- and the way out -------------------------------------------------- */
 /* html.motion is already withheld when the visitor asks for reduced motion.
    This is the second lock: if the class ever arrives anyway, nothing here
@@ -364,6 +415,11 @@ html.motion .pcard[data-live] .pcard-img picture{
   html.motion .roll-w{display:none}
   html.motion .pcard[data-live].rv{transform:none;transition:none}
   html.motion .pcard[data-live] .pcard-img picture{position:static;height:100%;transform:none}
+  /* Reduced motion gets no glow at all, rather than a still one. The
+     bootstrap withholds html.motion from a visitor who has asked for
+     reduced motion, so there was never going to be a glow to hold still:
+     this says the same thing twice, on purpose. */
+  html.motion .glow{display:none}
   html{scroll-behavior:auto}
 }
 

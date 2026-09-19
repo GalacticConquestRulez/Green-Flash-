@@ -237,6 +237,25 @@ def dims(w, h, size=''):
             f'<span class="f">\u2032</span></div>')
 
 
+def glow():
+    """The ambient mint breath behind a section (site.js and site.css, "Live").
+
+    An empty, aria-hidden box the size of its section, in the server HTML on
+    purpose: it is then the same document with a script and without one, so
+    the no-JS and reduced-motion renders stay identical to each other. It
+    paints nothing at all outside html.motion — the light is a radial
+    gradient drawn by the stylesheet, brightened as the section centres in
+    the viewport and dimmed as it leaves.
+
+    Four places only, staggered so two are never lit on one screen: the
+    stats band and the Rochester pair on Home, the closing call to action,
+    and the head of the words under a project's wall — which is the foot of
+    that page's hero, and the one dark band there is. It never goes over a
+    photograph and its core never sits under type.
+    """
+    return '<div class="glow" data-glow aria-hidden="true"></div>'
+
+
 def focus_attr(p):
     """object-position for a photograph whose subject is not in the middle.
 
@@ -441,7 +460,7 @@ def cta(title='Ready when you are.',
         text='Tell us the wall, the city and roughly how big it is. We will come back with a plan and a price.',
         primary=('Book a free consultation', '/contact'),
         secondary=('See the work', '/work')):
-    return f'''<section class="cta-wrap"><div class="wrap"><div class="cta rv">
+    return f'''<section class="cta-wrap">{glow()}<div class="wrap"><div class="cta rv">
   <h2>{title}</h2><p>{text}</p>
   <div class="btn-row"><a class="btn btn-mint" href="{u(primary[1])}">{primary[0]} {ICONS['arrow']}</a><a class="btn btn-ghost" href="{u(secondary[1])}">{secondary[0]}</a></div>
 </div></div></section>'''
@@ -684,7 +703,7 @@ pages['/index'] = dict(
            video='hero-johnnie-walker',
            crumb=False, cls='tall')}
 
-<section class="alt"><div class="wrap">
+<section class="alt stats-band">{glow()}<div class="wrap">
   <div class="section-head rv"><div class="eyebrow">The measure of it</div>
   <h2>{spell(WALLS, cap=True)} walls. Over {SQ_FT // 1000:,},000 square feet.</h2>
   <p class="lead">Added up wall by wall, the work so far comes to {SQ_FT:,} square feet of painted surface in {spell(len(CITIES))} cities. The tallest of them stands {TALLEST['dim_h']} feet in {TALLEST['city']}; the widest runs {WIDEST['dim_w']} feet.</p></div>
@@ -704,7 +723,7 @@ pages['/index'] = dict(
   <div class="row-end rv"><a class="btn btn-ghost" href="{u('/work')}">All {spell(WALLS)} walls {ICONS['arrow']}</a></div>
 </div></section>
 
-<section class="alt"><div class="wrap">
+<section class="alt pair-band">{glow()}<div class="wrap">
   <div class="section-head rv"><div class="eyebrow">{ROCHESTER[0]['city']}, {ROCHESTER[0]['state']}</div>
   <h2>Two walls in Rochester</h2>
   <p class="lead">{ROCHESTER[0]['title']} and {ROCHESTER[1]['title']}, painted in the same city at the same size: {ROCHESTER[0]['dim_w']} feet wide by {ROCHESTER[0]['dim_h']} feet tall, each of them.</p></div>
@@ -837,7 +856,7 @@ def project_page(p):
 
     return f'''
 {scale_hero(p)}
-<section class="pintro"><div class="wrap">
+<section class="pintro">{glow()}<div class="wrap">
   <div class="crumbs"><a href="{u('/')}">Home</a><span>/</span><a href="{u('/work')}">Work</a><span>/</span><span>{p['title']}</span></div>
   <div class="eyebrow">{place}</div>
   <h1>{p['title']}</h1>

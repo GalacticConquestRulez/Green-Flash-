@@ -96,6 +96,40 @@ Ephraim before any production code.
   in PLAN.md §4 is unchanged. The overlay is fixed, `pointer-events:none`, `aria-hidden`, and is
   torn down on `pageshow` and 1.5s after a click that went nowhere, so a bfcache back never
   lands on a painted page. Mint only; no sound, no counter, no label.
+- **Live — the sixth verb (owner, 2026-09-19), and the first that runs both ways.** He asked for
+  it in one sentence: *"Try to animate the numbers on his site, add more motion to the cards as
+  well as an ambient glow in places that's tasteful. I'd like him to see motion as he scrolls up
+  and down from them."* So the vocabulary is **Roll · Scale · Cure · Wash · Splat · Live**, and
+  the phrase that shapes it is **up and down**: Roll and Cure fire once and are done, Live
+  replays every time, in both directions, for as long as the visitor keeps scrolling.
+  **What rolls:** every figure on the site — the four on the stats band (12 · 23,294 · 90′ · 8)
+  and every `.dims` on a card, a project hero, the Work grid and the Rochester pair — is a
+  mechanical counter. Each digit is a column of 0–9 that rolls up to its value as the figure
+  comes on screen and back to 0 as it leaves; speed scales with the figure (23,294 ≈ 1.1s, 8 ≈
+  .4s) and the wheels set off right to left 40ms apart. The real text stays in the server HTML
+  and is what sizes the box, so nothing shifts and nothing is lost: site.js lays aria-hidden
+  wheels over the characters and the text underneath is still what a screen reader reads and a
+  visitor selects. The mint prime marks and the `×` never move.
+  **What drifts:** the project cards. The photograph lags its frame as the card rides up the
+  screen (±6%, and the picture is hung 12% taller so it always covers), the card rises 18px into
+  place and settles back as it leaves, and on a desktop it leans up to 4° toward the pointer.
+  The hover it already had — mint hairline, photograph to 1.04 — is composed with, never
+  replaced: the lift, the lean and the rise are three custom properties on one transform.
+  **What glows:** four places and no more — the stats band, the Rochester pair, the closing call
+  to action, and the head of the words under a project's wall, which is the foot of that page's
+  hero and the only dark band there. A large soft mint radial, brightest as its section centres
+  and gone as it leaves, with a six-second idle breath on top. **Tasteful is written down:** mint
+  at 9% at its very brightest and never more, the softness from the gradient's own falloff and
+  never a `filter: blur` on page content, the core never under type and never over a photograph,
+  and **one glow lit at a time** — site.js lights only the one nearest the middle of the screen
+  and puts every other one out, so the rule holds whatever the page does next.
+  All of it under `html.motion`, off one extended IntersectionObserver (`data-live` elements are
+  never unobserved and toggle `.in` on both crossings; `.rolled` pins a card's Roll open so the
+  reveal is not replayed) and one passive scroll listener with one rAF for the whole file.
+  **Reduced motion gets no glow at all** — the bootstrap withholds `html.motion` from a visitor
+  who asked for reduced motion, so there was never a glow to hold still; the numbers and the
+  cards are the static page they are today. No counters, no scores, no labels: a figure rolling
+  is motion, not a number going up.
 - **The graffiti has to read as a real tagged wall — never cartoon bubble letters.** The first
   drawn version was three bubble-letter pieces in magenta, blue and amber, evenly spaced, all
   plainly painted the same afternoon by the same hand; the owner's verdict was *"that graffiti
