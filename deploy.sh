@@ -10,6 +10,7 @@ BASE_URL="${BASE_URL:-https://ephraim.greenflashusa.com}" python3 build.py
 rsync -a --delete --exclude 'assets/' site/ /var/www/ephraim/
 mkdir -p /var/www/ephraim/assets
 rsync -a out/img/ /var/www/ephraim/assets/img/
+[ -d out/video ] && rsync -a out/video/ /var/www/ephraim/assets/video/
 chown -R www-data:www-data /var/www/ephraim
 nginx -t && systemctl reload nginx
 echo "Deployed (canonical ${BASE_URL:-https://ephraim.greenflashusa.com})"

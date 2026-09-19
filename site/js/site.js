@@ -65,6 +65,17 @@
   try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
   if (!motion || reduced) return;
 
+  /* The hero clip. It has the autoplay attribute, so it starts on its own
+     where the browser allows; this is the nudge for the ones that wait for
+     a script, and the one place data-saver is honoured: on a metered
+     connection the still stays and the clip never loads. */
+  document.querySelectorAll('video[data-autoplay]').forEach(v => {
+    const c = navigator.connection;
+    if (c && c.saveData) { v.removeAttribute('autoplay'); v.preload = 'none'; return; }
+    v.muted = true;
+    v.play().catch(() => {});
+  });
+
   const targets = [...document.querySelectorAll('.rv,.dims')];
   if (!targets.length) return;
 

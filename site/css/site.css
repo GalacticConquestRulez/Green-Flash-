@@ -168,6 +168,11 @@ section{padding:clamp(4.5rem,10vw,8rem) 0;position:relative}
 .page-hero{padding:calc(var(--nav-h) + clamp(3.5rem,9vw,7rem)) 0 clamp(3.5rem,9vw,7rem);position:relative;isolation:isolate;overflow:hidden}
 .page-hero .hero-media{position:absolute;inset:0;z-index:-2}
 .page-hero .hero-media img{width:100%;height:100%;object-fit:cover}
+/* The hero clip sits over the photograph and only plays where motion is
+   welcome: no script, reduced motion or data-saver leaves the still. */
+.hero-video{display:none}
+html.motion .hero-video{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+@media (prefers-reduced-motion:reduce){html.motion .hero-video{display:none}}
 .hero-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,var(--shade) 0%,rgba(10,10,11,.25) 38%,var(--ink) 100%)}
 .hero-inner{max-width:900px}
 .page-hero .lead{margin-top:1.3rem;color:var(--paper);opacity:.86}

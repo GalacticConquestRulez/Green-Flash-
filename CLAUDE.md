@@ -129,3 +129,18 @@ Ephraim before any production code.
   `wix-sources.json` extras when the page is built. The rest are stock placeholders — never use.
 - Extras (nine signs/banners, Snickers, The Inn, GST Loft) are recorded under `not_fetched` in
   `wix-sources.json` with exact URLs; move one to `extras` and re-run to pull it.
+
+## The Home hero clip — Johnnie Walker (2026-09-19)
+The owner uploaded Ephraim's own footage of the **Johnnie Walker Blue wall in
+Manhattan** (drone reveal, Ephraim painting on the lift, the aerial down the
+block) and asked for it as "the motion background at the top". It lives at
+`assets/source/johnnie-walker.mov` (gitignored; keep a copy), is cut by
+`make-hero-clip.sh` into `out/video/hero-johnnie-walker.{mp4,webp}`, and
+`page_hero(..., video=...)` lays it over the Gucci photograph on Home. The
+photograph stays: it is the LCP element, the crawler's image, and what
+reduced-motion, data-saver and no-script visitors see.
+- **The Johnnie Walker wall is not in `projects.py`** — no dimensions, year or
+  client line were supplied, and nothing is invented. Ask Ephraim for the feet;
+  it then becomes the thirteenth wall and the hero copy can name it.
+- nginx serves `/assets/video/` with `mp4;` and immutable caching (snippet
+  updated); `deploy.sh` syncs `out/video/`.

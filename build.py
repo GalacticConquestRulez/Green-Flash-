@@ -298,7 +298,7 @@ def asset_v(rel):
         return hashlib.md5(f.read()).hexdigest()[:8]
 
 
-def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_alt=''):
+def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_alt='', video=None):
     """The top of a page: a photograph, a shade over it, and the words.
 
     The photograph goes through pic() rather than img() so the browser picks a
@@ -306,9 +306,23 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
     LCP element, so it loads eagerly at high priority. media_alt is the
     description of the mural; leave it empty only when the photograph is
     genuinely decorative, which on this site it never is.
+
+    video names a clip in out/video/ (<name>.mp4 + <name>.webp poster). It
+    plays muted, looped, inline, on top of the photograph: the photograph is
+    still the LCP element and the still every crawler, reader mode and
+    reduced-motion visitor gets; the clip is the motion. site.js pauses it
+    under prefers-reduced-motion and data-saver, and the CSS hides it there
+    too, so the page never depends on the clip having arrived.
     """
+    clip = ''
+    if video:
+        assert os.path.exists(f'out/video/{video}.mp4') and os.path.exists(f'out/video/{video}.webp'), \
+            f'hero video {video}: out/video/{video}.mp4 and .webp must exist'
+        clip = (f'<video class="hero-video" data-autoplay autoplay muted loop playsinline preload="metadata" '
+                f'poster="{u("/assets/video/" + video + ".webp")}" aria-hidden="true" tabindex="-1">'
+                f'<source src="{u("/assets/video/" + video + ".mp4")}" type="video/mp4"></video>')
     media = (f'<div class="hero-media">'
-             f'{pic(media_slug, media_alt, HERO_SIZES, extra="fetchpriority=\"high\"", lazy=False)}'
+             f'{pic(media_slug, media_alt, HERO_SIZES, extra="fetchpriority=\"high\"", lazy=False)}{clip}'
              f'</div><div class="hero-shade"></div>') if media_slug else ''
     crumbs = (f'<div class="crumbs"><a href="{u("/")}">Home</a><span>/</span><span>{crumb or title}</span></div>'
               if crumb is not False else '')
@@ -586,6 +600,7 @@ pages['/index'] = dict(
            'Open Air Gallery is Ephraim’s studio: eighty-one feet of Gucci on a Manhattan wall, eighty-five feet of Crown Royal in Portland, John Lewis and Malcolm X in Rochester.',
            media_slug='gucci-new-york-hero',
            media_alt='The Gucci mural by Open Air Gallery, eighty-one feet across a New York City wall',
+           video='hero-johnnie-walker',
            crumb=False, cls='tall')}
 
 <section class="alt"><div class="wrap">
