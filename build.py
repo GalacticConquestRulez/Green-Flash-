@@ -877,6 +877,58 @@ def brand_wall(eyebrow='painted for', title='The brands', cls=''):
 </div></section>'''
 
 
+# The second strand. CLAUDE.md, round three: the owner asked to "add in Kylie
+# or mentioned models" — so beside the brands there are the people, and they
+# appear the one way this site will show a person: as a wall Ephraim painted
+# of them, never as a stock photograph of the person themselves.
+#
+# Four of the five have a wall on this site and each name is the link to it.
+# Kylie Jenner is the fifth and she links nowhere, because no photograph of
+# that wall has reached us — a name with no picture behind it is honest, and a
+# name linked to somebody else's wall would not be. She is a line in CLAUDE.md
+# under what Ephraim still owes, and the day the photograph lands `slug` is
+# filled in and nothing else on this page changes.
+#
+# `+ the campaign models` is a marker aside and not a name, because Ephraim has
+# not named them yet. It says there are more without inventing who.
+FACES = [
+  dict(name='Kylie Jenner', slug=None,
+       where='the mural project \u2014 no photograph of the wall yet'),
+  dict(name='John Lewis', slug='john-lewis-rochester'),
+  dict(name='Malcolm X', slug='malcolm-x-rochester'),
+  dict(name='Antwuan', slug='uber-san-francisco'),
+  dict(name='Dexter', slug='showtime-dexter-boston'),
+]
+FACES_MORE = '+ the campaign models'
+
+_BY_SLUG = {p['slug']: p for p in PROJECTS}
+for _f in FACES:
+    assert _f['slug'] is None or _f['slug'] in _BY_SLUG, \
+        f"faces: {_f['name']} points at {_f['slug']!r}, which is not a project"
+
+
+def faces_strand(eyebrow='and the faces', title='Painted portraits', cls=''):
+    """The faces row: five names set as the serif they deserve, four of them links."""
+    items = []
+    for f in FACES:
+        if f['slug']:
+            q = _BY_SLUG[f['slug']]
+            label = f"{f['name']} \u2014 the {q['title']} wall, {q['city']}, {q['state']}"
+            items.append(f'<a class="face" href="{u("/work/" + f["slug"])}" '
+                         f'aria-label="{html.escape(label)}">{html.escape(f["name"])}</a>')
+        else:
+            items.append(f'<span class="face face-unlinked">{html.escape(f["name"])}</span>')
+    items.append(f'<span class="face-more marker">{html.escape(FACES_MORE)}</span>')
+    sect = ('faces ' + cls).strip()
+    return f'''<section class="{sect}"><div class="wrap">
+  <div class="bhead rv"><span class="marker">{eyebrow}</span><h2 class="tall">{title}</h2></div>
+  <p class="faces-lead serif rv">The people on the walls, painted at building scale &mdash;
+  John Lewis and Malcolm X in Rochester, Antwuan on the Uber wall in San Francisco, Dexter on
+  the Showtime wall in Boston. Each name goes to its wall.</p>
+  <div class="frow rv">{''.join(items)}</div>
+</div></section>'''
+
+
 # ---------------------------------------------------------------- HOME
 # Every number on this page is computed from projects.py. None of them is
 # typed: "Twelve walls. Over 23,000 square feet." is the roster adding itself
@@ -985,6 +1037,7 @@ pages['/work'] = dict(
            f'portraits, and the two Rochester commissions.',
            crumb='Work')}
 {work_index()}
+{faces_strand()}
 {gr_strip('Graffiti removal, pressure washing and commercial painting in NYC. The '
           'crew that painted these walls cleans them too.')}
 {cta()}''')

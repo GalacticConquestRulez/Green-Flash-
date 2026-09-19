@@ -522,3 +522,17 @@ failure. `node /root/shot/oag-paint-stills.mjs` writes the frames to judge print
 `splat-verify.mjs`, `splat-stills.mjs`, `shot-oag-gr.mjs`, `shot-oag-build.mjs` and the
 wall / spray / tip runs all still pass; splat-verify's and tip-verify's waits were moved to
 the new clock, which is the only change any of them needed.
+
+### Needed from Ephraim — round three (2026-09-19)
+The brands wall and the faces strand are built to be finished by him, not by us. Each
+line below is a hole the build already has a shape for: fill it and one row changes,
+nothing else on the page moves. Nothing here is invented in the meantime.
+
+- **A photograph of the Kylie Jenner wall.** She is named in the faces strand
+  (`FACES` in build.py) because the owner asked for her, and she is the one face there
+  that links nowhere: no photograph of that wall has reached us, and linking a name to
+  somebody else's wall would be worse than linking it to nothing. Send the photograph
+  and a city and she becomes a project row like the other four.
+- **The campaign models' names.** The strand ends on a marker aside, `+ the campaign
+  models`, because Ephraim has not named them. It says there are more without inventing
+  who; name them and they join the row.
