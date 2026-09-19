@@ -184,6 +184,33 @@ Ephraim before any production code.
   copy of the photograph that the wipe reveals is cloned by site.js and removed the frame the
   primer comes off, so a crawler is never handed the same mural twice and the no-JS document is
   the document it always was.
+- **Stencil — the eighth verb (owner, 2026-09-19), and the one that happens to the hook.** Concept
+  5 of the paint mechanics: *"When a `.dims` figure enters view it is sprayed on: a stencil card
+  slides over, the numbers appear through it with overspray at the edges, the card lifts away."*
+  So the vocabulary is **Roll · Scale · Cure · Wash · Splat · Live · Brush · Stencil**, and it is
+  the site's own measurements — every `.dims` and every figure on the stats band — that get it.
+  A card of matte board comes down over the figure in 180ms, the numbers are sprayed through the
+  cut, and the card lifts in 220ms leaving the overspray behind. **The cut is the figure's own
+  glyphs, never a drawing of digits:** site.js measures each run of text on the line where it
+  actually sits — the baseline read off a zero-height inline-block, which is the only way to ask
+  the page where a baseline is — and lays it into an SVG `<mask>` in the same font, size and
+  width axis, cut a hair wide the way a stencil is cut. **The overspray is `--paper` spreading
+  six to ten pixels outside the glyphs**, a copy of the figure with no ink in it at all whose
+  `text-shadow` is the only thing that paints: it is displaced by `wall.py`'s own aerosol
+  (`feTurbulence` 0.045 + `feDisplacementMap` 6) for the 380ms the can is open and by nothing
+  afterwards, so **no live feTurbulence is ever left on a settled page** — it fades in with the
+  figure at .35 and settles to .12. **The mint prime marks and the `×` are never sprayed:** they
+  are already painted, so they sit over the card rather than coming through it, and they take no
+  halo. It composes with the two verbs already on a figure rather than replacing either: Scale's
+  `wdth` grow is snapped to its end value under the card (which is where it was going, and what
+  keeps the cut true), Live's columns **roll under the stencil** and the spray is the moment they
+  land — `min(1.2s, .4 + .175·(n−1))`, the roll's own sum — and Cure is timed by one custom
+  property, `--st-cure`, so the sheen sets off as the card is lifted and a figure that never gets
+  a stencil still cures at the .4s it always did. **Hover resprays it on a fine pointer, a tap
+  resprays it on a coarse one**, and the tap never costs the link a card's figure sits in. Nothing
+  in it can move a box — the card and the halo are absolutely positioned inside the figure — and
+  **no JS / reduced motion gets the figures exactly as they are today**: the whole mechanic is
+  built by site.js under `html.motion`, so there is no card, no halo and no filter to withhold.
 - **The graffiti has to read as a real tagged wall — never cartoon bubble letters.** The first
   drawn version was three bubble-letter pieces in magenta, blue and amber, evenly spaced, all
   plainly painted the same afternoon by the same hand; the owner's verdict was *"that graffiti

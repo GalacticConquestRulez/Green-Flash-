@@ -49,6 +49,14 @@
      PLAN.md §2 says the accent never lands on this colour: on the band it
      appears the one way it may, as ink on mint. */
   --ghost:rgba(10,10,11,.10); --ink-line:rgba(10,10,11,.22); --ink-mute:#4B4842;
+  /* Stencil: the card the feet are sprayed through. Matte board, lit from
+     the top edge, a shade off --wall so it reads as something laid over the
+     page rather than part of it; a cut edge of ink around it and the shadow
+     of a hand holding it a little off the wall. It carries no type, so it
+     answers to none of the contrast rules above — it is a prop. */
+  --matte:#9A9284; --matte-2:#7F776A;
+  --matte-edge:rgba(10,10,11,.45); --st-shade:rgba(10,10,11,.55);
+  --st-cut:rgba(10,10,11,.55);
   --radius:4px;                 /* near-square — signwriting, not SaaS */
   --max:1240px; --nav-h:72px;
   /* Archivo carries the width axis the dimension figures need; the fallbacks
@@ -249,6 +257,9 @@ footer .foot-grid ul a:hover{color:var(--paper)}
      Brush  the mint rule his three stages sit on is painted in by a brush
             riding its leading edge as the visitor scrolls, and un-painted
             as they scroll back up.
+     Stencil a card of matte board, cut to the figure's own glyphs, comes
+            down over a figure as it arrives; the numbers are sprayed
+            through the cut and the card lifts off, leaving the overspray.
    ===================================================================== */
 
 /* --- Roll ------------------------------------------------------------- */
@@ -301,7 +312,7 @@ html.motion .dims.in::before{
   content:"";position:absolute;left:0;right:0;bottom:-.16em;height:1px;
   background:linear-gradient(90deg,transparent,var(--mint),transparent) no-repeat;
   background-size:40% 100%;
-  animation:oaCure 1.8s var(--ease) .4s 1 both;pointer-events:none;
+  animation:oaCure 1.8s var(--ease) var(--st-cure,.4s) 1 both;pointer-events:none;
 }
 @keyframes oaCure{
   from{background-position:-45% 0;opacity:0}
@@ -413,6 +424,98 @@ html.motion .roll-c > span{display:flex;align-items:center;justify-content:cente
 /* .in is added on the way in and taken away on the way out: one declaration
    is the whole of both directions. */
 html.motion .roll.in .roll-c{--d:var(--v)}
+
+/* --- Stencil ----------------------------------------------------------
+   The eighth verb, and the one that happens to the hook itself. A figure
+   does not simply arrive any more: a stencil card comes down over it, the
+   numbers are sprayed through the cut, the card lifts off, and the
+   overspray stays on the wall.
+
+   The cut is the figure's own glyphs and never a drawing of digits.
+   site.js measures every run of text on the line where it actually sits
+   and lays it into an SVG <mask> in the same font at the same size, cut a
+   hair wide the way a stencil is cut. The card is built at the moment it
+   is wanted and removed when it is gone.
+
+   It composes with the two verbs already on a figure rather than
+   replacing either. Scale's grow is snapped to its end value under the
+   card — which is where it was going anyway, and what keeps the cut true
+   to the glyphs it was measured from — Live's columns roll under the card
+   from the moment it starts down, and the spray is the moment they land.
+   Cure is not retimed by hand: the figure carries --st-cure, so the sheen
+   sets off as the card is lifted and, where no stencil ever runs, at the
+   .4s it has always run at.
+
+   Nothing here can move a box: the card and the halo are absolutely
+   positioned inside a figure that never clips them. And nothing here
+   exists without html.motion — site.js builds no card, no halo and no
+   filter at all, so the no-script page is the page it has always been. */
+html.motion .st-card,html.motion .st-halo{position:absolute;pointer-events:none;-webkit-user-select:none;user-select:none}
+
+/* The card. It waits a card and a half above the figure and comes down
+   the way a hand lays one on a wall; it goes back up faster than it came,
+   which is the difference between placing a stencil and pulling one off. */
+html.motion .st-card{
+  z-index:1;display:block;opacity:0;
+  transform:translate3d(0,-130%,0);
+  box-shadow:0 14px 28px var(--st-shade);
+}
+html.motion .st-card svg{display:block;width:100%;height:100%}
+html.motion .st-card .st-s0{stop-color:var(--matte)}
+html.motion .st-card .st-s1{stop-color:var(--matte-2)}
+html.motion .st-card .st-edge{fill:none;stroke:var(--matte-edge);stroke-width:1}
+/* The cut itself. A card is held a little off the wall, so the shape of
+   the figure is always a shade darker than the wall around it — which is
+   also what makes the cut legible over a photograph rather than over ink. */
+html.motion .st-card .st-cut{fill:var(--st-cut);transition:opacity .2s linear}
+/* And it goes the moment the paint does. The card is still flat on the
+   wall then and the paint has filled the cut anyway, so nothing is lost —
+   what it saves is the lift: a shadow travelling up with the card would
+   read as a second figure sliding off the first. */
+html.motion .st-spray .st-cut{opacity:0}
+html.motion .st-in .st-card{
+  opacity:1;transform:none;
+  transition:transform .18s cubic-bezier(.2,.86,.34,1),opacity .1s linear;
+}
+html.motion .st-lift .st-card{
+  opacity:0;transform:translate3d(0,-150%,0);
+  transition:transform .22s cubic-bezier(.45,0,.78,.4),opacity .22s ease-in .05s;
+}
+
+/* The figure under it. The width axis goes straight to where Scale was
+   taking it, because the card is over the figure while it happens; the
+   rolling columns are held out of sight until the paint goes on. The
+   animation is this section's share of the 2.8s bail-out every hidden
+   thing in this file carries: if the sequence never finishes, the figure
+   comes back by itself rather than staying under a card for good. */
+html.motion .dims.st{font-variation-settings:'wdth' 125,'wght' 800;transition:none}
+html.motion .st .roll-w{opacity:0;transition:opacity .12s linear;animation:oaStFail 0s linear 2.8s forwards}
+html.motion .st-spray .roll-w{opacity:1;transition:opacity .2s var(--ease)}
+@keyframes oaStFail{to{opacity:1}}
+/* The mint prime marks and the times sign are painted already: they sit
+   over the card rather than being sprayed through it, and they take no
+   overspray. The rolling columns sit over it too — what the cut shows is
+   the wall until the can is opened. */
+html.motion .roll,html.motion .dims .f,html.motion .dims .x,html.motion .stat-n .f{position:relative;z-index:2}
+html.motion .stat-n{position:relative}
+
+/* The overspray. A copy of the figure with no ink in it at all: what
+   paints is the shadow, six to ten pixels of --paper spreading outside
+   the glyphs. It is displaced by the tags' own spray filter for as long
+   as the can is open — site.js puts that on and takes it off — and by
+   nothing at all once it has dried, which is how a halo stays on the page
+   with no live feTurbulence anywhere on it. */
+html.motion .st-halo{inset:0;z-index:3;opacity:0;transition:opacity .42s var(--ease)}
+html.motion .st-halo .roll-w{display:none}
+html.motion .st-halo .roll-g{color:transparent;text-shadow:0 0 5px var(--paper),0 0 11px var(--paper)}
+html.motion .st-halo .f,html.motion .st-halo .x{color:transparent;text-shadow:none}
+html.motion .st-spray .st-halo{opacity:.35;transition-duration:.2s}
+html.motion .st-done .st-halo{opacity:.12}
+/* A zero-height inline-block sits its bottom edge on the baseline it is
+   standing on, which is the only way to ask the page where a baseline is.
+   site.js puts one in, reads it and takes it out again in the same tick. */
+html.motion .st-probe{display:inline-block;width:0;height:0;vertical-align:baseline}
+html.motion .st-defs{position:absolute;width:0;height:0;overflow:hidden}
 
 /* --- the cards --------------------------------------------------------
    "Add more motion to the cards." Three things, composed on top of the
@@ -604,6 +707,11 @@ html.motion .pcard-wet{
      before it touches the DOM. If they ever are, the figure is the text. */
   html.motion .roll-g{color:inherit}
   html.motion .roll-w{display:none}
+  /* Stencil is built by site.js and site.js returns before it touches the
+     DOM here, so there is no card and no overspray to hold still. This
+     says it a second time, in case the class ever arrives anyway. */
+  html.motion .st-card,html.motion .st-halo{display:none}
+  html.motion .st .roll-w{opacity:1;animation:none}
   html.motion .pcard[data-live].rv{transform:none;transition:none}
   html.motion .pcard[data-live] .pcard-img picture{position:static;height:100%;transform:none}
   /* Roll it in: no primer, and the roller was never there. */

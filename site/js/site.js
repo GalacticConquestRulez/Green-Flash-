@@ -51,7 +51,7 @@
 })();
 
 /* =====================================================================
-   The motion layer — Roll · Scale · Cure · Live · Brush.
+   The motion layer — Roll · Scale · Cure · Live · Brush · Stencil.
 
    One IntersectionObserver, one class. Nothing in here is load-bearing:
    without it html.motion is absent, nothing is hidden, and the page is the
@@ -94,6 +94,8 @@
      (five digits ~1.1s, one digit ~.4s) and the digits start right to left,
      the way a counter's wheels turn.                                      */
   const STAG = 0.04;                 // between one wheel and the next
+  // How long a figure's wheels take, which is also when Stencil sprays it.
+  const stRoll = new Map();
   const rollUp = (host) => {
     [...host.childNodes].forEach(node => {
       if (node.nodeType !== 3 || !/[0-9]/.test(node.nodeValue)) return;
@@ -118,6 +120,10 @@
       // of it rather than the figure taking longer the wider it is.
       const all = Math.min(1.2, 0.4 + 0.175 * (n - 1));
       const each = Math.max(0.28, all - STAG * (n - 1));
+      // A figure is as slow as its slowest half: 81' x 80' rolls two wheels
+      // twice and lands once.
+      const fig = host.closest('.dims') || host;
+      stRoll.set(fig, Math.max(stRoll.get(fig) || 0, Math.round(all * 1000)));
       let right = n;                 // wheels still to this one's right
       for (const ch of text) {
         if (ch < '0' || ch > '9') { const s = span('roll-x'); s.textContent = ch; cols.appendChild(s); continue; }
@@ -369,7 +375,206 @@
     card.addEventListener('focus', () => roll(card));
   });
 
-  const targets = [...document.querySelectorAll('.rv,.dims')];
+  /* --- Stencil: the feet are sprayed on ------------------------------
+     The site's hook is 81' x 80', and a figure that big should arrive the
+     way it arrives on a wall: a stencil card comes down over it, the paint
+     goes through the cut, the card lifts off, and the overspray stays.
+
+     The cut is the figure's own glyphs and never a drawing of digits.
+     Every run of text on the line — the ghost inside each rolling column,
+     the mint prime marks, the times sign — is measured where it actually
+     sits and laid into an SVG <mask> in the same font at the same size and
+     the same width axis, cut a hair wide the way a stencil is cut so that
+     nothing of the figure ever catches on its edge. The baseline comes
+     from a probe: a zero-height inline-block stands its bottom edge on the
+     baseline it is in, and it is out again before the next frame.
+
+     The order is what makes it compose. .st goes on first, which snaps
+     Scale's width axis to its end value (under the card, where it was
+     going anyway) and takes the rolling columns out of sight; the card is
+     measured against that, so the cut is true. Then the wheels are started
+     and the card comes down over them — the roll happens under the
+     stencil, and the spray is the moment the columns land. Cure is timed
+     by --st-cure rather than by hand, so the sheen sets off as the card is
+     lifted, and a figure that never gets a stencil still cures at the .4s
+     it always did.
+
+     What it leaves is a text-shadow and nothing else. The tags' own spray
+     filter is on the halo for the moment the can is open and off it again
+     when the paint is dry, so no live feTurbulence is ever left on a
+     settled page.                                                       */
+  const ST_HOLD = 120, ST_LIFT = 220, ST_SETTLE = 60, ST_AGAIN = 200;
+  const figures = [...document.querySelectorAll('.dims,.stat-n')];
+  if (figures.length) {
+    // wall.py's aerosol, in the one place off the wall that needs it:
+    // turbulence displaces the halo by a few units and a hair of blur takes
+    // the vector edge off it, which is the difference between a can and a
+    // shape tool. It is a definition, not a filter on anything — what wears
+    // it wears it for 380ms and hands it back.
+    const defs = document.createElement('div');
+    defs.innerHTML =
+      '<svg class="st-defs" aria-hidden="true" focusable="false">' +
+      '<filter id="oa-spray" x="-30%" y="-30%" width="160%" height="160%" ' +
+      'color-interpolation-filters="sRGB">' +
+      '<feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="5" result="t"/>' +
+      '<feDisplacementMap in="SourceGraphic" in2="t" scale="6" ' +
+      'xChannelSelector="R" yChannelSelector="G"/>' +
+      '<feGaussianBlur stdDeviation="1.1"/></filter></svg>';
+    document.body.appendChild(defs.firstElementChild);
+  }
+
+  const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let stN = 0;
+
+  // Every run of glyphs on the figure's line: what it says, where it starts
+  // and the baseline it stands on.
+  const stRuns = (fig) => {
+    const out = [];
+    const probe = document.createElement('i');
+    probe.className = 'st-probe';
+    fig.querySelectorAll('.roll-g,.f,.x').forEach(el => {
+      const t = el.textContent;
+      if (!t) return;
+      el.appendChild(probe);
+      const base = probe.getBoundingClientRect().top;
+      probe.remove();
+      const r = el.getBoundingClientRect();
+      out.push({ t, x: r.left, y: base, s: getComputedStyle(el) });
+    });
+    return out;
+  };
+
+  // The card and the halo, cut and hung for the figure as it is right now.
+  // Both are built fresh every time, so a figure resprayed at another size
+  // is cut again at that size rather than wearing the old cut.
+  const stBuild = (fig) => {
+    [...fig.children].forEach(n => {
+      if (n.classList.contains('st-card') || n.classList.contains('st-halo')) n.remove();
+    });
+    const runs = stRuns(fig);
+    if (!runs.length) return false;
+    const r = fig.getBoundingClientRect();
+    const fs = parseFloat(getComputedStyle(fig).fontSize) || 16;
+    const px = Math.max(16, fs * 0.22), py = Math.max(14, fs * 0.34);
+    const w = Math.round(r.width + px * 2), h = Math.round(r.height + py * 2);
+    if (!w || !h) return false;
+    const id = 'oa-st-' + (++stN);
+    const dil = (fs * 0.045).toFixed(2);        // the cut, a hair wide
+    const cut = runs.map(g =>
+      '<text x="' + (g.x - r.left + px).toFixed(2) + '" y="' + (g.y - r.top + py).toFixed(2) +
+      '">' + esc(g.t) + '</text>').join('');
+
+    const card = document.createElement('span');
+    card.className = 'st-card';
+    card.setAttribute('aria-hidden', 'true');
+    card.style.cssText = 'left:' + (-px).toFixed(1) + 'px;top:' + (-py).toFixed(1) +
+                         'px;width:' + w + 'px;height:' + h + 'px';
+    card.innerHTML =
+      '<svg viewBox="0 0 ' + w + ' ' + h + '" focusable="false">' +
+        '<defs>' +
+          '<linearGradient id="' + id + '-g" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0" class="st-s0"/><stop offset="1" class="st-s1"/>' +
+          '</linearGradient>' +
+          '<mask id="' + id + '" maskUnits="userSpaceOnUse" x="0" y="0" ' +
+                'width="' + w + '" height="' + h + '">' +
+            '<rect width="' + w + '" height="' + h + '" fill="white"/>' +
+            '<g fill="black" stroke="black" stroke-width="' + dil +
+               '" stroke-linejoin="round">' + cut + '</g>' +
+          '</mask>' +
+          // and the cut on its own, which is where the card's own shadow
+          // falls: a stencil is held a little off the wall, so what shows
+          // through it is always darker than the wall beside it.
+          '<mask id="' + id + '-c" maskUnits="userSpaceOnUse" x="0" y="0" ' +
+                'width="' + w + '" height="' + h + '">' +
+            '<g fill="white" stroke="white" stroke-width="' + dil +
+               '" stroke-linejoin="round">' + cut + '</g>' +
+          '</mask>' +
+        '</defs>' +
+        '<rect class="st-cut" width="' + w + '" height="' + h + '" mask="url(#' + id + '-c)"/>' +
+        '<g mask="url(#' + id + ')">' +
+          '<rect width="' + w + '" height="' + h + '" rx="2" fill="url(#' + id + '-g)"/>' +
+          '<rect class="st-edge" x=".5" y=".5" width="' + (w - 1) + '" height="' + (h - 1) + '" rx="1.6"/>' +
+        '</g>' +
+      '</svg>';
+    // The type is set on the nodes rather than written into the string: a
+    // font stack carries quotation marks of its own, and a style attribute
+    // built out of them is a style attribute that ends early.
+    card.querySelectorAll('mask text').forEach((t, i) => {
+      const s = runs[i % runs.length].s;
+      t.style.fontFamily = s.fontFamily;
+      t.style.fontSize = s.fontSize;
+      t.style.fontWeight = s.fontWeight;
+      t.style.fontStyle = s.fontStyle;
+      t.style.fontVariationSettings = s.fontVariationSettings;
+      t.style.letterSpacing = s.letterSpacing;
+    });
+
+    // The halo is the figure again, with the ink taken out of it: the text
+    // is the site's own text at the site's own size, so the overspray can
+    // never come away from the glyphs it belongs to.
+    const halo = document.createElement('span');
+    halo.className = 'st-halo';
+    halo.setAttribute('aria-hidden', 'true');
+    [...fig.children].forEach(ch => {
+      const c = ch.cloneNode(true);
+      c.removeAttribute('data-live');
+      c.querySelectorAll('[data-live]').forEach(n => n.removeAttribute('data-live'));
+      halo.appendChild(c);
+    });
+    fig.appendChild(card);
+    fig.appendChild(halo);
+    return true;
+  };
+
+  const stSpray = (fig, first) => {
+    if (fig.dataset.spray) return;              // one can at a time
+    const rolls = first ? [...fig.querySelectorAll('.roll')] : [];
+    fig.dataset.spray = '1';
+    const wait = first ? Math.max(ST_AGAIN, stRoll.get(fig) || 0) : ST_AGAIN;
+    fig.style.setProperty('--st-cure', (wait + ST_HOLD) + 'ms');
+    fig.classList.remove('st-done');
+    fig.classList.add('st');
+    if (!stBuild(fig)) {                        // nothing to cut: leave it alone
+      fig.classList.remove('st');
+      fig.style.removeProperty('--st-cure');
+      delete fig.dataset.spray;
+      return;
+    }
+    void fig.offsetWidth;                       // the card starts above the wall
+    fig.classList.add('st-in');
+    rolls.forEach(w => w.classList.add('in'));  // the wheels turn under it
+    const halo = fig.querySelector('.st-halo');
+    setTimeout(() => {
+      fig.classList.add('st-spray');            // the columns have landed
+      if (halo) halo.style.filter = 'url(#oa-spray)';
+      setTimeout(() => {
+        fig.classList.remove('st');             // Cure is already timed to here
+        fig.classList.add('st-lift');
+        setTimeout(() => {
+          fig.classList.remove('st-in', 'st-spray', 'st-lift');
+          fig.classList.add('st-done');         // the halo settles
+          if (halo) halo.style.filter = '';     // and nothing is filtered again
+          const c = fig.querySelector('.st-card');
+          if (c) c.remove();
+          delete fig.dataset.spray;
+        }, ST_LIFT + ST_SETTLE);
+      }, ST_HOLD);
+    }, wait);
+  };
+
+  /* A respray is the same sequence without the wheels: the figure is at its
+     value already, so the card comes down, the paint goes back through it
+     and it lifts. A pointer that can hover gets it on the way in; a finger
+     gets it on the way down, and never at the cost of the tap itself — the
+     figures on a card sit inside a link, and that link still navigates. */
+  figures.forEach(f => {
+    if (fine) f.addEventListener('pointerenter', e => {
+      if (e.pointerType !== 'touch') stSpray(f, false);
+    });
+    else f.addEventListener('pointerdown', () => stSpray(f, false));
+  });
+
+  const targets = [...document.querySelectorAll('.rv,.dims,.stat-n')];
   const live = [...document.querySelectorAll('[data-live]')];
   const glowing = [...document.querySelectorAll('[data-glow]')];
   const painted = [...document.querySelectorAll('[data-brush]')];
@@ -429,6 +634,9 @@
     }
     if (!e.isIntersecting || e.intersectionRatio < 0.12) return;
     el.classList.add('in');
+    // Stencil: a figure is sprayed on the first time it is seen, and after
+    // that only when the visitor asks for it again.
+    if (el.classList.contains('dims') || el.classList.contains('stat-n')) stSpray(el, true);
     io.unobserve(el);                // Cure runs once, and only once
   }), { threshold: [0, 0.12, LIVE], rootMargin: '0px 0px -6% 0px' });
   targets.concat(live, glowing, painted).forEach(el => io.observe(el));
