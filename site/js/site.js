@@ -462,7 +462,7 @@
 })();
 
 /* =====================================================================
-   Splat — paint thrown from a Home-page button (the fifth verb).
+   Splat — paint thrown from a button (the fifth verb), sitewide.
 
    The owner asked for it in one sentence: "a paintbrush paints the screen
    or splatters on the screen when you click buttons on home page." Both
@@ -473,11 +473,19 @@
    side the button was on that covers the viewport in 420ms, at which point
    the link is followed. Click to navigation is 555ms.
 
+   It is every .btn on every page now, not Home's: the owner asked for the
+   paint on the whole site, so there is no per-page attribute left to look
+   for. The Contact form's "Send the brief" is the one non-link that gets
+   it — the browser's own validation runs first, so an invalid brief never
+   reaches here and gets no paint, and a valid one is caught in the capture
+   phase, painted, and then handed straight back to the form's own handler
+   for the POST or the visitor's mail app, exactly as before.
+
    Nothing here is load-bearing, and it is deliberately narrow:
 
      html.motion only      reduced motion, or no script, and a button is a
-                           plain link that navigates the way links do.
-     [data-splat] only     build.py marks Home and nothing else.
+                           plain link that navigates the way links do, and
+                           the form is a plain form.
      plain left clicks     middle-click, ctrl/cmd/shift/alt-click, target
                            _blank, downloads, mailto:, tel: and anything
                            off-origin are never touched.
@@ -493,7 +501,7 @@
 (function () {
   const root = document.documentElement;
   if (!root.classList.contains('motion')) return;
-  if (!document.body || !document.body.hasAttribute('data-splat')) return;
+  if (!document.body) return;
   let reduced = false;
   try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
   if (reduced) return;
@@ -569,6 +577,8 @@
 
   let layer = null, shot = 0, killer = 0, running = false;
   let brush = null, brushW = 0, brushH = 0;
+  let pt = null;            // where the last plain click on a submit button fell
+  let replay = false;       // the form's own submit, let back through
 
   const deck = () => {
     if (!layer) {
@@ -688,9 +698,18 @@
   }
 
   /* --- who gets one -------------------------------------------------- */
+  const sideOf = (x, W) => (x < W / 2 ? 'left' : 'right');
+
   document.addEventListener('click', (e) => {
-    if (e.defaultPrevented || e.button) return;
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const plain = !e.button && !e.defaultPrevented &&
+                  !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+    // Where a click on a submit button landed. The submit event that follows
+    // carries no coordinates of its own, and the splat needs the point.
+    const sb = e.target && e.target.closest && e.target.closest('button[type="submit"]');
+    pt = (plain && sb && e.detail && (e.clientX || e.clientY))
+      ? { x: e.clientX, y: e.clientY } : null;
+    if (!plain) return;
+
     const a = e.target && e.target.closest && e.target.closest('a.btn');
     if (!a) return;
     const t = (a.getAttribute('target') || '').trim();
@@ -726,11 +745,47 @@
     e.preventDefault();
     running = true;
     const W = innerWidth, H = innerHeight;
-    const st = paint(x < W / 2 ? 'left' : 'right', W, H);
+    const st = paint(sideOf(x, W), W, H);
     setTimeout(() => st.classList.add('go'), POP);
     setTimeout(() => location.assign(a.href), GO);
     killer = setTimeout(clear, CLEAR);
   });
+
+  /* --- the brief ------------------------------------------------------ */
+  /* The form's own validation runs before any of this: an invalid brief
+     never fires submit, so it gets no paint and the browser shows its own
+     message. A valid one is caught here in the capture phase, ahead of the
+     form's handler further up this file, and handed back to it untouched
+     once the paint has run — the POST, or the visitor's mail app, exactly
+     as before. */
+  document.addEventListener('submit', (e) => {
+    const f = e.target;
+    if (replay || running) return;
+    if (!f || !f.matches || !f.matches('#contact-form')) return;
+
+    const W = innerWidth, H = innerHeight;
+    let x, y;
+    if (pt) { x = pt.x; y = pt.y; } else {
+      const b = f.querySelector('[type="submit"]') || f;
+      const r = b.getBoundingClientRect();
+      x = r.left + r.width / 2;
+      y = r.top + r.height / 2;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();                 // the form's own listener, in a moment
+    clear();
+    splat(x, y, shot % SEEDS.length);
+    running = true;
+    const st = paint(sideOf(x, W), W, H);
+    setTimeout(() => st.classList.add('go'), POP);
+    setTimeout(() => {
+      replay = true;
+      try { f.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); }
+      finally { replay = false; }
+    }, GO);
+    killer = setTimeout(clear, CLEAR);
+  }, true);
 
   // A page restored from the bfcache must never come back painted.
   addEventListener('pageshow', clear);
