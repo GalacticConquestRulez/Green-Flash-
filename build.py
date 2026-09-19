@@ -101,24 +101,35 @@ def save_number(cls='btn btn-mint'):
     return (f'<a class="{cls}" href="{u(VCF_PATH)}" download="ephraim.vcf" '
             f'type="text/vcard">{ICONS["person"]}Save my number</a>')
 
-# The two colours the HTML itself has to name (a <meta> tag and the inline
-# favicon cannot read a CSS custom property). They mirror --ink and --mint in
-# site/css/site.css, and docs/contrast.py fails the build if they ever drift.
+# The three colours the HTML itself has to name (a <meta> tag and the inline
+# favicon cannot read a CSS custom property). They mirror --ink, --mint and
+# --paper in site/css/site.css, and docs/contrast.py fails the build if they
+# ever drift.
 INK = '#0A0A0B'
 MINT = '#71EEB8'
+PAPER = '#FFFFFF'
 
-# One accent on one dark canvas: if that pair stops being readable the design
-# has stopped working, so the build refuses to finish. docs/contrast.py reads
-# the tokens straight out of the stylesheet and checks the two constants above
-# still match the tokens they mirror.
+# White ground, ink type, one loud colour and one accent: if those pairs stop
+# being readable the design has stopped working, so the build refuses to
+# finish. docs/contrast.py reads the tokens straight out of the stylesheet and
+# checks the three constants above still match the tokens they mirror.
 sys.path.insert(0, os.path.join(SRC, 'docs'))
 import contrast
-contrast.check(os.path.join(OUT, 'css', 'site.css'), {'--ink': INK, '--mint': MINT})
+contrast.check(os.path.join(OUT, 'css', 'site.css'),
+               {'--ink': INK, '--mint': MINT, '--paper': PAPER})
 
-# One request for both families. Archivo ships the width axis the dimension
-# figures need (wdth 62..125); Inter carries the body and its tabular numerals.
+# One request for four of the five faces (CLAUDE.md, round three: Colossal's
+# lesson is "multiple typefaces — four or five", used deliberately). Anton is
+# the headline; Archivo ships the width axis the dimension figures and the
+# wordmark need (wdth 62..125); Fraunces is the reading face; Inter carries
+# the interface and its tabular numerals. The fifth is the marker, and it is
+# not here: Permanent Marker is already in the repo, so it is served from
+# site/fonts/ and declared in site.css rather than asked of a CDN.
 FONTS = ('https://fonts.googleapis.com/css2?'
-         'family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;600;700&display=swap')
+         'family=Anton'
+         '&family=Archivo:wdth,wght@62..125,400..900'
+         '&family=Fraunces:opsz,wght@9..144,400..600'
+         '&family=Inter:wght@400;600;700&display=swap')
 
 # A drawn mark rather than a file: a mint frame on ink, the wall the work goes
 # on. Inline so there is no favicon request to 404 before the images land.
@@ -752,7 +763,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None)
 <meta property="og:type" content="website"><meta property="og:site_name" content="{SITE_NAME}"><meta property="og:title" content="{html.escape(title)}"><meta property="og:description" content="{html.escape(desc)}"><meta property="og:url" content="{canonical}">
 {ogimg}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="{INK}">
+<meta name="theme-color" content="{PAPER}">
 <link rel="icon" href="{FAVICON}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="{FONTS}" rel="stylesheet">

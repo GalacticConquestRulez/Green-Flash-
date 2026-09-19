@@ -1,17 +1,31 @@
 #!/usr/bin/env python3
 """Contrast gate for the Open Air Gallery palette.
 
-The whole design rests on one accent on one dark canvas, so the ratio between
-them is not a preference — it is the thing that keeps the site readable. This
-reads the tokens out of site/css/site.css and refuses the build if mint on ink
-drops below 13:1 (it is 13.8:1 today, comfortably AAA), or if a colour build.py
-has to name in HTML has drifted from the token it mirrors.
+Round three flipped the canvas: white ground, ink type, the mint as the loud
+colour a band is painted in and the coral as the one accent. That gives three
+kinds of pair to hold, and none of them is a preference — they are what keeps
+the site readable:
+
+  * ink and its two greys on the white page, and on the two panels off it;
+  * type on one of the three black bands that are left (the marquee, the
+    scrim over a photograph, the footer);
+  * type on paint — ink on mint, ink on coral.
+
+Two colours carry no type at all and so claim no pair: the mint is 1.5:1 on
+white and the coral is 3.28:1, which is large-text contrast. The coral is
+allowed exactly that much — the marker asides and a shouted word in a
+headline, 24px and up, never body copy — and the floor below says so.
+
+This reads the tokens out of site/css/site.css and refuses the build if any
+pair drops below its floor, or if a colour build.py has to name in HTML has
+drifted from the token it mirrors.
 
 Run on its own to print the table:  python3 docs/contrast.py
 """
 import os, re, sys
 
-MIN_MINT_ON_INK = 13.0
+MIN_INK_ON_MINT = 13.0
+MIN_LARGE = 3.0
 
 
 def _srgb_to_linear(c):
@@ -45,12 +59,19 @@ def tokens(css_path):
 
 # The pairs that have to hold, as (foreground token, background token, floor).
 PAIRS = [
-    ('--mint', '--ink', MIN_MINT_ON_INK),
-    ('--ink', '--mint', MIN_MINT_ON_INK),   # the primary button, inverted
+    ('--ink', '--paper', 7.0),              # the page: type on the ground
+    ('--muted', '--paper', 7.0),            # the reading copy under a heading
+    ('--dim', '--paper', 4.5),              # labels, captions, small print
+    ('--dim', '--paper-2', 4.5),            # the same, on the alt band
+    ('--muted', '--paper-2', 7.0),
+    ('--ink', '--mint', MIN_INK_ON_MINT),   # the mint band, and its button
+    ('--ink', '--pop', 4.5),                # the coral button
+    ('--pop', '--paper', MIN_LARGE),        # the marker asides — large only
+    ('--on-ink', '--ink', 7.0),             # the footer and the marquee
+    ('--on-ink-mute', '--ink', 7.0),
+    ('--mint', '--ink', MIN_INK_ON_MINT),   # the accent where it is black
     ('--mint-deep', '--ink', 7.0),
-    ('--muted', '--ink', 7.0),
-    ('--paper', '--ink', 7.0),
-    ('--ink', '--wall', 7.0),               # the one scrubbed-clean panel
+    ('--ink', '--wall', 7.0),               # the scrubbed-clean panel
 ]
 
 

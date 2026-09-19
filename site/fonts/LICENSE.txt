@@ -1,0 +1,17 @@
+Fonts served from this folder
+=============================
+
+PermanentMarker.woff2 — Permanent Marker
+    Copyright (c) 2010 Font Diner, Inc.
+    Licensed under the Apache License, Version 2.0
+    https://www.apache.org/licenses/LICENSE-2.0
+
+    This is the same file tools/fonts/ keeps as a build input for the Wash
+    wall's traced tags; it is copied here because the site now sets type in
+    it (site.css @font-face, the .marker face). The Apache licence permits
+    redistribution with attribution and a copy of the licence notice, which
+    is what this file is.
+
+The other four faces on this site — Anton, Archivo, Fraunces and Inter — are
+not served from here: they come down from Google Fonts in one request
+(build.py FONTS).
