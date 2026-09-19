@@ -65,25 +65,37 @@ Ephraim before any production code.
 - **The graffiti-removal signature is an animation of a graffitied brick wall being cleaned to
   sparkling new** — "Wash" in the motion vocabulary (Roll · Scale · Cure · Wash). Drawn wall by
   default; his real before/after photos if he sends them.
-- **Splat — the fifth verb (owner, 2026-09-19), and Home only.** He asked for it in one
+- **Splat — the fifth verb (owner, 2026-09-19), and sitewide.** He asked for it in one
   sentence: *"Add a painting animation where a paintbrush paints the screen or splatters on the
   screen when you click buttons on home page."* So the vocabulary is now **Roll · Scale · Cure ·
   Wash · Splat**, and Splat is the only one a visitor sets off on purpose. Clicking any
-  button-styled link on Home — every `.btn`, including the nav's mint "Book a free consult" pill
-  — throws a mint SVG blob (turbulence-displaced, three seeds and three turns in rotation, drips
-  running out over 300ms) from the exact click point; 120ms later a roller pass sweeps in from
-  the side the button is on, covers the viewport in 420ms behind a bristled leading edge with
-  lap marks down it, and the link is followed at 555ms. It is **Home only because that is what
-  he asked for**: `build.py` writes `data-splat` on Home's `<body>` and `site.js` binds nothing
-  on a page without it — do not spread it to the other five pages without asking. It only ever
-  touches a plain left click, with no modifier key, on a same-origin http(s) link: middle-click,
-  ctrl/cmd/shift/alt-click, `target=_blank`, downloads, `mailto:` and `tel:` all go through as
-  ordinary links, a same-page `#` anchor gets the splat and no stroke, and a second click during
-  a pass does nothing. It lives entirely under `html.motion`, so reduced motion and a page whose
-  script never arrived get plain links — the contract in PLAN.md §4 is unchanged. The overlay is
-  fixed, `pointer-events:none`, `aria-hidden`, and is torn down on `pageshow` and 1.5s after a
-  click that went nowhere, so a bfcache back never lands on a painted page. Mint only; no sound,
-  no counter, no label.
+  button-styled link — every `.btn`, on all six page types, including the nav's mint "Book a
+  free consult" pill — throws a mint SVG blob (turbulence-displaced, three seeds and three turns
+  in rotation, drips running out over 300ms) from the exact click point; 120ms later a roller
+  pass sweeps in from the side the button is on, covers the viewport in 420ms behind a bristled
+  leading edge with lap marks down it, and the link is followed at 555ms. The Contact form's
+  "Send the brief" is the one non-link that gets it: the browser's own validation runs first, so
+  an invalid brief gets no paint and its message instead, and a valid one splats, sweeps, and
+  *then* does what it always did — the FORM_ENDPOINT POST, or the visitor's mail app.
+  Then, having seen it, he asked for the second half: *"When it switches pages it should have
+  that paint animation for transition, add it for any page transition back to home page or from
+  menu."* So **the roller alone is the page transition**, and there are exactly two classes of
+  link: **`.btn` is splat + stroke**, and **the nav's links, the wordmark `.brand` and the
+  footer's own internal links are stroke only** — nothing was hit, so nothing splatters. That
+  stroke enters from the side of the link it came from: the wordmark from the left, the desktop
+  nav from the right, and a link tapped in the open phone menu from the top, which is the same
+  brush built in a box laid on its side and stood up by one rotate. Click to navigation is 460ms
+  there, against the button's 555ms; both read as a hit rather than a wait. **There is no
+  per-page gate any more** — `data-splat` and `layout(splat=)` are gone, and `site.js` binds
+  everywhere under `html.motion`. It only ever touches a plain left click, with no modifier key,
+  on a same-origin http(s) link: middle-click, ctrl/cmd/shift/alt-click, `target=_blank`,
+  downloads, `mailto:` and `tel:` all go through as ordinary links, a same-page `#` anchor gets
+  the splat and no stroke, the link to the page you are already on paints nothing at all, and a
+  second click during a pass does nothing. It lives entirely under `html.motion`, so reduced
+  motion and a page whose script never arrived get plain links and a plain form — the contract
+  in PLAN.md §4 is unchanged. The overlay is fixed, `pointer-events:none`, `aria-hidden`, and is
+  torn down on `pageshow` and 1.5s after a click that went nowhere, so a bfcache back never
+  lands on a painted page. Mint only; no sound, no counter, no label.
 - **The graffiti has to read as a real tagged wall — never cartoon bubble letters.** The first
   drawn version was three bubble-letter pieces in magenta, blue and amber, evenly spaced, all
   plainly painted the same afternoon by the same hand; the owner's verdict was *"that graffiti

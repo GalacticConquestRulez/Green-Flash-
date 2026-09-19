@@ -462,41 +462,56 @@
 })();
 
 /* =====================================================================
-   Splat — paint thrown from a button (the fifth verb), sitewide.
+   Splat, and the brush as the page transition (the fifth verb).
 
-   The owner asked for it in one sentence: "a paintbrush paints the screen
-   or splatters on the screen when you click buttons on home page." Both
-   halves are here. First the splatter: a mint burst out of the exact point
-   the pointer hit, drawn as inline SVG under a turbulence displacement so
-   no two edges are the same shape, in one of three variants so two clicks
-   never match. Then, 120ms later, the brush — a roller pass in from the
-   side the button was on that covers the viewport in 420ms, at which point
-   the link is followed. Click to navigation is 555ms.
+   The owner asked for the first half in one sentence: "a paintbrush paints
+   the screen or splatters on the screen when you click buttons on home
+   page." Then, seeing it, for the second: "When it switches pages it should
+   have that paint animation for transition, add it for any page transition
+   back to home page or from menu." So there are two classes of link, and
+   this block is the whole of both:
 
-   It is every .btn on every page now, not Home's: the owner asked for the
-   paint on the whole site, so there is no per-page attribute left to look
-   for. The Contact form's "Send the brief" is the one non-link that gets
-   it — the browser's own validation runs first, so an invalid brief never
-   reaches here and gets no paint, and a valid one is caught in the capture
-   phase, painted, and then handed straight back to the form's own handler
-   for the POST or the visitor's mail app, exactly as before.
+     a.btn                 the hit. A mint burst out of the exact point the
+     (every page, and      pointer landed on, drawn as inline SVG under a
+      the Send the brief   turbulence displacement so no two edges are the
+      submit button)       same shape, in one of three variants so two
+                           clicks never match; 120ms later the roller comes
+                           in from the side the button is on and covers the
+                           viewport in 420ms. Click to navigation: 555ms.
 
-   Nothing here is load-bearing, and it is deliberately narrow:
+     .brand, .nav-links a  the page transition. The roller alone — nothing
+     footer a (internal)   was hit, so nothing splatters — entering from the
+                           side the link is on: the wordmark from the left,
+                           the desktop nav from the right, and the phone
+                           menu, which drops from the top of the screen,
+                           from above. Click to navigation: 460ms.
 
-     html.motion only      reduced motion, or no script, and a button is a
-                           plain link that navigates the way links do, and
-                           the form is a plain form.
+   Nothing here is load-bearing, and the interception is deliberately narrow:
+
+     html.motion only      reduced motion, or no script, and every one of
+                           these is a plain link that navigates the way links
+                           do, and the form is a plain form.
      plain left clicks     middle-click, ctrl/cmd/shift/alt-click, target
                            _blank, downloads, mailto:, tel: and anything
                            off-origin are never touched.
+     not where you are     the link to the page you are already on paints
+                           nothing: there is no transition to make.
 
-   A same-page #anchor gets the splat and nothing else: there is nothing to
-   navigate to, so there is nothing to paint over. A second click while the
-   pass is running does nothing at all.
+   Paths are compared after resolving against the document, so the build's
+   PREFIX (/p/<slug> on the preview) is on both sides or neither.
 
-   The overlay is fixed, pointer-events:none, aria-hidden and built once;
-   it is emptied on pageshow (a bfcache back must not land on a painted
-   page) and 1.5s after a click that went nowhere.
+   A same-page #anchor on a button gets the splat and nothing else: there is
+   nothing to navigate to, so there is nothing to paint over. A second click
+   while the pass is running does nothing at all.
+
+   The Contact form is the one non-link: the browser's own validation runs
+   first, so an invalid brief never reaches here and gets no paint, and a
+   valid one is caught in the capture phase, painted, and then let through to
+   the POST or the mail app exactly as before.
+
+   The overlay is fixed, pointer-events:none, aria-hidden and built once; it
+   is emptied on pageshow (a bfcache back must not land on a painted page)
+   and 1.5s after a click that went nowhere.
    ===================================================================== */
 (function () {
   const root = document.documentElement;
@@ -510,6 +525,7 @@
   const POP = 120;                       // the blob lands, then the brush comes
   const SWEEP = 420;                     // and covers the screen
   const GO = POP + SWEEP + 15;           // 555ms, click to location.assign
+  const GO_S = SWEEP + 40;               // 460ms when there is no blob to wait for
   const CLEAR = 1500;                    // never leave the page painted over
   const SEEDS = [11, 5, 23];             // three turbulence seeds ...
   const TURNS = [0, 40, -70];            // ... and three turns to go with them
@@ -576,7 +592,7 @@
   };
 
   let layer = null, shot = 0, killer = 0, running = false;
-  let brush = null, brushW = 0, brushH = 0;
+  let brush = null, brushW = 0, brushH = 0, brushV = false;
   let pt = null;            // where the last plain click on a submit button fell
   let replay = false;       // the form's own submit, let back through
 
@@ -633,9 +649,17 @@
 
   /* --- the brush ------------------------------------------------------ */
   /* Built once and kept, because the fingers are ~150 rects and nothing
-     about them depends on the click: only the side does, and that is one
-     attribute on the wrapper. Rebuilt when the viewport changes size. */
-  function build(W, H) {
+     about them depends on the click: only the direction does, and that is
+     one attribute on the wrapper. Rebuilt when the viewport changes size,
+     or when the pass turns from horizontal to vertical.
+
+     The vertical pass is the same brush, built in a box laid on its side —
+     it travels `run` and is `across` wide either way — and stood up by the
+     one transform on .sp-mirror. So there is a single stroke to maintain,
+     and the animation stays the one translateX in the group's own frame. */
+  function build(W, H, vert) {
+    const run = vert ? H : W;            // how far the pass travels
+    const across = vert ? W : H;         // and how wide it is
     const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, class: 'sp-stroke' });
 
     const defs = el('defs', {});
@@ -654,11 +678,11 @@
 
     const mirror = el('g', { class: 'sp-mirror' });
     const sweep = el('g', { class: 'sp-sweep' });
-    sweep.setAttribute('style', `--tx0:${-LEAD}px;--tx1:${W + 40}px`);
+    sweep.setAttribute('style', `--tx0:${-LEAD}px;--tx1:${run + 40}px`);
 
     // The body. One rect, no filter: this is the thing that covers the screen.
     sweep.appendChild(el('rect', {
-      class: 'sp-body', x: -(W + TAIL), y: -2, width: W + TAIL, height: H + 4,
+      class: 'sp-body', x: -(run + TAIL), y: -2, width: run + TAIL, height: across + 4,
     }));
 
     // The leading edge: rounded bristle fingers, each overlapping the one
@@ -666,7 +690,7 @@
     const edge = el('g', { class: 'sp-edge', filter: 'url(#oaBristle)' });
     const r = rng(0x5AA5);
     let y = -16, i = 0;
-    while (y < H + 8) {
+    while (y < across + 8) {
       const h = 10 + r() * 20, len = 20 + r() * 120;
       edge.appendChild(el('rect', {
         class: 'sp-t' + (i % 3), x: 0, y: y.toFixed(1),
@@ -676,7 +700,7 @@
       i++;
     }
     FLUNG.forEach(([n, x, f, a]) => edge.appendChild(
-      el(n, Object.assign({ class: 'sp-t' + (n === 'circle' ? 2 : 1), cx: x, cy: Math.round(H * f) }, a))));
+      el(n, Object.assign({ class: 'sp-t' + (n === 'circle' ? 2 : 1), cx: x, cy: Math.round(across * f) }, a))));
     sweep.appendChild(edge);
 
     mirror.appendChild(sweep);
@@ -685,20 +709,49 @@
   }
 
   function paint(side, W, H) {
-    if (!brush || brushW !== W || brushH !== H) {
-      brush = build(W, H); brushW = W; brushH = H;
+    const vert = side === 'top';
+    if (!brush || brushW !== W || brushH !== H || brushV !== vert) {
+      brush = build(W, H, vert); brushW = W; brushH = H; brushV = vert;
     }
     brush.classList.remove('go');
     const mirror = brush.querySelector('.sp-mirror');
+    // Down the screen: the side-on brush turned a quarter and slid over, so
+    // its own +x runs down the page and its width covers the page's.
+    if (vert) mirror.setAttribute('transform', `translate(${W},0) rotate(90)`);
     // The right-hand pass is the same brush, flipped about the viewport.
-    if (side === 'right') mirror.setAttribute('transform', `translate(${W},0) scale(-1,1)`);
+    else if (side === 'right') mirror.setAttribute('transform', `translate(${W},0) scale(-1,1)`);
     else mirror.removeAttribute('transform');
     deck().appendChild(brush);
     return brush;
   }
 
   /* --- who gets one -------------------------------------------------- */
+  /* The path of a URL as this site compares them: resolved against the
+     document, so PREFIX is on both sides, and with the extension and the
+     trailing slash off so /work, /work/ and /work.html are one page. */
+  const pathOf = (href) => {
+    let p;
+    try { p = new URL(href, location.href).pathname; } catch (_) { return null; }
+    p = p.replace(/index\.html$/, '').replace(/\.html$/, '').replace(/\/$/, '');
+    return p || '/';
+  };
+
   const sideOf = (x, W) => (x < W / 2 ? 'left' : 'right');
+
+  /* Which class of link this is, and which way the stroke comes in from.
+     The phone menu is a panel dropped from the top of the screen, and the
+     hamburger is display:none above the breakpoint — so a visible toggle is
+     how we know the link was tapped in the panel rather than in the bar. */
+  function role(a, x, W) {
+    if (a.classList.contains('btn')) return ['btn', sideOf(x, W)];
+    if (a.classList.contains('brand')) return ['stroke', 'left'];
+    if (a.closest('.nav-links')) {
+      const t = document.querySelector('.nav-toggle');
+      return ['stroke', t && t.offsetParent !== null ? 'top' : 'right'];
+    }
+    if (a.closest('footer')) return ['stroke', sideOf(x, W)];
+    return [null, null];
+  }
 
   document.addEventListener('click', (e) => {
     const plain = !e.button && !e.defaultPrevented &&
@@ -710,7 +763,7 @@
       ? { x: e.clientX, y: e.clientY } : null;
     if (!plain) return;
 
-    const a = e.target && e.target.closest && e.target.closest('a.btn');
+    const a = e.target && e.target.closest && e.target.closest('a[href]');
     if (!a) return;
     const t = (a.getAttribute('target') || '').trim();
     if (t && t !== '_self') return;
@@ -723,6 +776,7 @@
 
     // A keyboard Enter on a focused link arrives as a click with no pointer
     // behind it (detail 0, coordinates 0): throw it from the link instead.
+    const W = innerWidth, H = innerHeight;
     let x = e.clientX, y = e.clientY;
     if (!e.detail || (!x && !y)) {
       const r = a.getBoundingClientRect();
@@ -730,10 +784,20 @@
       y = r.top + r.height / 2;
     }
 
+    const [kind, side] = role(a, x, W);
+    if (!kind) return;
+
+    // The page you are already on. The nav marks it, and there is no
+    // transition to paint between a page and itself.
+    if (kind === 'stroke' && (pathOf(url.href) === pathOf(location.href) ||
+        a.classList.contains('active') || a.hasAttribute('aria-current'))) return;
+
     // A pass already running owns the page: a second click does nothing.
     if (running) { e.preventDefault(); return; }
     clear();
-    splat(x, y, shot % SEEDS.length);
+
+    const hit = kind === 'btn';
+    if (hit) splat(x, y, shot % SEEDS.length);
 
     // A jump to an anchor on this page paints nothing over it: there is no
     // page coming to hide behind the stroke. The splat, and the link works.
@@ -744,10 +808,12 @@
 
     e.preventDefault();
     running = true;
-    const W = innerWidth, H = innerHeight;
-    const st = paint(sideOf(x, W), W, H);
-    setTimeout(() => st.classList.add('go'), POP);
-    setTimeout(() => location.assign(a.href), GO);
+    const st = paint(side, W, H);
+    // The blob goes first when there is one; otherwise the roller starts on
+    // the next frame, which is the only rAF in this block.
+    if (hit) setTimeout(() => st.classList.add('go'), POP);
+    else requestAnimationFrame(() => st.classList.add('go'));
+    setTimeout(() => location.assign(a.href), hit ? GO : GO_S);
     killer = setTimeout(clear, CLEAR);
   });
 

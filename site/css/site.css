@@ -290,13 +290,15 @@ html.motion .dims.in::before{
 }
 
 /* =====================================================================
-   SPLAT — paint thrown from a Home-page button
+   SPLAT — paint thrown from a button, and the brush between pages
 
    The fifth verb, and the only one a visitor sets off on purpose: a click on
-   a button-styled link on Home bursts a mint splat out of the exact point
-   the pointer hit. Nothing here is load-bearing. The overlay does not exist
-   in the server HTML; site.js builds it, only under html.motion, only on the
-   page build.py marked with data-splat, and only for a plain left click on a
+   a button-styled link, anywhere on the site, bursts a mint splat out of the
+   exact point the pointer hit and then a roller pass covers the screen. The
+   same roller, with no splat in front of it, is the page transition for the
+   nav, the wordmark and the footer's own links. Nothing here is
+   load-bearing. The overlay does not exist in the server HTML; site.js
+   builds it, only under html.motion, and only for a plain left click on a
    same-origin link — every other click is an ordinary click on an ordinary
    link, and with no script, or with reduced motion asked for, so is every
    click. The layer is pointer-events:none and aria-hidden, so nothing here
@@ -334,7 +336,10 @@ html.motion .sp-drip{
 @keyframes oaSplatDrip{to{stroke-dashoffset:0}}
 
 /* The stroke. A roller pass across the whole viewport, from the side the
-   button was on, and the only thing that moves is one translateX — the body
+   link was on — and, from the phone menu, down it: site.js builds that one
+   in a box laid on its side and stands it up with a rotate on .sp-mirror, so
+   the body, the bristles and the animation below are the same for both.
+   The only thing that moves is one translateX in the group's frame — the body
    is a plain rect with a vertical lap-mark gradient and carries no filter at
    all, because a filter on a full-viewport rect is a full-viewport repaint
    every frame. The displacement is spent where it shows: on the bristle
