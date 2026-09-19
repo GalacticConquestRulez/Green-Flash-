@@ -136,6 +136,9 @@ PROJECTS = [
   dict(slug='malcolm-x-rochester', title='Malcolm X', client=None,
        city='Rochester', state='NY', dim_w=53, dim_h=50, year=None,
        category='civic', hero='malcolm-x-rochester-hero', gallery=[],
+       # The photograph is portrait and the mural fills its top half; a centred
+       # crop shows the lift and the windows and cuts the faces (owner, 2026-09-19).
+       focus='50% 0%',
        story='Malcolm X, in Rochester, New York — 53 feet wide by 50 feet tall, the '
              'companion to the John Lewis wall and the same size to the foot.',
        credit=None, featured=True),

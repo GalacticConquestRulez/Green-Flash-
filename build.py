@@ -237,12 +237,25 @@ def dims(w, h, size=''):
             f'<span class="f">\u2032</span></div>')
 
 
+def focus_attr(p):
+    """object-position for a photograph whose subject is not in the middle.
+
+    Every crop on the site is object-fit: cover, which takes the centre of the
+    frame by default. A portrait-shaped photo of a wall with the mural high up
+    (Malcolm X) then shows the street and cuts the mural. `focus` on the
+    project row says where the mural is; it rides the <img> as an inline
+    style so the card, the large card and the page hero all agree.
+    """
+    f = p.get('focus')
+    return f'style="object-position:{f}"' if f else ''
+
+
 def pcard(p, cls='', sizes=CARD_SIZES):
     """A project card. The card is the link; the figures are the headline."""
     place = f"{p['city']}, {p['state']}"
     alt = f"{p['title']} mural by Open Air Gallery, {place}"
     return f'''<a class="pcard rv {cls}" href="{u('/work/' + p['slug'])}">
-  <div class="pcard-img">{pic(p['hero'], alt, sizes)}</div>
+  <div class="pcard-img">{pic(p['hero'], alt, sizes, extra=focus_attr(p))}</div>
   <div class="pcard-body">{dims(p['dim_w'], p['dim_h'], 'sm')}<h3>{p['title']}</h3><span class="place">{place}</span></div>
 </a>'''
 
@@ -778,7 +791,7 @@ def scale_hero(p):
     alt = (f"{p['title']} mural by Open Air Gallery in {p['city']}, {p['state']} — "
            f"{p['dim_w']} feet wide by {p['dim_h']} feet tall")
     return f'''<section class="phero"><div class="scale" data-scale data-ft="{p['dim_w']}" style="--ft:{p['dim_w']};--fx:.12">
-  <div class="scale-media">{pic(p['hero'], alt, '100vw', extra='fetchpriority="high"', lazy=False)}</div>
+  <div class="scale-media">{pic(p['hero'], alt, '100vw', extra=('fetchpriority="high" ' + focus_attr(p)).strip(), lazy=False)}</div>
   <div class="scale-base"></div>
   <button class="fig" type="button" data-fig aria-label="Drag the figure for scale"><span class="fig-cap">6 ft</span>{FIGURE_SVG}</button>
   <span class="scale-hint" aria-hidden="true">Drag me</span>
