@@ -1538,3 +1538,496 @@
   addEventListener('pageshow', clear);
 })();
 
+/* =====================================================================
+   Wall — paint the wall (the ninth verb).
+
+   Concept 3 of the paint mechanics: "The About hero is dark and empty
+   behind 'Ephraim and the crew' — a blank wall." So it becomes one. Moving
+   the pointer across that hero lays down mint brush strokes; they dry and
+   fade over about six seconds; the wall is never full, nothing is counted,
+   and there is nothing to finish. The 404 is the same wall with the copy to
+   match — "Nothing on this wall yet. Paint something, or head back."
+
+   What a stroke is. A bristled stamp every 6px along the pointer's path,
+   the hairs generated once from the kit's seeded random the way Splat's
+   brush edge and art.py's brush_rule_svg() are, laid across the direction
+   of travel and dragged a little along it. Opacity is speed: a slow pointer
+   is a wet, opaque, fully loaded brush, and a fast one is dry-brush —
+   the lighter hairs lift off the surface and the stroke goes broken.
+   Pause with the brush on the wall and the paint runs: a thin mint drip,
+   20 to 60px, out of the bottom of the last stamp.
+
+   Drying. Every 110ms the whole canvas is multiplied down by 5.8% with one
+   destination-out fill — one rectangle, not a redraw of a stroke stack,
+   which is the cheaper of the two the spec offered and the only one whose
+   cost does not grow with how long the visitor has been painting. That is
+   ~6s from full to nothing; 6.8s after the last stamp the canvas is cleared
+   outright and the loop stops itself, because a destination-out fade in 8-bit
+   alpha stalls a few counts short of zero and a wall that is 1% painted is
+   not a blank wall.
+
+   The text is never painted over: the canvas sits at z-index -1 inside the
+   hero's own stacking context, under the words and over nothing, and it is
+   pointer-events:none — the listeners are on the hero itself, so a link in
+   the hero is still a link.
+
+   Phone. A finger drag paints, and the page still scrolls. The first 12px
+   of a touch decide which: mostly vertical and it is a scroll and this
+   never hears from it again; otherwise it is a stroke, the hero takes
+   touch-action:none for as long as the stroke lasts, and the move is
+   preventDefault'd so a scroll already being considered is called off. A
+   two-finger tap wipes the wall.
+
+   Sound: the hiss of a brush on brick while a stroke is being laid, out of
+   the kit's sound module — the same AudioContext, the same muted default
+   and the same persisted key as the pressure washer on /graffiti-removal.
+   The toggle is built here and sits in the corner of the hero.
+
+   No JS, reduced motion: there is no canvas and no toggle. Everything in
+   here is built by this block under html.motion, and the server HTML is one
+   attribute — data-wall on the hero — so the two renders are the hero
+   exactly as it was before any of this.
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  var root = document.documentElement;
+  if (!root.classList.contains('motion')) return;
+  var reduced = false;
+  try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  if (reduced) return;
+  var kit = window.oagKit;
+  if (!kit) return;
+  var heroes = document.querySelectorAll('.page-hero[data-wall]');
+  if (!heroes.length) return;
+
+  /* The paint is the site's mint, read off :root rather than written here:
+     a hex outside that block is a bug in this repo, in CSS and in the script
+     that draws with it. No mint, no painting. */
+  var cs = getComputedStyle(root);
+  var MINT = (cs.getPropertyValue('--mint') || '').trim();
+  if (!MINT) return;
+  var MID = (cs.getPropertyValue('--mint-mid') || '').trim() || MINT;
+
+  var STEP = 6;                 // px of travel between stamps
+  var DPR_CAP = 1.5;            // a retina phone does not get 3x of this
+  var FADE_MS = 110, FADE_K = 0.058;   // ~6s from wet to gone
+  var STOP_MS = 6800;           // then the canvas is cleared and the loop ends
+  var PAUSE_MS = 170;           // brush held still: the paint starts to run
+  var DRIP_MS = 720;            // how long a run takes to reach its length
+  var DRIPS_MAX = 6;
+  var HISS_MS = 140;            // silence this long and the stroke is over
+  var DECIDE = 12;              // px of a touch before it is scroll or stroke
+
+  var fine = false, coarse = false;
+  try {
+    fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
+    coarse = matchMedia('(pointer:coarse)').matches;
+  } catch (e) {}
+
+  /* The bristles, once. Eight to twelve hairs across the ferrule, each with
+     its own width, its own load and its own drag, from the kit's seeded
+     random — so this is the same brush on every visit and on every hero.
+     The numbers are brush_rule_svg()'s hair geometry brought down to the
+     size a stamp is drawn at: widths 0.8-1.5 there, the same here, and the
+     mint tones alternating so the stroke is not one flat green. */
+  var rand = kit.rng(0x1D07);
+  var HAIRS = (function () {
+    var n = 8 + Math.floor(rand() * 5), out = [], i;
+    for (i = 0; i < n; i++) {
+      out.push({
+        o: (i + 0.5) / n * 2 - 1 + (rand() - 0.5) * 0.14,   // across the brush
+        w: 1.4 + rand() * 1.9,                              // how thick a hair
+        a: 0.42 + rand() * 0.58,                            // how loaded it is
+        l: 3.4 + rand() * 4.0                               // how far it drags
+      });
+    }
+    return out;
+  })();
+
+  var SND_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>' +
+    '<path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  var SND_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M16 9.5 21 15"/><path d="M21 9.5 16 15"/></svg>';
+
+  var Sound = kit.sound;
+  var clamp = function (v, a, b) { return v < a ? a : (v > b ? b : v); };
+
+  /* ------------------------------------------------------------ one wall */
+  function Wall(hero) {
+    this.hero = hero;
+    this.cv = null; this.g = null;
+    this.w = 0; this.h = 0; this.dpr = 1;
+    this.rect = null;
+    this.queue = [];            // client-space points waiting for a frame
+    this.last = null;           // the last point actually stamped from
+    this.acc = 0;               // travel carried over between points
+    this.drips = [];
+    this.raf = 0; this.live = false;
+    this.paintedAt = 0; this.fadedAt = 0;
+    this.dripped = true;        // no run until the brush has moved
+    this.hissAt = 0; this.hissing = false;
+    this.bound = false; this.built = false;
+    this.touch = null;          // 'deciding' | 'paint' | 'scroll' | null
+    this.t0 = null;
+    this.width = coarse ? 30 : 26;   // a finger holds a wider brush
+  }
+
+  /* The canvas and the toggle, made the first time the hero comes into view
+     and never before: a page nobody scrolls to costs one attribute. */
+  Wall.prototype.build = function () {
+    if (this.built) return;
+    this.built = true;
+    var self = this;
+
+    var cv = document.createElement('canvas');
+    cv.className = 'paint-wall';
+    cv.setAttribute('aria-hidden', 'true');
+    this.hero.insertBefore(cv, this.hero.firstChild);
+    this.cv = cv;
+    this.g = cv.getContext('2d');
+    this.g.lineCap = 'round';
+
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'paint-snd';
+    b.setAttribute('aria-pressed', String(Sound.get()));
+    b.setAttribute('aria-label', 'Sound');
+    b.innerHTML = '<span class="paint-snd-on" aria-hidden="true">' + SND_ON + '</span>' +
+      '<span class="paint-snd-off" aria-hidden="true">' + SND_OFF + '</span>' +
+      '<span class="paint-snd-t">Sound</span>';
+    b.addEventListener('click', function () {
+      var next = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', String(next));
+      Sound.set(next);                      // this click is the gesture
+    });
+    this.hero.appendChild(b);
+    this.btn = b;
+
+    this.size();
+  };
+
+  Wall.prototype.size = function () {
+    var r = this.hero.getBoundingClientRect();
+    var w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
+    var dpr = Math.min(DPR_CAP, window.devicePixelRatio || 1);
+    if (w === this.w && h === this.h && dpr === this.dpr) return;
+    this.w = w; this.h = h; this.dpr = dpr;
+    this.cv.width = Math.round(w * dpr);
+    this.cv.height = Math.round(h * dpr);
+    this.g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.g.lineCap = 'round';
+    this.drips.length = 0;
+    this.last = null;
+  };
+
+  Wall.prototype.clear = function () {
+    if (!this.g) return;
+    this.g.save();
+    this.g.setTransform(1, 0, 0, 1, 0, 0);
+    this.g.clearRect(0, 0, this.cv.width, this.cv.height);
+    this.g.restore();
+    this.drips.length = 0;
+    this.last = null; this.acc = 0;
+  };
+
+  /* --- the stamp ------------------------------------------------------
+     The hairs laid across the direction of travel and dragged along it.
+     `wet` is the whole of the speed story: it is the opacity of every hair,
+     and below half it is also what decides which hairs are still touching
+     the wall at all — the lightly loaded ones lift off first, which is what
+     makes a fast stroke broken rather than merely faint. */
+  Wall.prototype.stamp = function (x, y, ux, uy, wet) {
+    var g = this.g, px = -uy, py = ux, hw = this.width / 2, i, hr, o, bx, by, l;
+    /* The load itself, under the hairs: a brush with paint still in it lays
+       a body of colour and the bristles are the texture in it, not the whole
+       of it. It comes in at half speed and is gone entirely by the time the
+       brush is running dry, which is the difference between a wet stroke and
+       a scratched one. */
+    if (wet > 0.4) {
+      g.globalAlpha = (wet - 0.4) * 0.58;
+      g.strokeStyle = MINT;
+      g.lineWidth = this.width * 0.74;
+      g.beginPath();
+      g.moveTo(x - ux * 3.2, y - uy * 3.2);
+      g.lineTo(x + ux * 3.2, y + uy * 3.2);
+      g.stroke();
+    }
+    for (i = 0; i < HAIRS.length; i++) {
+      hr = HAIRS[i];
+      if (wet < 0.5 && hr.a < (1 - wet) * 0.72) continue;     // dry brush
+      o = hr.o * hw;
+      bx = x + px * o; by = y + py * o;
+      l = hr.l;
+      g.globalAlpha = clamp(wet * hr.a, 0.02, 1);
+      g.strokeStyle = (i & 1) ? MID : MINT;
+      g.lineWidth = hr.w * (0.7 + wet * 0.8);
+      g.beginPath();
+      g.moveTo(bx - ux * l, by - uy * l);
+      g.lineTo(bx + ux * l, by + uy * l);
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+    this.paintedAt = performance.now();
+  };
+
+  /* Walk the segment between two points, stamping every STEP px and
+     carrying the remainder into the next segment so the spacing is even
+     however the pointer is sampled. */
+  Wall.prototype.segment = function (p) {
+    var a = this.last;
+    if (!a) { this.last = p; this.acc = 0; return; }
+    var dx = p.x - a.x, dy = p.y - a.y;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    if (d < 0.05) return;
+    var dt = Math.max(1, p.t - a.t);
+    var v = d / dt;                                  // px per ms
+    var wet = clamp(1.06 - (v - 0.10) * 0.52, 0.18, 1);
+    var ux = dx / d, uy = dy / d;
+    var k = STEP - this.acc;
+    var painted = false;
+    while (k <= d) {
+      this.stamp(a.x + ux * k, a.y + uy * k, ux, uy, wet);
+      k += STEP;
+      painted = true;
+    }
+    this.acc = painted ? d - (k - STEP) : this.acc + d;
+    this.last = p;
+    if (painted) { this.dripped = false; this.tip = { x: p.x, y: p.y }; }
+    this.speed = v;
+  };
+
+  /* A run of paint out of the bottom of the last stamp. It is drawn a
+     segment at a time as it grows, so the head is the freshest thing on the
+     canvas and the tail has already started to dry. */
+  Wall.prototype.drip = function () {
+    if (!this.tip || this.drips.length >= DRIPS_MAX) return;
+    this.drips.push({
+      x: this.tip.x, y: this.tip.y + this.width * 0.22,
+      len: 20 + rand() * 40,
+      w: 1.1 + rand() * 1.7,
+      wob: (rand() - 0.5) * 2.2,
+      a: 0.5 + rand() * 0.4,
+      head: 0, t0: performance.now()
+    });
+  };
+
+  Wall.prototype.runDrips = function (now) {
+    var g = this.g, i, d, to, p0, p1;
+    for (i = this.drips.length - 1; i >= 0; i--) {
+      d = this.drips[i];
+      to = Math.min(d.len, d.len * (now - d.t0) / DRIP_MS);
+      if (to > d.head) {
+        p0 = d.head; p1 = to;
+        g.globalAlpha = d.a * (1 - p1 / d.len * 0.45);
+        g.strokeStyle = MINT;
+        g.lineWidth = Math.max(0.6, d.w * (1 - p1 / d.len * 0.5));
+        g.beginPath();
+        g.moveTo(d.x + Math.sin(p0 / d.len * 3.1) * d.wob, d.y + p0);
+        g.lineTo(d.x + Math.sin(p1 / d.len * 3.1) * d.wob, d.y + p1);
+        g.stroke();
+        d.head = to;
+        this.paintedAt = now;
+      }
+      if (d.head >= d.len) {
+        // the bead that gathers at the bottom of a run, and that is the end
+        g.globalAlpha = d.a;
+        g.fillStyle = MINT;
+        g.beginPath();
+        g.arc(d.x + Math.sin(3.1) * d.wob, d.y + d.len, d.w * 0.8, 0, 6.2832);
+        g.fill();
+        this.drips.splice(i, 1);
+      }
+    }
+    g.globalAlpha = 1;
+  };
+
+  /* One multiply of the whole canvas. Cheap, and its cost is the same on the
+     first stroke and the hundredth. */
+  Wall.prototype.dry = function () {
+    var g = this.g;
+    g.globalCompositeOperation = 'destination-out';
+    g.globalAlpha = 1;
+    g.fillStyle = 'rgba(0,0,0,' + FADE_K + ')';
+    g.fillRect(0, 0, this.w, this.h);
+    g.globalCompositeOperation = 'source-over';
+  };
+
+  Wall.prototype.schedule = function () {
+    if (this.raf || !this.built) return;
+    var self = this;
+    this.live = true;
+    this.raf = requestAnimationFrame(function (t) { self.frame(t); });
+  };
+
+  /* The whole loop, and it stops itself. Read the box once, stamp the queue,
+     run the drips, dry the wall, and when nothing has been painted for
+     STOP_MS clear what is left and do not ask for another frame. */
+  Wall.prototype.frame = function () {
+    this.raf = 0;
+    if (!this.built) { this.live = false; return; }
+    var now = performance.now();
+
+    if (this.queue.length) {
+      this.rect = this.hero.getBoundingClientRect();
+      for (var i = 0; i < this.queue.length; i++) {
+        var q = this.queue[i];
+        this.segment({ x: q.cx - this.rect.left, y: q.cy - this.rect.top, t: q.t });
+      }
+      this.queue.length = 0;
+    }
+
+    // The brush held still on the wall: the paint runs, once per pause.
+    if (!this.dripped && this.last && now - this.last.t > PAUSE_MS) {
+      this.dripped = true;
+      this.drip();
+    }
+    if (this.drips.length) this.runDrips(now);
+
+    if (!this.fadedAt) this.fadedAt = now;
+    while (now - this.fadedAt >= FADE_MS) { this.dry(); this.fadedAt += FADE_MS; }
+
+    if (this.hissing && now - this.hissAt > HISS_MS) {
+      this.hissing = false;
+      Sound.hissOff();
+    }
+
+    if (this.paintedAt && now - this.paintedAt > STOP_MS) {
+      this.clear();
+      this.live = false;
+      this.paintedAt = 0; this.fadedAt = 0;
+      return;                                  // nothing left to dry
+    }
+    this.schedule();
+  };
+
+  /* --- input ---------------------------------------------------------- */
+  Wall.prototype.push = function (cx, cy, t) {
+    this.build();
+    this.queue.push({ cx: cx, cy: cy, t: t });
+    if (!this.paintedAt) this.paintedAt = performance.now();
+    this.fadedAt = this.fadedAt || performance.now();
+    if (Sound.get()) {
+      if (!this.hissing) { Sound.hissOn(); this.hissing = true; }
+      Sound.hissSpeed(clamp((this.speed || 0.3) / 1.2, 0, 1));
+      this.hissAt = performance.now();
+    }
+    this.schedule();
+  };
+
+  Wall.prototype.endStroke = function () {
+    this.last = null;
+    this.acc = 0;
+    this.dripped = true;
+    if (this.hissing) { this.hissing = false; Sound.hissOff(); }
+  };
+
+  Wall.prototype.bind = function () {
+    if (this.bound) return;
+    this.bound = true;
+    var self = this, hero = this.hero;
+
+    this.on = {
+      move: function (e) {
+        if (e.pointerType === 'touch') return;      // the finger has its own path
+        self.push(e.clientX, e.clientY, e.timeStamp || performance.now());
+      },
+      leave: function () { self.endStroke(); },
+      resize: function () { if (self.built) { self.size(); } },
+
+      tstart: function (e) {
+        if (e.touches.length > 1) {                 // two fingers: wipe it
+          self.build();
+          self.clear();
+          self.touch = null;
+          self.endStroke();
+          hero.classList.remove('is-painting');
+          return;
+        }
+        var t = e.touches[0];
+        self.t0 = { x: t.clientX, y: t.clientY };
+        self.touch = 'deciding';
+        self.endStroke();
+      },
+      tmove: function (e) {
+        if (!self.touch || self.touch === 'scroll') return;
+        var t = e.touches[0];
+        if (!t) return;
+        if (self.touch === 'deciding') {
+          var dx = t.clientX - self.t0.x, dy = t.clientY - self.t0.y;
+          if (Math.sqrt(dx * dx + dy * dy) < DECIDE) return;
+          // Mostly vertical is the page being scrolled, and that is the
+          // page's, not ours. Anything else is a stroke.
+          if (Math.abs(dy) > Math.abs(dx)) { self.touch = 'scroll'; return; }
+          self.touch = 'paint';
+          hero.classList.add('is-painting');
+        }
+        e.preventDefault();                          // call off any pending pan
+        var evs = e.changedTouches, i;
+        for (i = 0; i < evs.length; i++) {
+          self.push(evs[i].clientX, evs[i].clientY, e.timeStamp || performance.now());
+        }
+      },
+      tend: function () {
+        self.touch = null;
+        hero.classList.remove('is-painting');
+        self.endStroke();
+      }
+    };
+
+    if (fine) {
+      hero.addEventListener('pointermove', this.on.move, { passive: true });
+      hero.addEventListener('pointerleave', this.on.leave, { passive: true });
+    }
+    if (coarse) {
+      hero.addEventListener('touchstart', this.on.tstart, { passive: true });
+      hero.addEventListener('touchmove', this.on.tmove, { passive: false });
+      hero.addEventListener('touchend', this.on.tend, { passive: true });
+      hero.addEventListener('touchcancel', this.on.tend, { passive: true });
+    }
+    addEventListener('resize', this.on.resize, { passive: true });
+  };
+
+  Wall.prototype.unbind = function () {
+    if (!this.bound) return;
+    this.bound = false;
+    var hero = this.hero;
+    hero.removeEventListener('pointermove', this.on.move);
+    hero.removeEventListener('pointerleave', this.on.leave);
+    hero.removeEventListener('touchstart', this.on.tstart);
+    hero.removeEventListener('touchmove', this.on.tmove);
+    hero.removeEventListener('touchend', this.on.tend);
+    hero.removeEventListener('touchcancel', this.on.tend);
+    removeEventListener('resize', this.on.resize);
+    hero.classList.remove('is-painting');
+    this.touch = null;
+    this.endStroke();
+    if (this.raf) { cancelAnimationFrame(this.raf); this.raf = 0; }
+    this.live = false;
+    this.paintedAt = 0; this.fadedAt = 0;
+    this.clear();
+  };
+
+  /* --- in view, and only then ----------------------------------------- */
+  var walls = [];
+  for (var i = 0; i < heroes.length; i++) walls.push(new Wall(heroes[i]));
+
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        var w = e.target.__wall;
+        if (!w) return;
+        if (e.isIntersecting) { w.build(); w.size(); w.bind(); }
+        else w.unbind();
+      });
+    }, { threshold: 0, rootMargin: '0px' });
+    walls.forEach(function (w) { w.hero.__wall = w; io.observe(w.hero); });
+  } else {
+    walls.forEach(function (w) { w.hero.__wall = w; w.build(); w.bind(); });
+  }
+
+  window.oagWall = { instances: walls };
+})();

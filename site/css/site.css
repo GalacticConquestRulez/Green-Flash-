@@ -1431,3 +1431,59 @@ html.motion .scale.is-used .scale-hint{opacity:0}
 .contact-card-cta .btn{width:auto}
 .portrait-cta{margin-top:1rem;display:flex;justify-content:center}
 .btn svg{width:1.05em;height:1.05em;margin-right:.45em;vertical-align:-.18em}
+
+/* =====================================================================
+   Wall — the blank wall you can paint (site.js, "Wall").
+
+   Two elements, both built by the script and neither in the document
+   without it: a canvas the size of the hero, and the sound toggle. So this
+   whole block describes things that do not exist under reduced motion or
+   with no script, and the hero there is the hero it always was.
+
+   The canvas goes at z-index -1 inside .page-hero's own stacking context —
+   the place the hero's shade sits on a hero that has a photograph — so the
+   paint is over the background and under every word, and it is
+   pointer-events:none: the listeners are on the hero, and a link in the
+   hero is still a link. Neither element is in flow, so painting the wall
+   cannot move anything on the page.
+   ===================================================================== */
+.paint-wall{
+  position:absolute;inset:0;width:100%;height:100%;
+  z-index:-1;pointer-events:none;
+}
+/* Only while a stroke is actually being laid: a plain vertical swipe has
+   already been let through to the page by then. */
+html.motion .page-hero[data-wall].is-painting{touch-action:none}
+
+/* The same toggle as the wall on /graffiti-removal, in the corner of the
+   hero rather than under a figure, and absolutely positioned so it costs
+   the hero no height. Muted is the default and the state is shared. */
+.paint-snd{
+  position:absolute;z-index:2;
+  right:clamp(1rem,4vw,2.4rem);bottom:clamp(.9rem,2.6vw,1.6rem);
+  display:inline-flex;align-items:center;gap:.45rem;
+  padding:.5rem .8rem;border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--ink-2);color:var(--muted);cursor:pointer;
+  font-family:var(--font-body);font-weight:700;font-size:.72rem;
+  letter-spacing:.12em;text-transform:uppercase;line-height:1;
+  transition:color .2s,border-color .2s;
+}
+.paint-snd:hover{color:var(--paper);border-color:var(--line-2)}
+.paint-snd svg{width:15px;height:15px;display:block}
+.paint-snd .paint-snd-on{display:none}
+.paint-snd[aria-pressed="true"]{color:var(--mint);border-color:var(--mint-deep)}
+.paint-snd[aria-pressed="true"] .paint-snd-on{display:block}
+.paint-snd[aria-pressed="true"] .paint-snd-off{display:none}
+@media (max-width:520px){
+  .paint-snd .paint-snd-t{display:none}
+  .paint-snd{padding:.5rem .55rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .paint-snd{transition:none}
+}
+
+/* The 404's hero is the wall and nothing else, so it is given the height of
+   one: enough blank to be worth a brush, and the words sit in the top of
+   it the way they do on every other hero. */
+.page-hero.blank{min-height:clamp(420px,60vh,600px)}
+.page-hero.blank .btn-row{margin-top:1.8rem}

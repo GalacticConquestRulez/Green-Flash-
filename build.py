@@ -433,7 +433,8 @@ def asset_v(rel):
         return hashlib.md5(f.read()).hexdigest()[:8]
 
 
-def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_alt='', video=None):
+def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_alt='',
+              video=None, wall=False, extra=''):
     """The top of a page: a photograph, a shade over it, and the words.
 
     The photograph goes through pic() rather than img() so the browser picks a
@@ -448,6 +449,16 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
     reduced-motion visitor gets; the clip is the motion. site.js pauses it
     under prefers-reduced-motion and data-saver, and the CSS hides it there
     too, so the page never depends on the clip having arrived.
+
+    wall marks this hero as a blank wall the visitor can paint (site.js,
+    "Wall"). It is one attribute and nothing else: the canvas, the strokes and
+    the sound toggle are all built by the script under html.motion, so the
+    no-JS and reduced-motion renders are the hero exactly as it is today. It
+    only belongs on a hero with no photograph — there is nothing blank about
+    a wall with a mural already on it.
+
+    extra is markup dropped inside the hero's words, under the lead: the 404's
+    two ways back, and nothing else so far.
     """
     clip = ''
     if video:
@@ -461,8 +472,9 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
              f'</div><div class="hero-shade"></div>') if media_slug else ''
     crumbs = (f'<div class="crumbs"><a href="{u("/")}">Home</a><span>/</span><span>{crumb or title}</span></div>'
               if crumb is not False else '')
-    return f'''<section class="page-hero{" " + cls if cls else ""}">{media}
-  <div class="wrap"><div class="hero-inner">{crumbs}<div class="eyebrow">{eyebrow}</div><h1>{title}</h1><p class="lead">{lead}</p></div></div></section>'''
+    assert not (wall and media_slug), 'page_hero: a wall to paint is a hero with no photograph'
+    return f'''<section class="page-hero{" " + cls if cls else ""}"{' data-wall' if wall else ''}>{media}
+  <div class="wrap"><div class="hero-inner">{crumbs}<div class="eyebrow">{eyebrow}</div><h1>{title}</h1><p class="lead">{lead}</p>{extra}</div></div></section>'''
 
 
 # The six things a visitor can ask for. The Contact form's <select> is built
@@ -1006,7 +1018,7 @@ pages['/about'] = dict(
            f'A muralist and large-image company: murals, banners and signs painted at '
            f'building scale. Ephraim leads it, the crew goes up on the lift, and the '
            f'walls stand in {spell(len(CITIES))} cities so far.',
-           crumb='About')}
+           crumb='About', wall=True)}
 
 <section><div class="wrap">
   <div class="duo">
@@ -1447,6 +1459,28 @@ pages['/contact'] = dict(
 ''')
 
 
+# ------------------------------------------------------------------- 404
+# nginx serves this for anything it cannot find (`error_page 404 /404.html`
+# in deploy/nginx/openair-site.conf), so it is a real page of the site that
+# is never linked from it: noindex, kept out of the sitemap by the write
+# loop, and carrying the two ways back a visitor who mistyped a URL wants.
+#
+# It is also the second blank wall. The hero has no photograph, which on a
+# dark site is a wall with nothing on it, and the copy says so — so the Wall
+# mechanic is not decoration here, it is the page's one joke, and the page
+# reads exactly the same with no script at all.
+pages['/404'] = dict(
+  noindex=True,
+  title=f'Page not found | {SITE_NAME}',
+  desc='That page is not here. Head back to the work, or to the front.',
+  body=f'''
+{page_hero('404', 'Nothing on this wall yet.',
+           'Paint something, or head back.',
+           crumb=False, cls='blank', wall=True,
+           extra=f'''<div class="btn-row"><a class="btn btn-mint" href="{u('/')}">Home {ICONS['arrow']}</a>'''
+                 f'''<a class="btn btn-ghost" href="{u('/work')}">Work</a></div>''')}''')
+
+
 # ---------------------------------------------------------------------- SEO
 # What a machine reads: one business, described once, and every page saying
 # which part of it this page is.
@@ -1587,6 +1621,7 @@ OG = {
   '/services': 'moncler-wide',
   '/graffiti-removal': 'moncler-wide',
   '/contact': 'contact-band',
+  '/404': 'gucci-new-york-hero',
 }
 for _path, _name in OG.items():
     pages[_path]['og'] = _name

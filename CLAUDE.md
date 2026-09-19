@@ -211,6 +211,43 @@ Ephraim before any production code.
   in it can move a box — the card and the halo are absolutely positioned inside the figure — and
   **no JS / reduced motion gets the figures exactly as they are today**: the whole mechanic is
   built by site.js under `html.motion`, so there is no card, no halo and no filter to withhold.
+- **Wall — the ninth verb (owner, 2026-09-19), and the only blank one.** Concept 3 of the paint
+  mechanics: *"The About hero is dark and empty behind 'Ephraim and the crew' — a blank wall."*
+  So it becomes one, and so does the **404**, which is the same hero with the copy to match —
+  *"Nothing on this wall yet. Paint something, or head back."*, Home and Work underneath. The
+  vocabulary is **Roll · Scale · Cure · Wash · Splat · Live · Brush · Stencil · Wall**, and Wall
+  is the only verb with nothing to reveal, nothing to finish and nothing to get right: **moving
+  the pointer over the hero paints it**, and what is painted dries and is gone.
+  **A stroke is a bristled stamp every 6px along the pointer's path** — eight to twelve hairs
+  from the kit's seeded random, the same generator Splat's brush edge comes out of and the same
+  geometry as `art.py`'s `brush_rule_svg()`, laid across the direction of travel and dragged
+  along it, on a canvas sized to the hero and device-pixel-ratio aware to a cap of 1.5×.
+  **Opacity is speed and nothing else:** a slow pointer is a wet, fully loaded brush and lays a
+  body of mint with the bristles as texture in it; a fast one is dry-brush — the body is gone and
+  the lightly loaded hairs lift off, so the stroke goes broken. **Hold the brush still and the
+  paint runs:** one thin mint drip, 20 to 60px, out of the bottom of the last stamp, drawn as it
+  grows and gathering a bead at the end. **It dries over about six seconds** — one destination-out
+  multiply of the whole canvas every 110ms, which is the cheap half of the choice (its cost does
+  not grow with how long the visitor has been painting) — and 6.8s after the last stamp the canvas
+  is cleared outright and the loop stops itself, because that fade stalls a few counts short of
+  zero in 8-bit alpha and a wall that is 1% painted is not a blank wall. **The wall can never fill
+  up and there is nothing to score.**
+  **The words are never painted over:** the canvas sits at z-index -1 inside `.page-hero`'s own
+  stacking context — where the shade sits on a hero that has a photograph — and is
+  `pointer-events:none`, so the listeners are on the hero and a link in the hero is still a link.
+  **On a phone a finger drag paints and the page still scrolls:** the first 12px of a touch decide
+  which — mostly vertical and it is the page's gesture and this never hears from it again;
+  anything else is a stroke, the hero takes `touch-action:none` for as long as that stroke lasts
+  and the move is `preventDefault`ed so a pan already being considered is called off. **A
+  two-finger tap wipes the wall.** **Sound:** the hiss of a brush on brick while a stroke is being
+  laid, behind the same muted-by-default toggle, in the corner of the hero — and the
+  AudioContext behind it now lives in **`site.js`'s kit (`window.oagKit`)** along with the seeded
+  random, because `wash.js` had the only copy and two files were about to have two. `wash.js` asks
+  the kit for it (and its script tag moved out of the head to below `site.js` so it is there when
+  it asks), so `/about`, `/404` and `/graffiti-removal` share one context and one persisted key.
+  **No JS / reduced motion: the hero exactly as it is today** — there is no canvas and no toggle
+  to withhold, because site.js builds both under `html.motion`; the server HTML is one attribute,
+  `data-wall`, and the `--nojs` render of `/about` is byte-identical to the one before this.
 - **The graffiti has to read as a real tagged wall — never cartoon bubble letters.** The first
   drawn version was three bubble-letter pieces in magenta, blue and amber, evenly spaced, all
   plainly painted the same afternoon by the same hand; the owner's verdict was *"that graffiti
