@@ -166,6 +166,24 @@ PROJECTS = [
              'AMC — Angel Media Co., whose placard sits under it. It went up by '
              'hand from a boom lift; the feet are still to come.',
        credit=None, featured=True),
+
+  # The second wall out of the same drop. A community wall under the bridge by
+  # the ballpark, filmed by Max (@omgmaxgod) — the only project on the site
+  # with a credit on it, because it is the only one where somebody other than
+  # Ephraim's own camera is the source. Feet unknown, year from the post date
+  # (the owner, 2026-09-20). Its photographs are frames pulled from the film.
+  dict(slug='flower-city-arts-center-rochester', title='Flower City Arts Center',
+       client='Flower City Arts Center',
+       city='Rochester', state='NY', dim_w=None, dim_h=None, year=2023,
+       category='civic', hero='flower-city-arts-center-rochester-hero',
+       video='hero-flower-city',
+       gallery=['flower-city-arts-center-rochester-1',
+                'flower-city-arts-center-rochester-2',
+                'flower-city-arts-center-rochester-3'],
+       story='A community wall with Flower City Arts Center, on the underpass by the '
+             'ballpark in Rochester — a block of storefronts and portraits, painted '
+             'from lifts along the concrete. The feet are still to come.',
+       credit='Film by Max — @omgmaxgod', featured=False),
 ]
 
 # The Home row and the footer column, in the order PLAN.md §3 names them —

@@ -1125,22 +1125,38 @@ PW_PLACES = ('Mexico', 'Brazil', 'Rochester', 'New York')
 PW_MARKER = 'more coming as the photos arrive'
 
 
+# The community wall the strand leads with. It is a project row like any other,
+# read from projects.py, so the day its feet or a better photograph arrive this
+# section changes with the rest of the site and not on its own.
+FLOWER_CITY = BY_SLUG['flower-city-arts-center-rochester']
+
+
 def public_works(cls=''):
-    """Public works — the community strand, framed for the work we do not have yet."""
+    """Public works — the community strand, framed for the work we do not have yet.
+
+    The photograph is the Flower City wall itself now, rather than the crew on a
+    lift: the section is about community walls and there is finally one of them
+    on the site to show. The copy names it and links to it, and still says what
+    it has always said — that what we have photographs of is not the extent of
+    the work.
+    """
     places = ' &middot; '.join(PW_PLACES)
     sect = ('pw ' + cls).strip()
     return f'''<section class="{sect}"><div class="pw-grid">
-  <figure class="pw-media rv">{pic('about-team',
-      'An Open Air Gallery painter working from a lift platform, mask on, part way '
-      'through a wall', PAIR_SIZES)}</figure>
+  <figure class="pw-media rv">{pic(FLOWER_CITY['hero'],
+      'The Flower City Arts Center wall in Rochester, New York — painted storefronts '
+      'and portraits along a concrete underpass, with the crew still on the lifts',
+      PAIR_SIZES)}</figure>
   <div class="pw-words rv rv-d1">
     <h2 class="tall">Public <em class="pop">works</em></h2>
     <p class="pw-places wide">{places}</p>
     <p class="serif">Beyond the brands: community walls, civil-rights portraits and
     teen-empowerment murals &mdash; painted with the people who live beside them, in
     Mexico, Brazil and at home in Rochester and New York.</p>
-    <p class="serif">The two Rochester commissions are the ones we have photographs of
-    so far. They are not the extent of the work, and this page has room for the rest.</p>
+    <p class="serif">Three Rochester walls are the ones we have photographs of so far:
+    the <a href="{u('/work/' + FLOWER_CITY['slug'])}">{FLOWER_CITY['title']}</a> wall on the
+    underpass by the ballpark, and the two civil-rights portraits across town. They are not
+    the extent of the work, and this page has room for the rest.</p>
     <p class="pw-note marker">{PW_MARKER}</p>
     <div class="row-end"><a class="btn btn-ghost" href="{u('/work')}#f-civic">See the public works {ICONS['arrow']}</a></div>
   </div>
@@ -1289,7 +1305,17 @@ CITIES = {(p['city'], p['state']) for p in PROJECTS}
 MEASURED = measured()
 TALLEST = max(MEASURED, key=lambda p: p['dim_h'])
 WIDEST = max(MEASURED, key=lambda p: p['dim_w'])
-ROCHESTER = [p for p in PROJECTS if p['category'] == 'civic']
+# The Rochester pair is a pair because the two walls are the same size to the
+# foot, and that is what the band and the row on Home both say. It is not
+# "the civic category" — Flower City Arts Center is civic and in Rochester too,
+# and dropping it into a band headed "Two walls in Rochester" would make the
+# heading a lie the day it joined. So: the civic walls in Rochester we have the
+# feet for, and an assert, because the copy below counts them out loud.
+ROCHESTER = [p for p in PROJECTS if p['category'] == 'civic'
+             and p['city'] == 'Rochester' and p['dim_w'] is not None]
+assert len(ROCHESTER) == 2, (
+    'the Rochester band and the Vision row on Home both say "two": '
+    f'{[q["slug"] for q in ROCHESTER]}')
 
 
 def stat(figure, label, mark=''):
