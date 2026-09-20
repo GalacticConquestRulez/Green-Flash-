@@ -1805,15 +1805,17 @@ assert len(set(_titles)) == len(_titles), 'two pages share a title'
 # ---------------------------------------------------------------- write
 os.makedirs(OUT, exist_ok=True)
 
-# Local convenience only: the pages ask for /assets/img/..., which deploy.sh
-# rsyncs out of out/img/ (and skips in site/, --exclude 'assets/'). Link the
-# two here so `python3 -m http.server -d site` serves a complete site while we
-# are building it. Nothing in the deployed tree depends on this.
-_img = os.path.join(SRC, 'out', 'img')
-_link = os.path.join(OUT, 'assets', 'img')
-if os.path.isdir(_img) and not os.path.exists(_link):
-    os.makedirs(os.path.dirname(_link), exist_ok=True)
-    os.symlink(os.path.relpath(_img, os.path.dirname(_link)), _link)
+# Local convenience only: the pages ask for /assets/img/... and, since the
+# heroes gained their films, /assets/video/... too — both of which deploy.sh
+# rsyncs out of out/ (and skips in site/, --exclude 'assets/'). Link them here
+# so `python3 -m http.server -d site` serves a complete site, films included,
+# while we are building it. Nothing in the deployed tree depends on this.
+for _sub in ('img', 'video'):
+    _src = os.path.join(SRC, 'out', _sub)
+    _link = os.path.join(OUT, 'assets', _sub)
+    if os.path.isdir(_src) and not os.path.exists(_link):
+        os.makedirs(os.path.dirname(_link), exist_ok=True)
+        os.symlink(os.path.relpath(_src, os.path.dirname(_link)), _link)
 
 for path, p in pages.items():
     fn = os.path.join(OUT, path.strip('/') + '.html')
