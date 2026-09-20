@@ -1813,6 +1813,28 @@ h4{font-family:var(--font-tall);font-weight:400;font-size:1.15rem;letter-spacing
   white-space:nowrap;text-shadow:0 1px 8px var(--ink);
 }
 
+/* --- the wall going up ------------------------------------------------ */
+/* The portrait reel, stood up in a phone-shaped well beside one sentence.
+   The well is an aspect-ratio box and the clip is 720x1280 with both
+   attributes on the element, so the section reserves its own room in every
+   render and the poster, the clip and the empty box are the same shape.
+   site.js plays it only while it is on screen; with no script the element
+   keeps its controls and the visitor plays it, which is why the frame is
+   sized the same either way. */
+.progress{padding:clamp(3rem,7vw,5.5rem) 0 clamp(1rem,3vw,2rem)}
+.progress-grid{display:grid;gap:clamp(1.6rem,4vw,2.6rem);align-items:center;justify-items:start}
+.progress-phone{
+  margin:0;position:relative;width:min(300px,74vw);aspect-ratio:9/16;
+  border-radius:26px;overflow:hidden;background:var(--ink);
+  border:1px solid var(--line);box-shadow:0 22px 56px rgba(10,10,11,.20);
+}
+.progress-video{display:block;width:100%;height:100%;object-fit:cover;background:var(--ink)}
+.progress-words h2{font-size:clamp(2.2rem,5vw,3.6rem)}
+.progress-words p{margin:1rem 0 0;max-width:34ch;color:var(--muted)}
+@media (min-width:860px){
+  .progress-grid{grid-template-columns:auto minmax(0,1fr);gap:clamp(2.4rem,5vw,4.4rem);align-items:center}
+}
+
 /* --- the words under the wall ----------------------------------------- */
 .pintro{padding-top:clamp(2.5rem,6vw,4rem)}
 .pintro .dims{margin:1.4rem 0 1.8rem}
@@ -2676,6 +2698,11 @@ html.motion .tiprule.curing::after{
 .pw-words{padding:clamp(40px,5vw,80px) clamp(22px,4vw,64px);display:flex;flex-direction:column;justify-content:center}
 .pw-words h2{font-size:clamp(46px,6vw,104px);margin:0 0 16px;color:var(--ink,#0A0A0B)}
 .pw-words h2 em{font-style:normal;color:var(--pop,#FF4F2E)}
+/* Same rule for the reel's heading: the emphasised words are the coral, upright.
+   An <em> left to the browser is an italic of a face that has no italic. */
+.progress-words h2 em{font-style:normal;color:var(--pop,#FF4F2E)}
+.progress-words h2{color:var(--ink,#0A0A0B)}
+.progress-words p{color:var(--muted,#55555C)}
 .pw-places{font-size:clamp(15px,1.5vw,20px);letter-spacing:.06em;color:var(--pop,#FF4F2E);margin:0 0 18px}
 .pw-words p.serif{font-size:17.5px;line-height:1.58;max-width:52ch;margin:0 0 14px;color:var(--muted-ink,#2b2a2e)}
 .pw-note{font-size:clamp(19px,2vw,26px);color:var(--pop,#FF4F2E);margin:10px 0 0;transform:rotate(-1.4deg);transform-origin:left center}

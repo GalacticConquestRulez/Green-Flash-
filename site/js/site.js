@@ -954,8 +954,10 @@
   const live = [...document.querySelectorAll('[data-live]')];
   const glowing = [...document.querySelectorAll('[data-glow]')];
   const painted = [...document.querySelectorAll('[data-brush]')];
+  const reels = [...document.querySelectorAll('video[data-inview]')];
+  const reelLive = new Set();   // the reels this script actually took over
   if (!targets.length && !live.length && !glowing.length && !painted.length
-      && !spBands.length) return;
+      && !spBands.length && !reels.length) return;
 
   // No observer means no way to unhide: show everything now rather than
   // making the visitor wait for the 2.8s self-reveal. A live element with
@@ -965,8 +967,27 @@
     glowing.forEach(g => g.style.setProperty('--g', '.45'));   // the mid value
     painted.forEach(el => el.style.setProperty('--paint', '1'));  // the rule, painted
     spBands.forEach(b => b.classList.add('spray-done'));         // the word, sprayed
+    // A reel keeps its controls: with no observer there is nothing to tell
+    // it when it is on screen, and a clip that can only be watched by
+    // scrolling luck is worse than one with a play button on it.
     return;
   }
+
+  /* The progress reel. It is in the server HTML with `controls` on it and no
+     autoplay, because that is the render a visitor gets with no script or with
+     reduced motion asked for, and there it has to be something they can play.
+     Here — html.motion, an observer, and not a metered connection — the
+     controls come off and the clip runs itself while it is on screen. It is
+     the same rule the hero clip follows on data-saver: the poster stays and
+     nothing is fetched. */
+  reels.forEach(v => {
+    const c = navigator.connection;
+    if (c && c.saveData) { v.preload = 'none'; return; }
+    v.controls = false;
+    v.removeAttribute('controls');
+    v.muted = true;
+    reelLive.add(v);
+  });
 
   /* One observer, two contracts. A .rv or a .dims is revealed once and let
      go — Roll and Cure do not repeat. An element marked data-live is never
@@ -978,6 +999,16 @@
   const LIVE = 0.35;
   const io = new IntersectionObserver(entries => entries.forEach(e => {
     const el = e.target;
+    if (el.hasAttribute('data-inview')) {
+      // Plays while it is on screen and stops when it is not, both ways,
+      // like the rest of Live — a clip running behind the visitor's back is
+      // battery spent on something nobody is watching. A reel left with its
+      // controls (data-saver) is not in reelLive and is not touched.
+      if (!reelLive.has(el)) return;
+      if (e.intersectionRatio >= LIVE) el.play().catch(() => {});
+      else el.pause();
+      return;
+    }
     if (el.hasAttribute('data-glow')) {
       if (e.isIntersecting) glows.add(el);
       else { glows.delete(el); el.style.setProperty('--g', '0'); }
@@ -1030,7 +1061,7 @@
     if (el.classList.contains('dims') || el.classList.contains('stat-n')) stSpray(el, true);
     io.unobserve(el);                // Cure runs once, and only once
   }), { threshold: [0, 0.12, LIVE, SP_SEEN], rootMargin: '0px 0px -6% 0px' });
-  targets.concat(live, glowing, painted, spBands).forEach(el => io.observe(el));
+  targets.concat(live, glowing, painted, spBands, reels).forEach(el => io.observe(el));
 })();
 
 /* =====================================================================

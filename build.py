@@ -1514,6 +1514,47 @@ def film_hero(p):
                      video=p.get('video'), crumb=False, cls='tall')
 
 
+def progress_band(p):
+    """The wall going up: Ephraim's own portrait reel, in a phone-shaped frame.
+
+    He shot the job vertically as well, and that reel is the one thing on this
+    page that is about the *painting* rather than the painted wall: the artwork
+    it was worked from, then the lift crossing the wall, filmed from the air.
+    It is his edit and it is left whole.
+
+    The clip is muted, loops, and plays only while it is on screen — one more
+    contract on the Live observer rather than an observer of its own. Without
+    html.motion there is no script to start it, so the server HTML gives the
+    visitor a real control instead: the element carries `controls` and the
+    poster, and site.js takes the controls away only once it knows it can play
+    it. Reduced motion and no-script are therefore the same document, and it is
+    a document where the reel can still be watched, on purpose.
+
+    Nothing here can move a box: the frame is an aspect-ratio 9/16 well, the
+    clip carries its own intrinsic 720x1280, and the poster is the same shape.
+
+    The sentence is this reel's: a second progress reel would need its own.
+    """
+    clip = p['progress']
+    assert os.path.exists(f'out/video/{clip}.mp4') and os.path.exists(f'out/video/{clip}.webp'), \
+        f'progress clip {clip}: out/video/{clip}.mp4 and .webp must exist'
+    return f'''<section class="progress"><div class="wrap">
+  <div class="progress-grid">
+    <figure class="progress-phone rv">
+      <video class="progress-video" data-inview width="720" height="1280" controls muted loop
+             playsinline preload="metadata" poster="{u("/assets/video/" + clip + ".webp")}">
+        <source src="{u("/assets/video/" + clip + ".mp4")}" type="video/mp4">
+      </video>
+    </figure>
+    <div class="progress-words rv rv-d1">
+      <h2 class="tall">The wall <em class="pop">going up</em></h2>
+      <p class="serif">Ephraim&rsquo;s own reel from the job: the artwork it was painted
+      from, then the lift working its way across the wall, filmed from the air.</p>
+    </div>
+  </div>
+</div></section>'''
+
+
 def project_page(p):
     i = PROJECTS.index(p)
     prv, nxt = PROJECTS[i - 1], PROJECTS[(i + 1) % len(PROJECTS)]
@@ -1565,6 +1606,7 @@ def project_page(p):
   <dl class="pmeta">{meta}</dl>
   {credit}
 </div></section>
+{progress_band(p) if p.get('progress') else ''}
 {gallery}
 <section class="pnav-wrap"><div class="wrap">
   <nav class="pnav" aria-label="More projects">{step(prv, 'prev', 'Previous', 'chevL')}{step(nxt, 'next', 'Next', 'chevR')}</nav>
