@@ -927,7 +927,7 @@ pages['/index'] = dict(
 
 <section><div class="wrap">
   <div class="section-head rv"><div class="eyebrow">Selected work</div><h2>Walls, measured in feet</h2>
-  <p class="lead">Six of them here, more on the Work page. The number over each photograph is how much wall it took.</p></div>
+  <p class="lead">A first look here, the rest on the Work page. The figure over each photograph is how much wall it took — where he has given us the feet.</p></div>
   <div class="pgrid">{''.join(pcard(p, f'rv-d{i % 3}' if i % 3 else '') for i, p in enumerate(featured()))}
   </div>
   <div class="row-end rv"><a class="btn btn-ghost" href="{u('/work')}">See the work {ICONS['arrow']}</a></div>

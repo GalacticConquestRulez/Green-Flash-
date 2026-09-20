@@ -147,19 +147,40 @@ PROJECTS = [
        story='Malcolm X, in Rochester, New York — 53 feet wide by 50 feet tall, the '
              'companion to the John Lewis wall and the same size to the foot.',
        credit=None, featured=True),
+
+  # Ephraim's own drop, 2026-09-20 (docs/ephraim-drop-2026-09-20.md): a wall
+  # that was never on his Wix Work page, so it joins at the end of the order
+  # that page set rather than being slotted into the middle of it. He gave the
+  # films and the photographs and not the measurements — both dimensions stay
+  # None and the page says the feet are coming. The year is the year he posted
+  # the film (the owner, 2026-09-20), not a date read off the wall.
+  dict(slug='rains-new-york', title='Rains', client='AMC × Angel Media Co.',
+       city='New York', state='NY', dim_w=None, dim_h=None, year=2024,
+       category='brand', hero='rains-new-york-hero',
+       gallery=['rains-new-york-1', 'rains-new-york-2', 'rains-new-york-3',
+                'rains-new-york-4'],
+       story='Three faces and the word RAINS, painted on a Manhattan wall for '
+             'AMC — Angel Media Co., whose placard sits under it. It went up by '
+             'hand from a boom lift; the feet are still to come.',
+       credit=None, featured=True),
 ]
 
 # The Home row and the footer column, in the order PLAN.md §3 names them —
 # which is not the Work index order. check_projects() in build.py asserts this
 # list and the featured flags above agree, so neither can drift alone.
-FEATURED_ORDER = ('gucci-new-york', 'crown-royal-trail-blazers', 'john-lewis-rochester',
-                  'uber-san-francisco', 'malcolm-x-rochester', 'upendo-los-angeles')
+FEATURED_ORDER = ('gucci-new-york', 'rains-new-york', 'crown-royal-trail-blazers',
+                  'john-lewis-rochester', 'uber-san-francisco', 'malcolm-x-rochester',
+                  'upendo-los-angeles')
 
 BY_SLUG = {p['slug']: p for p in PROJECTS}
 
 
 def featured():
-    """The six walls Home and the footer lead with, in PLAN.md's order."""
+    """The walls Home and the footer lead with, in PLAN.md's order.
+
+    Not a count and never phrased as one: the row is a lead-in to the Work
+    page, not a statement about how many walls Ephraim has painted.
+    """
     return [BY_SLUG[s] for s in FEATURED_ORDER]
 
 
