@@ -141,7 +141,7 @@ FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox
 
 # The twelve walls. Every project fact on the site comes from here.
 from projects import (PROJECTS, FEATURED_ORDER, CATEGORIES, BY_SLUG,
-                      featured, total_sq_ft)
+                      featured, measured, total_sq_ft)
 
 
 def u(path):
@@ -238,12 +238,40 @@ PRIME = '\u2032'          # the foot mark, kept out of f-strings that nest quote
 TIMES = '\u00d7'
 
 
+FEET_NOTE = 'feet to come'
+
+
+def feet_note(size=''):
+    """What stands where the figure would, on a wall we have no feet for.
+
+    The measurements are the hook on this site, so a wall without them cannot
+    simply have a hole where the figure goes — the card would stop reading as
+    a wall. It gets the promise instead, in his own hand: the feet are coming.
+    It is the same thing the public-works section says about the photographs
+    it does not have yet, and it is a note rather than a number, so nothing
+    counts it, sprays it or rolls it.
+
+    Coral on the white page, at the size .note fixes — CLAUDE.md, round three:
+    --pop on --paper is 3.4:1, which is large-text contrast and nothing else.
+    Mint on a card, where the scrim is dark and mint is already the colour the
+    caption is set in.
+    """
+    cls = 'feet-note marker' + (f' feet-note-{size}' if size else '')
+    return f'<div class="{cls}">{FEET_NOTE}</div>'
+
+
 def dims(w, h, size=''):
     """The hook: a wall's measurements, set physically wide.
 
     Mint touches the prime marks and the times sign and nothing else — one
     accent stays one accent. `size` adds a modifier: dims('sm') on a card.
+
+    A wall with no feet gets nothing at all from here: the caller decides what
+    stands in its place (feet_note()), and site.js's Live, Stencil and Cure
+    bind to the .dims that exist, so a page without one simply has less to do.
     """
+    if w is None or h is None:
+        return ''
     cls = 'dims' + (f' dims-{size}' if size else '')
     return (f'<div class="{cls}"><span class="n">{w}</span><span class="f">\u2032</span>'
             f'<span class="x">\u00d7</span><span class="n">{h}</span>'
@@ -327,7 +355,7 @@ def pcard(p, cls='', sizes=CARD_SIZES):
     alt = f"{p['title']} mural by Open Air Gallery, {place}"
     return f'''<a class="pcard rv {cls}" data-live href="{u('/work/' + p['slug'])}">
   <div class="pcard-img">{pic(p['hero'], alt, sizes, extra=focus_attr(p))}<span class="pcard-roll" aria-hidden="true"><span class="pcard-wet"></span><span class="pcard-roller"><svg viewBox="0 0 200 200"><use href="#oa-roller"></use></svg></span></span></div>
-  <div class="pcard-body">{dims(p['dim_w'], p['dim_h'], 'sm')}<h3>{p['title']}</h3><span class="place">{place}</span></div>
+  <div class="pcard-body">{dims(p['dim_w'], p['dim_h'], 'sm') or feet_note('sm')}<h3>{p['title']}</h3><span class="place">{place}</span></div>
 </a>'''
 
 
@@ -336,9 +364,13 @@ def check_projects():
 
     The dimensions are the whole design, so a string, a float or a typo has to
     stop the build rather than reach a page. The hero check is a hard assert:
-    the images pipeline has landed (docs/images.md) and every one of the twelve
-    heroes is on disk, so a missing file now means process.sh has not been run,
-    not that the photograph does not exist yet.
+    the images pipeline has landed (docs/images.md) and every hero is on disk,
+    so a missing file now means process.sh has not been run, not that the
+    photograph does not exist yet.
+
+    Feet may be missing, and then they are missing in pairs. Both None is a
+    wall Ephraim has not measured for us and the page says so; one None is a
+    typo, and a half-measured wall would print "81 x None" on the hook.
     """
     root = os.path.join(SRC, 'out', 'img')
     seen = set()
@@ -346,10 +378,14 @@ def check_projects():
         slug = p['slug']
         assert slug and slug not in seen, f'projects.py: empty or duplicate slug {slug!r}'
         seen.add(slug)
+        assert (p['dim_w'] is None) == (p['dim_h'] is None), (
+            f"{slug}: dimensions are both or neither — got "
+            f"{p['dim_w']!r} x {p['dim_h']!r}")
         for k in ('dim_w', 'dim_h'):
             v = p[k]
-            assert isinstance(v, int) and not isinstance(v, bool) and 0 < v < 1000, (
-                f'{slug}: {k} must be a whole number of feet, got {v!r}')
+            assert v is None or (isinstance(v, int) and not isinstance(v, bool)
+                                 and 0 < v < 1000), (
+                f'{slug}: {k} must be a whole number of feet or None, got {v!r}')
         assert p['category'] in CATEGORIES, (
             f"{slug}: category {p['category']!r} is not one of {CATEGORIES}")
         assert p['year'] is None or (isinstance(p['year'], int) and 1900 < p['year'] < 2100), (
@@ -1246,8 +1282,13 @@ def services_board(eyebrow='our services',
 WALLS = len(PROJECTS)
 SQ_FT = total_sq_ft()
 CITIES = {(p['city'], p['state']) for p in PROJECTS}
-TALLEST = max(PROJECTS, key=lambda p: p['dim_h'])
-WIDEST = max(PROJECTS, key=lambda p: p['dim_w'])
+# Every figure on the site is computed from the walls we have the feet for.
+# A wall Ephraim has photographed but never measured for us is not a small
+# wall and must never be counted as one — it is simply not in the sum, and
+# the sentence around the sum says what the sum is of.
+MEASURED = measured()
+TALLEST = max(MEASURED, key=lambda p: p['dim_h'])
+WIDEST = max(MEASURED, key=lambda p: p['dim_w'])
 ROCHESTER = [p for p in PROJECTS if p['category'] == 'civic']
 
 
@@ -1318,7 +1359,7 @@ pages['/index'] = dict(
 <section class="alt stats-band">{glow()}<div class="wrap">
   <div class="section-head rv"><div class="eyebrow">the measure of it</div>
   <h2>Over {SQ_FT // 1000:,},000 square feet, and counting.</h2>
-  <p class="lead serif">Added up wall by wall, the work shown here alone comes to {SQ_FT:,} square feet of painted surface in {spell(len(CITIES))} cities &mdash; with more walls in Mexico, Brazil and beyond. The tallest of them stands {TALLEST['dim_h']} feet in {TALLEST['city']}; the widest runs {WIDEST['dim_w']} feet.</p></div>
+  <p class="lead serif">Added up wall by wall, the walls we have the feet for come to {SQ_FT:,} square feet of painted surface in {spell(len(CITIES))} cities &mdash; with more walls in Mexico, Brazil and beyond. The tallest of them stands {TALLEST['dim_h']} feet in {TALLEST['city']}; the widest runs {WIDEST['dim_w']} feet.</p></div>
   <ul class="stats">
     {stat(f'{SQ_FT:,}', 'square feet, and counting')}
     {stat(TALLEST['dim_h'], f'tallest wall, {TALLEST["city"]}', mark='&#8242;')}
@@ -1452,6 +1493,27 @@ def scale_hero(p):
 </div></section>'''
 
 
+def film_hero(p):
+    """The top of a project page that has no feet to hang a figure on.
+
+    scale_hero() is the hook: the wall at full bleed with a six-foot figure
+    standing on it, sized from the wall's own width. With no width there is
+    nothing to size her against, and a figure drawn to a guessed scale would
+    be a lie told in pixels. So a wall we have no measurements for opens the
+    way every other page on the site opens — the photograph, the shade and
+    the words — and the film, where there is one, lies over the photograph
+    exactly as Home's does: same element, same poster, same reduced-motion,
+    data-saver and no-script behaviour, because it is the same function.
+
+    The crumbs stay in the words below, where every project page has always
+    kept them: page_hero's crumb is two levels and a project is three.
+    """
+    alt = f"{p['title']} mural by Open Air Gallery in {p['city']}, {p['state']}"
+    return page_hero(f'<span class="marker">{p["city"]}, {p["state"]}</span>',
+                     p['title'], '', media_slug=p['hero'], media_alt=alt,
+                     video=p.get('video'), crumb=False, cls='tall')
+
+
 def project_page(p):
     i = PROJECTS.index(p)
     prv, nxt = PROJECTS[i - 1], PROJECTS[(i + 1) % len(PROJECTS)]
@@ -1478,19 +1540,27 @@ def project_page(p):
 </div></section>'''
 
     def step(q, side, label, icon):
-        figure = f'{q["dim_w"]}{PRIME} {TIMES} {q["dim_h"]}{PRIME}'
+        ft = q['dim_w'] is not None
+        figure = f'{q["dim_w"]}{PRIME} {TIMES} {q["dim_h"]}{PRIME}' if ft else FEET_NOTE
         return (f'<a class="pnav-{side}" href="{u("/work/" + q["slug"])}">'
                 f'<span class="pnav-k">{ICONS[icon]}{label}</span>'
                 f'<span class="pnav-t">{q["title"]}</span>'
-                f'<span class="pnav-d">{figure}</span></a>')
+                f'<span class="pnav-d{"" if ft else " marker"}">{figure}</span></a>')
+
+    # A wall with feet leads with the figure standing on the photograph, and
+    # the words under it carry the title. A wall without them has no figure to
+    # stand, so the title is in the hero with the film and the words pick up
+    # at the note that says the feet are coming — the heading is not said twice.
+    ft = p['dim_w'] is not None
+    head = (f'''<div class="eyebrow"><span class="marker">{place}</span></div>
+  <h1 class="tall">{p['title']}</h1>
+  {dims(p['dim_w'], p['dim_h'])}''' if ft else feet_note())
 
     return f'''
-{scale_hero(p)}
+{scale_hero(p) if ft else film_hero(p)}
 <section class="pintro">{glow()}<div class="wrap">
   <div class="crumbs"><a href="{u('/')}">Home</a><span>/</span><a href="{u('/work')}">Work</a><span>/</span><span>{p['title']}</span></div>
-  <div class="eyebrow"><span class="marker">{place}</span></div>
-  <h1 class="tall">{p['title']}</h1>
-  {dims(p['dim_w'], p['dim_h'])}
+  {head}
   <p class="lead pstory serif">{p['story']}</p>
   <dl class="pmeta">{meta}</dl>
   {credit}
@@ -2090,15 +2160,18 @@ def project_ld(p):
       'description': p['story'],
       'creator': {'@id': BUSINESS_ID},
       'locationCreated': {'@type': 'Place', 'name': f"{p['city']}, {p['state']}"},
-      'width': feet(p['dim_w']),
-      'height': feet(p['dim_h']),
       'image': abs_img(p['hero'])[0],
       'genre': {'brand': 'Brand mural', 'portrait': 'Painted portrait',
                 'civic': 'Civic mural'}[p['category']],
     }
+    # A measurement nobody gave us is left out of the graph rather than
+    # guessed into it: a QuantitativeValue of null is worse than silence.
+    if p['dim_w'] is not None:
+        ld['width'] = feet(p['dim_w'])
+        ld['height'] = feet(p['dim_h'])
     if p['client']:
         ld['sponsor'] = {'@type': 'Organization', 'name': p['client']}
-    if p['year']:                 # None on all twelve today, and left out
+    if p['year']:
         ld['dateCreated'] = str(p['year'])
     return ld
 

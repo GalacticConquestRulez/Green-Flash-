@@ -1434,6 +1434,27 @@ html.motion .sp-stroke.go .sp-sweep{
    is the same optical lift off the baseline as .34 x .38 was. */
 .dims-sm .f,.dims-sm .x{font-size:.46em;vertical-align:.28em}
 
+/* --- a wall we have no feet for --------------------------------------- */
+/* The measurement is the hook, so the space it would have taken carries the
+   promise rather than a hole: his own hand, saying the number is coming.
+   Coral on the white page and never smaller than .note's floor, because
+   --pop on --paper is 3.4:1 and that is large-text contrast and nothing
+   else (CLAUDE.md, round three). On a card the scrim is dark, so it takes
+   the mint the caption is already set in and the card's own caption size.
+   It is a note and not a number: nothing counts it, sprays it or rolls it,
+   because Live, Stencil and Cure bind to .dims and .stat-n alone. */
+.feet-note{
+  display:block;line-height:1.2;color:var(--pop);
+  font-size:clamp(1.5rem,2vw,1.6rem);
+}
+.pintro .feet-note{margin:1.4rem 0 1.8rem;transform:rotate(-1.2deg);transform-origin:left center}
+.pcard .feet-note-sm{
+  order:2;margin-top:.34rem;color:var(--mint);
+  font-size:1rem;line-height:1.15;
+}
+.pcard-lg .feet-note-sm{font-size:1.12rem}
+.pnav-d.marker{font-family:var(--font-marker);font-size:1.05rem;font-variation-settings:normal}
+
 /* --- project card ----------------------------------------------------- */
 /* The card is the link. Photo at 4:3, the figures over a scrim at the foot,
    a hairline that goes mint when you reach it. */
