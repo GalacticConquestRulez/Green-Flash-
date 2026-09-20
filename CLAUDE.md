@@ -564,6 +564,33 @@ honoured), never a static crop. Mockup: scratchpad `oagmock/checker.html`.
   coral, a yellow, a violet, the palette of a working drop cloth) and lettered after, so the
   type sits over the paint. The deep layer, the parallax and the feathered hand-over stay.
 
+## Ephraim's drop, 2026-09-20 — RAINS and Flower City Arts Center
+The owner dropped `Ephraim website.zip` (1.28 GB) in and said *"he wants that content
+integrated into his site."* The whole brief, the file table and the seven commits it
+became are **`docs/ephraim-drop-2026-09-20.md`** — read that before touching either wall.
+The short version:
+- **RAINS**, New York, for **AMC — Angel Media Co.** (the placard on the brick reads
+  "AMC angelmediaco."). His drone edit is the page hero film, his portrait reel is "the
+  wall going up" under the story, and four of his photographs are the gallery. AMC is on
+  the "Painted for" wall as type in the navy sampled off that placard.
+- **Flower City Arts Center**, Rochester — a community wall on the underpass by the
+  ballpark, **filmed by Max, @omgmaxgod**, which is the only photo credit on the site.
+  Hero and gallery are 4K frames from his film. It is the picture `public_works()` leads
+  with now, in place of the crew on a lift.
+- **Dimensions may now be None** — both or neither — and `dims()` gives back nothing for
+  a wall without them. Every figure counts `measured()` and the stats band says so. A
+  wall with no feet cannot carry the scale figure, so its page opens on `page_hero` with
+  the film over the photograph instead of `scale_hero`.
+
+### The two holes, and they are the same hole twice
+- **The feet for both walls.** Nobody has measured either for us, so both carry
+  `dim_w=None, dim_h=None` and the card, the page and the project nav say *feet to come*
+  in his own hand. Ask him; fill in two numbers and four places on the site change
+  themselves. **Do not estimate them off a photograph.**
+- **The years are answered** (the owner, 2026-09-20): RAINS **2024**, Flower City
+  **2023** — the years he posted the films, not dates read off the walls, so they sit in
+  the Year row of the project meta and nowhere else in the copy.
+
 ### Needed from Ephraim — round three (2026-09-19)
 The brands wall and the faces strand are built to be finished by him, not by us. Each
 line below is a hole the build already has a shape for: fill it and one row changes,
