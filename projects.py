@@ -40,6 +40,7 @@ city, state                                     dim_w, dim_h  feet, or both None
 year      None until Ephraim confirms          category 'brand'|'portrait'|'civic'
 hero      out/img/<hero>.webp and friends      gallery  extra image names
 video     out/video/<video>.{mp4,webp}, laid over the hero photograph
+progress  out/video/<progress>.{mp4,webp}, the portrait reel under the story
 story     one paragraph                        credit   None until supplied
 featured  on the Home row and in the footer
 """
@@ -158,6 +159,7 @@ PROJECTS = [
   dict(slug='rains-new-york', title='Rains', client='AMC × Angel Media Co.',
        city='New York', state='NY', dim_w=None, dim_h=None, year=2024,
        category='brand', hero='rains-new-york-hero', video='hero-rains',
+       progress='rains-progress',
        gallery=['rains-new-york-1', 'rains-new-york-2', 'rains-new-york-3',
                 'rains-new-york-4'],
        story='Three faces and the word RAINS, painted on a Manhattan wall for '

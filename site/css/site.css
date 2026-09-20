@@ -1256,6 +1256,32 @@ html.motion .sp-stroke.go .sp-sweep{
   white-space:nowrap;text-shadow:0 1px 8px var(--ink);
 }
 
+/* --- the wall going up ------------------------------------------------ */
+/* The portrait reel, stood up in a phone-shaped well beside one sentence.
+   The well is an aspect-ratio box and the clip is 720x1280 with both
+   attributes on the element, so the section reserves its own room in every
+   render and the poster, the clip and the empty box are the same shape.
+   site.js plays it only while it is on screen; with no script the element
+   keeps its controls and the visitor plays it, which is why the frame is
+   sized the same either way. */
+.progress{padding:clamp(3rem,7vw,5.5rem) 0 clamp(1rem,3vw,2rem)}
+.progress-grid{display:grid;gap:clamp(1.6rem,4vw,2.6rem);align-items:center;justify-items:start}
+.progress-phone{
+  margin:0;position:relative;width:min(300px,74vw);aspect-ratio:9/16;
+  border-radius:26px;overflow:hidden;background:var(--ink);
+  border:1px solid var(--line);box-shadow:0 22px 56px rgba(10,10,11,.20);
+}
+.progress-video{display:block;width:100%;height:100%;object-fit:cover;background:var(--ink)}
+.progress-words h2{font-size:clamp(2.2rem,5vw,3.6rem)}
+/* The emphasised words are the accent, upright: an <em> left to the browser
+   is an italic of a face that has no italic. One accent on this canvas and
+   it is mint — 13.8:1 on --ink. */
+.progress-words h2 em{font-style:normal;color:var(--mint)}
+.progress-words p{margin:1rem 0 0;max-width:34ch;color:var(--muted)}
+@media (min-width:860px){
+  .progress-grid{grid-template-columns:auto minmax(0,1fr);gap:clamp(2.4rem,5vw,4.4rem);align-items:center}
+}
+
 /* --- the words under the wall ----------------------------------------- */
 .pintro{padding-top:clamp(2.5rem,6vw,4rem)}
 .pintro .dims{margin:1.4rem 0 1.8rem}
