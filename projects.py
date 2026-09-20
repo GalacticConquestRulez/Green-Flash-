@@ -14,10 +14,15 @@ and cross-checked against the "Recent Projects" block on his home page. The
 photographs are the Wix renditions pulled by fetch-wix.py — placeholders until
 his originals arrive; see docs/images.md.
 
-Two rules held while writing this file:
+Three rules held while writing this file:
 
 * **Years are not on his site, so `year` is None.** An invented date on a
   civil-rights mural is worse than no date. Fill them in when Ephraim says.
+* **`dim_w` and `dim_h` may both be None**, and then neither may be guessed.
+  A wall Ephraim has photographed but never measured for us is still a wall;
+  it is the *figures* we do not have, and the site says so in his own hand
+  rather than printing a number nobody gave it. Both or neither: a width with
+  no height is a typo, and build.py's check_projects() refuses it.
 * **`story` says only what is known.** His site carries no project write-ups
   at all, so each story is the short factual line PLAN.md asks for — client,
   city, size — plus anything his own pages actually state. No anecdotes, no
@@ -31,7 +36,7 @@ Fields
 ------
 slug      URL segment, /work/<slug>            title    as his site names it
 client    the brand, or None for a wall with no commercial client
-city, state                                     dim_w, dim_h  feet, whole numbers
+city, state                                     dim_w, dim_h  feet, or both None
 year      None until Ephraim confirms          category 'brand'|'portrait'|'civic'
 hero      out/img/<hero>.webp and friends      gallery  extra image names
 story     one paragraph                        credit   None until supplied
@@ -158,11 +163,21 @@ def featured():
     return [BY_SLUG[s] for s in FEATURED_ORDER]
 
 
-def total_sq_ft():
-    """Every wall added up, so the scale statement on Home is never typed.
+def measured():
+    """The walls we have the feet for — the only ones any figure may count.
 
-    Twelve walls, 23,294 square feet as the roster stands. PLAN.md §3 wrote
-    "over 19,000" from a rougher count; the number this returns is the one
-    that goes on the page.
+    A wall with no dimensions is not a smaller wall, it is a wall nobody has
+    given us a tape measure on. So it is left out of every sum rather than
+    counted as zero, and the copy around the sum says what the sum is of.
     """
-    return sum(p['dim_w'] * p['dim_h'] for p in PROJECTS)
+    return [p for p in PROJECTS if p['dim_w'] is not None]
+
+
+def total_sq_ft():
+    """The measured walls added up, so the scale statement is never typed.
+
+    23,294 square feet as the roster stands. PLAN.md §3 wrote "over 19,000"
+    from a rougher count; the number this returns is the one that goes on the
+    page — and it is the walls with feet on them, not the whole roster.
+    """
+    return sum(p['dim_w'] * p['dim_h'] for p in measured())

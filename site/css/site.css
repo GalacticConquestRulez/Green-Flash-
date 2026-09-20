@@ -1055,6 +1055,32 @@ html.motion .sp-stroke.go .sp-sweep{
    is the same optical lift off the baseline as .34 x .38 was. */
 .dims-sm .f,.dims-sm .x{font-size:.46em;vertical-align:.28em}
 
+/* --- a wall we have no feet for --------------------------------------- */
+/* The measurement is the hook, so the space it would have taken carries the
+   promise rather than a hole: the feet are coming. It is a note and not a
+   number, so it is set well below the figure it stands in for and never
+   pretends to be one — and nothing counts it, sprays it or rolls it,
+   because Live, Stencil and Cure bind to .dims and .stat-n alone.
+
+   One accent, and it is mint: --mint on --ink is 13.8:1 and on a card's
+   scrim it is the colour the caption is already set in. The canvas is dark
+   everywhere this appears, so there is no second colour to introduce. It
+   takes the display face at its uppercase, letter-spaced setting — the same
+   voice as the eyebrow over it — rather than a hand the design does not
+   have. */
+.feet-note{
+  display:block;font-family:var(--font-display);
+  font-variation-settings:'wdth' 118,'wght' 800;
+  text-transform:uppercase;letter-spacing:.12em;line-height:1.2;
+  color:var(--mint);font-size:clamp(1.1rem,2.6vw,1.4rem);
+}
+.pintro .feet-note{margin:1.4rem 0 1.8rem}
+.pcard .feet-note-sm{
+  font-size:.86rem;letter-spacing:.14em;line-height:1.15;
+}
+.pcard-lg .feet-note-sm{font-size:.95rem}
+.pnav-d.marker{letter-spacing:.12em;font-size:.9rem;font-variation-settings:'wdth' 118,'wght' 800}
+
 /* --- project card ----------------------------------------------------- */
 /* The card is the link. Photo at 4:3, the figures over a scrim at the foot,
    a hairline that goes mint when you reach it. */
