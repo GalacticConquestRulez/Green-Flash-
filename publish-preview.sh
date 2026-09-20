@@ -22,6 +22,12 @@ rm -rf "$STAGING"
 mkdir -p "$STAGING/assets"
 rsync -a --exclude 'assets/' site/ "$STAGING/"
 rsync -a out/img/ "$STAGING/assets/img/"
+# The films, the same way deploy.sh syncs them. site/assets/video is a symlink
+# into out/, and the rsync above excludes assets/ wholesale, so without this
+# line a republish would leave the preview with three <video> elements and no
+# files behind them - and the publish renames a fresh directory into place, so
+# the copies the last publish left there would go with it.
+[ -d out/video ] && rsync -a out/video/ "$STAGING/assets/video/"
 # The preview must never be indexed, whatever build.py wrote.
 printf 'User-agent: *\nDisallow: /\n' > "$STAGING/robots.txt"
 rm -f "$STAGING/sitemap.xml"
