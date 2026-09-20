@@ -890,7 +890,17 @@ CITIES = {(p['city'], p['state']) for p in PROJECTS}
 MEASURED = measured()
 TALLEST = max(MEASURED, key=lambda p: p['dim_h'])
 WIDEST = max(MEASURED, key=lambda p: p['dim_w'])
-ROCHESTER = [p for p in PROJECTS if p['category'] == 'civic']
+# The Rochester pair is a pair because the two walls are the same size to the
+# foot, and that is what the band and the row on Home both say. It is not
+# "the civic category" — Flower City Arts Center is civic and in Rochester too,
+# and dropping it into a band headed "Two walls in Rochester" would make the
+# heading a lie the day it joined. So: the civic walls in Rochester we have the
+# feet for, and an assert, because the copy below counts them out loud.
+ROCHESTER = [p for p in PROJECTS if p['category'] == 'civic'
+             and p['city'] == 'Rochester' and p['dim_w'] is not None]
+assert len(ROCHESTER) == 2, (
+    'the Rochester band and the Vision row on Home both say "two": '
+    f'{[q["slug"] for q in ROCHESTER]}')
 
 
 def stat(figure, label, mark=''):
