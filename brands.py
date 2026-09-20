@@ -17,10 +17,11 @@ So there are exactly two kinds of row in this file and no third:
 
 * ``mark='type'`` — no usable free SVG exists, so the cell is set as type, in
   the brand's own colour, with ``colour_note`` saying where that colour comes
-  from and how sure we are of it. Four brands are in this state today (Crown
-  Royal, Vitamin Water, Monkey 47, Jack Daniel's) and each one is a line in
-  CLAUDE.md's "needed from Ephraim" list: the day he sends the brand asset the
-  row changes kind and nothing else on the page moves.
+  from and how sure we are of it. Five brands are in this state today (Crown
+  Royal, Vitamin Water, Monkey 47, Jack Daniel's and AMC — Angel Media Co.)
+  and each one is a line in CLAUDE.md's "needed from Ephraim" list: the day he
+  sends the brand asset the row changes kind and nothing else on the page
+  moves.
 
 Every logo here is Public Domain on Commons — a wordmark below the threshold of
 originality — and every one of them is also a **trademark**. They are used the
@@ -165,12 +166,33 @@ BRANDS = [
      download=UPLOAD + 'b/ba/Corona_Extra_text_logo.svg',
      licence=PD_TEXTLOGO,
      note='The Corona Extra text logo in Corona blue (#005a9c in the file).'),
+
+  # Ephraim's drop, 2026-09-20 (docs/ephraim-drop-2026-09-20.md). The RAINS
+  # wall was painted for AMC — Angel Media Co., and the placard bolted to the
+  # brick under it is where the name comes from: it reads "AMC angelmediaco."
+  # and that is the whole of what we know the brand by. Wikimedia Commons has
+  # no file under Angel Media Co., angelmediaco or Angel Media logo — searched
+  # 2026-09-20 — so it is type, in the brand's own colour, which is the rule
+  # this file has had since it was written.
+  _b('amc-angel-media', 'AMC Angel Media Co.', mark='type', face='wide',
+     colour='#2A386F',
+     colour_note='The navy of the placard on the RAINS wall, sampled from '
+                 'Ephraim\u2019s own photograph of it (assets/rains-new-york-1.jpg): '
+                 'the trimmed mean of every distinctly blue pixel on the sign. '
+                 'A small sun-lit sign in a JPEG is an approximation and this '
+                 'colour is one — replace it the day the brand asset arrives.',
+     note='No free SVG on Wikimedia Commons under any spelling of the name. '
+          'Typographic wordmark for now.')
 ]
 
 # The order CLAUDE.md lists them in, which is the order on the wall: five
-# across, three down. A row added here changes the grid and nothing else.
-assert len(BRANDS) == 15, 'the wall is five across and three down'
-assert len({b['slug'] for b in BRANDS}) == 15, 'duplicate brand slug'
+# across, and a row for every five. A row added here changes the grid and
+# nothing else — the stylesheet gives a last cell that would be left alone on
+# its row the whole width of that row rather than a hole beside it, on the
+# desktop grid of five and the phone grid of two alike, so the wall stays a
+# rectangle at any count.
+assert len(BRANDS) == 16, 'the wall is five across; sixteen is three rows and a band'
+assert len({b['slug'] for b in BRANDS}) == len(BRANDS), 'duplicate brand slug'
 for _b_ in BRANDS:
     assert _b_['mark'] in ('svg', 'type'), _b_['slug']
     if _b_['mark'] == 'svg':

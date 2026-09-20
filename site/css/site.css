@@ -2631,7 +2631,7 @@ html.motion .tiprule.curing::after{
    ===================================================================== */
 
 /* --- the "Painted for" wall ----------------------------------------
-   Five across and three down on a ruled grid, two across on a phone, on
+   Five across on a ruled grid, two across on a phone, on
    white — the marks are the brands' own files in the brands' own colours
    (brands.py), so nothing here paints them. The cell is a fixed 2.2:1 box
    and the mark inside it is set to its own optical height, never to the
@@ -2649,6 +2649,14 @@ html.motion .tiprule.curing::after{
 .bword{line-height:1.05;font-size:15px;letter-spacing:.02em}
 .bcell .bword.serif{font-size:26px;font-style:italic;text-transform:none;letter-spacing:-.01em}
 .bcell .bword.tall{font-size:32px}
+/* A count that leaves one cell alone on the last row — sixteen into five —
+   gives that cell the whole row rather than a hole beside it. 11/1 is five
+   times the 2.2/1 every other cell has, so the band is exactly one row tall
+   and the wall is still a rectangle. The selector is the condition itself:
+   it only matches when the last cell is the first of its row, so a wall of
+   fifteen or of twenty is untouched by it. */
+.bcell:last-child:nth-child(5n+1){grid-column:1/-1;aspect-ratio:11/1}
+.bcell:last-child:nth-child(5n+1) .bword{font-size:22px}
 @media (max-width:760px){
   .brandwall{padding:56px 0 48px}
   .bgrid{grid-template-columns:repeat(2,1fr)}
@@ -2656,9 +2664,17 @@ html.motion .tiprule.curing::after{
   .bword{font-size:13px}
   .bcell .bword.serif{font-size:20px}
   .bcell .bword.tall{font-size:24px}
-  /* Fifteen into two columns leaves one over: give it the whole last row
-     rather than a half-empty cell with a hole beside it. */
-  .bcell:last-child{grid-column:span 2;aspect-ratio:4.4/1}
+  /* The same rule on the phone grid of two: an odd count leaves one over and
+     it takes the whole last row. An even one does not, and must not — the
+     span would push the last cell onto a row of its own and put the hole back.
+     The desktop band, if there is one, is already full width and stays so. */
+  .bcell:last-child:nth-child(odd){grid-column:span 2;aspect-ratio:4.4/1}
+  /* The desktop band is a rule about a grid of five and means nothing in a
+     grid of two: left standing it would span this row as well, push the last
+     cell off it and leave the hole it was written to prevent. Sixteen into
+     two is eight whole rows; the cell is an ordinary cell here. */
+  .bcell:last-child:nth-child(5n+1){grid-column:auto;aspect-ratio:2.2/1}
+  .bcell:last-child:nth-child(5n+1) .bword{font-size:13px}
 }
 
 /* --- the faces strand ----------------------------------------------
