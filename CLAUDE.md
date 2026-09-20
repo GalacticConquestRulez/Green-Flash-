@@ -402,3 +402,45 @@ reduced-motion, data-saver and no-script visitors see.
   it then becomes the thirteenth wall and the hero copy can name it.
 - nginx serves `/assets/video/` with `mp4;` and immutable caching (snippet
   updated); `deploy.sh` syncs `out/video/`.
+
+## Ephraim's drop, 2026-09-20 — RAINS and Flower City Arts Center
+The owner dropped `Ephraim website.zip` (1.28 GB) in and said *"he wants that content
+integrated into his site."* The whole brief and the file table are
+**`docs/ephraim-drop-2026-09-20.md`** — read that before touching either wall. It was
+written against the round-three redesign, so two of the seven commits it lists are not
+here: this branch has no "Painted for" brand wall for AMC and no `public_works()` strand.
+Everything else in it landed on this branch, restyled to the dark canvas and the one mint
+accent. The short version:
+- **RAINS**, New York, for **AMC — Angel Media Co.** (the placard on the brick reads
+  "AMC angelmediaco."). His drone edit is the page hero film, his portrait reel is "the
+  wall going up" under the story, and four of his photographs are the gallery.
+- **Flower City Arts Center**, Rochester — a community wall on the underpass by the
+  ballpark, **filmed by Max, @omgmaxgod**, which is the only photo credit on the site.
+  Hero and gallery are 4K frames from his film. It is civic, so the Work page's Civic
+  filter picks it up on its own.
+- **Dimensions may now be None** — both or neither — and `dims()` gives back nothing for
+  a wall without them. Every figure counts `measured()` and the sentence over the stats
+  band says so. A wall with no feet cannot carry the scale figure, so its page opens on
+  `film_hero()` — photograph, shade, words, with the film over the photograph — instead
+  of `scale_hero()`.
+- **`ROCHESTER` is no longer "the civic category".** Flower City is civic *and* in
+  Rochester, and the Home band is headed "Two walls in Rochester" and counts them out
+  loud in its own copy, so the list is now the civic Rochester walls we have the feet
+  for, with an assert behind it. Change the copy before you change the filter.
+
+### The two holes, and they are the same hole twice
+- **The feet for both walls.** Nobody has measured either for us, so both carry
+  `dim_w=None, dim_h=None` and the card, the page and the project nav say *feet to come*.
+  Ask him; fill in two numbers and four places on the site change themselves. **Do not
+  estimate them off a photograph.**
+- **The years are answered** (the owner, 2026-09-20): RAINS **2024**, Flower City
+  **2023** — the years he posted the films, not dates read off the walls, so they sit in
+  the Year row of the project meta and nowhere else in the copy.
+
+### And the standing rule both walls sit under
+**Never state a wall count** (the owner, 2026-09-19): *"Don't say 12 walls — he has more
+not on there, and wants to show more of his public works like Colossal did; he's been to
+Mexico, Brazil, teen empowerment and more, so don't limit."* The rows in `projects.py`
+are the walls we have photographs of, not his body of work. No "twelve walls", no wall
+count on the stats band, no "six of them here" over the Home row — square feet stays only
+because it is phrased "and counting", and it now counts `measured()` alone.
