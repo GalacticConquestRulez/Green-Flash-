@@ -1289,7 +1289,11 @@ html.motion .sp-stroke.go .sp-sweep{
 .pmeta{display:flex;flex-wrap:wrap;gap:1.6rem 2.6rem;margin:2rem 0 0;padding-top:1.5rem;border-top:1px solid var(--line)}
 .pmeta dt{font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .pmeta dd{margin:.35rem 0 0;font-weight:600}
-.credit{margin-top:1.4rem;font-size:.86rem;color:var(--dim)}
+/* The photograph credit. Until Flower City there was no project with one, so
+   this rule had never been rendered — and --dim on --ink is 3.8:1, which is
+   under AA at .86rem. --muted is 8.9:1 (the table at the head of this file).
+   It is a person's name on their own film; it has to be readable. */
+.credit{margin-top:1.4rem;font-size:.86rem;color:var(--muted)}
 
 /* --- previous and next ------------------------------------------------- */
 .pnav-wrap{padding-top:0}
