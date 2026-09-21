@@ -391,6 +391,10 @@ def check_projects():
         assert p['year'] is None or (isinstance(p['year'], int) and 1900 < p['year'] < 2100), (
             f"{slug}: year is {p['year']!r} — leave it None rather than guess")
         assert p['story'] and p['title'] and p['city'] and p['state'], f'{slug}: missing text'
+        # A film with no words over it would be a rectangle in the middle of a
+        # page. The band is only built for a row that brought both.
+        assert not p.get('film') or (p.get('film_eyebrow') and p.get('film_line')), (
+            f'{slug}: film= needs film_eyebrow and film_line beside it')
         for name in [p['hero']] + list(p['gallery']):
             assert os.path.exists(os.path.join(root, name + '.webp')), (
                 f'{slug}: out/img/{name}.webp is missing — run ./process.sh '
@@ -508,6 +512,39 @@ def _uid(text):
     return '-'.join(p for p in out.split('-') if p)[:48] or 'stroke'
 
 
+# The one-line script that goes after a <video> with two renditions. It calls
+# the picker the head bootstrap defined, while the parser is still standing
+# where the element is — see clip_sources().
+PICK = '<script>oagPick()</script>'
+
+
+def clip_sources(name):
+    """(poster, the source the HTML names, the source a big screen swaps in).
+
+    Every clip in out/video/ is built twice (make-*-clip.sh): the cut at the
+    camera's own size and rate, and a 1920-wide companion of the same cut.
+
+    **The server HTML names the companion.** That is the file a phone should
+    be given, and it is the only file a visitor with no script or with reduced
+    motion should ever be asked to fetch — for both of them the clip is
+    display:none and there is nothing on screen to justify the download.
+
+    The big one is named on data-hi, and PICK — one call, in the body, right
+    after the element — swaps it in while the parser is still there, before
+    the browser has begun choosing a resource. That is why it is not a line in
+    site.js: site.js is deferred, and by the time a deferred script runs the
+    1080 file is already on the wire, so swapping it there would spend a
+    request to save a download. Here nothing is requested twice.
+    """
+    for suffix in ('.mp4', '-1080.mp4', '.webp'):
+        assert os.path.exists(f'out/video/{name}{suffix}'), (
+            f'clip {name}: out/video/{name}{suffix} is missing — '
+            f'run the make-*.sh that builds it')
+    return (u(f'/assets/video/{name}.webp'),
+            u(f'/assets/video/{name}-1080.mp4'),
+            u(f'/assets/video/{name}.mp4'))
+
+
 def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_alt='',
               video=None, wall=False, extra='', tip=False, hl=''):
     """The top of a page: a photograph, a shade over it, and the words.
@@ -518,7 +555,10 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
     description of the mural; leave it empty only when the photograph is
     genuinely decorative, which on this site it never is.
 
-    video names a clip in out/video/ (<name>.mp4 + <name>.webp poster). It
+    video names a clip in out/video/. Two renditions of it exist — the cut at
+    the camera's own size and a 1920-wide companion — and clip_sources() says
+    which one the HTML names and which one a wide screen swaps in before the
+    browser has asked for anything. It
     plays muted, looped, inline, on top of the photograph: the photograph is
     still the LCP element and the still every crawler, reader mode and
     reduced-motion visitor gets; the clip is the motion. site.js pauses it
@@ -550,11 +590,10 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
     """
     clip = ''
     if video:
-        assert os.path.exists(f'out/video/{video}.mp4') and os.path.exists(f'out/video/{video}.webp'), \
-            f'hero video {video}: out/video/{video}.mp4 and .webp must exist'
-        clip = (f'<video class="hero-video" data-autoplay autoplay muted loop playsinline preload="metadata" '
-                f'poster="{u("/assets/video/" + video + ".webp")}" aria-hidden="true" tabindex="-1">'
-                f'<source src="{u("/assets/video/" + video + ".mp4")}" type="video/mp4"></video>')
+        poster, src, hi = clip_sources(video)
+        clip = (f'<video class="hero-video" data-autoplay data-hi="{hi}" autoplay muted loop '
+                f'playsinline preload="metadata" poster="{poster}" aria-hidden="true" tabindex="-1">'
+                f'<source src="{src}" type="video/mp4"></video>{PICK}')
     media = (f'<div class="hero-media">'
              f'{pic(media_slug, media_alt, HERO_SIZES, extra="fetchpriority=\"high\"", lazy=False)}{clip}'
              f'</div><div class="hero-shade"></div>') if media_slug else ''
@@ -890,7 +929,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None)
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>(function(d){{var c=d.documentElement.classList;c.add('js');try{{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)c.add('motion')}}catch(e){{}}}})(document)</script>
+<script>(function(d){{var c=d.documentElement.classList;c.add('js');try{{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)c.add('motion')}}catch(e){{}}var hi=false;try{{hi=c.contains('motion')&&matchMedia('(min-width: 900px)').matches}}catch(e){{}}window.oagPick=function(){{var s=d.currentScript,v=s&&s.previousElementSibling,q;if(!hi||!v||!v.dataset||!v.dataset.hi)return;q=v.querySelector('source');if(q)q.src=v.dataset.hi}}}})(document)</script>
 <title>{html.escape(title)}</title>
 <meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{canonical}">
@@ -1540,6 +1579,48 @@ def film_hero(p):
                      video=p.get('video'), crumb=False, cls='tall')
 
 
+def film_band(p):
+    """The whole film, with its sound, behind a button.
+
+    The hero clip is a cut with no sound, built to sit behind a headline. This
+    is the film itself, at the size and the bitrate it was delivered in, with
+    its audio, because a visitor who presses "watch the film" has asked for the
+    film and not for a version of it. It is a big file and that is what the
+    button is for: the element is preload="none", so nothing at all is fetched
+    until somebody clicks, and nginx serves /assets/video/ with ranges, so what
+    is fetched is the part being watched.
+
+    The <video> is in the server HTML with its controls and its poster, so with
+    no script — and under reduced motion — this is already a film a visitor can
+    play, with the browser's own control. What site.js adds under html.motion is
+    the one thing the native control cannot be: a button the size of the
+    picture, in the site's own type. It is built there and nowhere else,
+    because a button that cannot do anything is worse than no button (which is
+    what the paint tin taught us). Splat never sees it either: the click
+    mechanic acts on a[href] and on a form's submit, and this is neither.
+
+    Nothing here can move a box: the frame is aspect-ratio 16/9 in every state,
+    and the poster, the paused film and the playing film are the same shape.
+    """
+    film = p['film']
+    for suffix in ('.mp4', '.webp'):
+        assert os.path.exists(f'out/video/{film}{suffix}'), (
+            f'film {film}: out/video/{film}{suffix} is missing — run ./make-films.sh')
+    credit = f'<p class="credit">{p["credit"]}</p>' if p['credit'] else ''
+    return f'''<section class="film"><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">{p['film_eyebrow']}</span></div>
+  <h2 class="tall">Watch the <em class="pop">film</em></h2>
+  <p class="lead serif">{p['film_line']}</p></div>
+  <figure class="film-frame rv" data-film>
+    <video class="film-video" controls playsinline preload="none" width="3840" height="2160"
+           poster="{u("/assets/video/" + film + ".webp")}">
+      <source src="{u("/assets/video/" + film + ".mp4")}" type="video/mp4">
+    </video>
+  </figure>
+  {credit}
+</div></section>'''
+
+
 def progress_band(p):
     """The wall going up: Ephraim's own portrait reel, in a phone-shaped frame.
 
@@ -1561,16 +1642,14 @@ def progress_band(p):
 
     The sentence is this reel's: a second progress reel would need its own.
     """
-    clip = p['progress']
-    assert os.path.exists(f'out/video/{clip}.mp4') and os.path.exists(f'out/video/{clip}.webp'), \
-        f'progress clip {clip}: out/video/{clip}.mp4 and .webp must exist'
+    poster, src, hi = clip_sources(p['progress'])
     return f'''<section class="progress"><div class="wrap">
   <div class="progress-grid">
     <figure class="progress-phone rv">
-      <video class="progress-video" data-inview width="720" height="1280" controls muted loop
-             playsinline preload="metadata" poster="{u("/assets/video/" + clip + ".webp")}">
-        <source src="{u("/assets/video/" + clip + ".mp4")}" type="video/mp4">
-      </video>
+      <video class="progress-video" data-inview data-hi="{hi}" width="1080" height="1920" controls
+             muted loop playsinline preload="metadata" poster="{poster}">
+        <source src="{src}" type="video/mp4">
+      </video>{PICK}
     </figure>
     <div class="progress-words rv rv-d1">
       <h2 class="tall">The wall <em class="pop">going up</em></h2>
@@ -1633,6 +1712,7 @@ def project_page(p):
   {credit}
 </div></section>
 {progress_band(p) if p.get('progress') else ''}
+{film_band(p) if p.get('film') else ''}
 {gallery}
 <section class="pnav-wrap"><div class="wrap">
   <nav class="pnav" aria-label="More projects">{step(prv, 'prev', 'Previous', 'chevL')}{step(nxt, 'next', 'Next', 'chevR')}</nav>

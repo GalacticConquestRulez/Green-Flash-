@@ -5,24 +5,35 @@
 #   assets/source/ephraim-drop/9_16 Progress Visual_.mp4
 #                                    2160x3840 60fps H.264, 34 s, from
 #                                    "Ephraim website.zip" (the owner, 2026-09-20)
-#   out/video/rains-progress.mp4     the reel whole, 720x1280 30fps crf 30, no
-#                                    audio. It is Ephraim's own edit and it
-#                                    already has the arc the section wants -
-#                                    the RAINS artwork card, the wall going up
-#                                    from the lift over the block, and the
-#                                    Open Air Gallery card it ends on - so it
-#                                    is re-encoded rather than re-cut. 2160 is
-#                                    exactly three times 720, so the scale is
-#                                    a clean third and nothing is cropped.
-#   out/video/rains-progress.webp    poster, from 12 s in: the lift at the
-#                                    wall, which is what the section is about.
+#
+#   The reel is kept whole rather than re-cut: it is Ephraim's own edit and it
+#   already has the arc the section wants - the RAINS artwork card, the wall
+#   going up from the lift over the block, and the Open Air Gallery card it
+#   ends on.
+#
+#   out/video/rains-progress.mp4       2160x3840 60fps at source size and rate,
+#                                      H.264 high@5.2, crf 23 capped at 12
+#                                      Mbit, no audio, faststart.
+#   out/video/rains-progress-1080.mp4  1080x1920, crf 24 - the source the
+#                                      server HTML names, so no phone and no
+#                                      reduced-motion visitor fetches the big
+#                                      one. site.js swaps it above 900px.
+#   out/video/rains-progress.webp      poster, full size, from 12 s in: the
+#                                      lift at the wall, which is what the
+#                                      section is about.
 set -e
 cd "$(dirname "$0")"
 mkdir -p out/video
 SRC='assets/source/ephraim-drop/9_16 Progress Visual_.mp4'
 OUT=out/video/rains-progress
-nice -n 15 ffmpeg -v error -y -i "$SRC" -an \
-  -vf "scale=720:1280,fps=30,format=yuv420p" \
-  -c:v libx264 -preset slow -crf 30 -profile:v high -movflags +faststart "$OUT.mp4"
-nice -n 15 ffmpeg -v error -y -ss 12 -i "$OUT.mp4" -frames:v 1 -c:v libwebp -quality 74 "$OUT.webp"
-ls -la "$OUT".*
+
+enc() {   # enc <width> <height> <crf> <dest>
+  nice -n 15 ffmpeg -v error -y -i "$SRC" -an \
+    -vf "scale=$1:$2:force_original_aspect_ratio=increase,crop=$1:$2,fps=60,format=yuv420p" \
+    -c:v libx264 -preset slow -crf "$3" -maxrate 12M -bufsize 24M \
+    -profile:v high -level 5.2 -movflags +faststart "$4"
+}
+enc 2160 3840 23 "$OUT.mp4"
+enc 1080 1920 24 "$OUT-1080.mp4"
+nice -n 15 ffmpeg -v error -y -ss 12 -i "$OUT.mp4" -frames:v 1 -c:v libwebp -quality 76 "$OUT.webp"
+ls -la "$OUT".mp4 "$OUT-1080.mp4" "$OUT.webp"
