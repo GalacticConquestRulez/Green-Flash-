@@ -418,22 +418,35 @@ accent. The short version:
   ballpark, **filmed by Max, @omgmaxgod**, which is the only photo credit on the site.
   Hero and gallery are 4K frames from his film. It is civic, so the Work page's Civic
   filter picks it up on its own.
-- **Dimensions may now be None** — both or neither — and `dims()` gives back nothing for
-  a wall without them. Every figure counts `measured()` and the sentence over the stats
-  band says so. A wall with no feet cannot carry the scale figure, so its page opens on
-  `film_hero()` — photograph, shade, words, with the film over the photograph — instead
-  of `scale_hero()`.
-- **`ROCHESTER` is no longer "the civic category".** Flower City is civic *and* in
-  Rochester, and the Home band is headed "Two walls in Rochester" and counts them out
-  loud in its own copy, so the list is now the civic Rochester walls we have the feet
-  for, with an assert behind it. Change the copy before you change the filter.
+- **Dimensions may still be None** — both or neither — and `dims()` gives back nothing
+  for a wall without them. Every figure counts `measured()` and the stats band says so.
+  No wall on the roster is unmeasured today (the owner sent the last two on 2026-09-21),
+  and the path is kept for the next one that arrives without a tape measure.
+- **A wall opens on `film_hero()` because it has a film, not because it lacks feet.**
+  That used to be the same test and stopped being one on 2026-09-21. `scale_hero()` is
+  for a wall with feet and no film; RAINS and Flower City have both and keep the film,
+  because the film is what the drop was for — the figure moved down into the words under
+  it, where it is the first thing after the title.
+- **`ROCHESTER` is not "the civic category" and not "the civic Rochester walls" either.**
+  Flower City is civic *and* in Rochester *and* now has feet, and the Home band is headed
+  "Two walls in Rochester" and calls the two the same size to the foot in the same breath.
+  So the list is the civic Rochester walls that **share a measurement** (53 × 50, twice),
+  with an assert behind it. Change the copy before you change the filter.
 - **Every hero clip is built twice** (the `make-*.sh` scripts): the cut at the camera's
-  own size and rate, and a 1920-wide companion at crf 24. The server HTML names the
-  companion — a phone, a no-script visitor and a reduced-motion visitor must never be
-  asked for the 4K file — and `PICK`, one line **inside** each `<video>` ahead of its
+  own size and rate, and a 1920-wide companion at **crf 26, capped at 5 Mbit with a
+  10M buffer** (2026-09-21; it was crf 24 at 12 Mbit, which was a 4K file's bitrate at a
+  fifth of a 4K file's pixels). The server HTML names the companion — a phone, a
+  no-script visitor and a reduced-motion visitor must never be asked for the 4K
+  file — and `PICK`, one line **inside** each `<video>` ahead of its
   `<source>`, sets the element's own src to the master above 900px. It has to be exactly
   there: a `<source>` in an empty media element starts resource selection, so a script
   after the element is already too late, and site.js is deferred, which is later still.
+- **The portrait reel names one file and only one** (2026-09-21). `progress_band()` has
+  no `data-hi`: the frame is 300px wide at every width, so the 1080×1920 companion is
+  already more picture than it can hold and there is nothing for a wide screen to swap
+  in. `out/video/rains-progress.mp4`, the 2160×3840 master, is a build intermediate the
+  poster is cut from and is not shipped — `clip_sources(name, hi=False)` does not ask for
+  it on disk.
 - **Both films are on their pages whole, with sound, behind a play button** —
   `film_band()`, `out/video/film-*.mp4`, remuxed with no re-encode. The element is
   `preload="none"`, so nothing is fetched until somebody clicks; the button is built by
@@ -441,11 +454,15 @@ accent. The short version:
   there. Splat does not touch it: the click mechanic only acts on `a[href]` and a form's
   submit.
 
-### The two holes, and they are the same hole twice
-- **The feet for both walls.** Nobody has measured either for us, so both carry
-  `dim_w=None, dim_h=None` and the card, the page and the project nav say *feet to come*.
-  Ask him; fill in two numbers and four places on the site change themselves. **Do not
-  estimate them off a photograph.**
+### The one hole left
+- **The feet arrived** (the owner, 2026-09-21): RAINS **15 × 15**, Flower City Arts
+  Center **25 × 50** — in his words, *"15x15 on rains and 25x50 on flower city"*, written
+  wide by tall like every other wall on the site. Two numbers filled four places on their
+  own: the hook on each project page, the figure on each Work card, the square-foot total
+  and the widest/tallest sentence on the stats band. **The optional-feet path stays** —
+  `dim_w=None, dim_h=None`, `measured()`, `feet_note()` and the `.dims`-or-note branch in
+  `pcard()` and `project_page()` are all still there, because the next wall he sends may
+  arrive unmeasured too.
 - **The years are answered** (the owner, 2026-09-20): RAINS **2024**, Flower City
   **2023** — the years he posted the films, not dates read off the walls, so they sit in
   the Year row of the project meta and nowhere else in the copy.

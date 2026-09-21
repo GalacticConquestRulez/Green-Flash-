@@ -27,7 +27,8 @@
 #   out/video/hero-rains.mp4         the cut at source size and rate: 3840x2160
 #                                    60fps, H.264 high@5.2, crf 23 capped at
 #                                    12 Mbit, yuv420p, no audio, faststart.
-#   out/video/hero-rains-1080.mp4    the same cut at 1920x1080, crf 24. The
+#   out/video/hero-rains-1080.mp4    the same cut at 1920x1080, crf 26 and
+#                                    capped at 5 Mbit (bufsize 10M). The
 #                                    server HTML names THIS one, so a phone
 #                                    with no script and a visitor who asked for
 #                                    reduced motion never fetch thirty
@@ -50,13 +51,17 @@ FPS=60
 # Both renditions are encoded from the master, never one from the other: a
 # 1080 made by shrinking the 4K encode inherits its artefacts and then adds
 # its own.
-enc() {   # enc <width> <height> <crf> <dest>
+# The companion is capped harder than the master on purpose (crf 26, 5 Mbit,
+# bufsize 10M): it is the file every phone, every no-script visitor and every
+# reduced-motion visitor is offered, and at crf 24 / 12 Mbit it was carrying a
+# 4K file's bitrate at a fifth of a 4K file's pixels. The master is unchanged.
+enc() {   # enc <width> <height> <crf> <maxrate> <bufsize> <dest>
   nice -n 15 ffmpeg -v error -y -i "$SRC" -an -filter_complex \
     "$CUTS,scale=$1:$2:force_original_aspect_ratio=increase,crop=$1:$2,fps=$FPS,format=yuv420p[v]" \
-    -map "[v]" -c:v libx264 -preset slow -crf "$3" -maxrate 12M -bufsize 24M \
-    -profile:v high -level 5.2 -movflags +faststart "$4"
+    -map "[v]" -c:v libx264 -preset slow -crf "$3" -maxrate "$4" -bufsize "$5" \
+    -profile:v high -level 5.2 -movflags +faststart "$6"
 }
-enc 3840 2160 23 "$OUT.mp4"
-enc 1920 1080 24 "$OUT-1080.mp4"
+enc 3840 2160 23 12M 24M "$OUT.mp4"
+enc 1920 1080 26 5M 10M "$OUT-1080.mp4"
 nice -n 15 ffmpeg -v error -y -ss 10.4 -i "$OUT.mp4" -frames:v 1 -c:v libwebp -quality 76 "$OUT.webp"
 ls -la "$OUT".mp4 "$OUT-1080.mp4" "$OUT.webp"
