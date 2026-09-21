@@ -113,8 +113,12 @@ PROJECTS = [
   dict(slug='showtime-dexter-boston', title='Showtime', client='Showtime',
        city='Boston', state='MA', dim_w=18, dim_h=9, year=None,
        category='brand', hero='showtime-dexter-boston-hero', gallery=[],
-       story='Showtime, Boston — 18 feet wide by 9 feet tall, the smallest of the '
-             'twelve by area.',
+       # "the smallest of the twelve" was a count, and a count of the roster
+       # is a claim about his body of work — CLAUDE.md, never state one. It
+       # was also about to be wrong: the roster is not twelve any more, and
+       # the day a smaller wall arrives the sentence changes itself.
+       story='Showtime, Boston — 18 feet wide by 9 feet tall, the smallest wall '
+             'on this page by area.',
        credit=None, featured=False),
 
   dict(slug='upendo-los-angeles', title='Upendo', client='Upendo',
