@@ -473,9 +473,8 @@ def asset_v(rel):
         return hashlib.md5(f.read()).hexdigest()[:8]
 
 
-# The one-line script that goes after a <video> with two renditions. It calls
-# the picker the head bootstrap defined, while the parser is still standing
-# where the element is — see clip_sources().
+# The one line that goes INSIDE a <video> with two renditions, ahead of its
+# <source>. See clip_sources() for why it can be nowhere else.
 PICK = '<script>oagPick()</script>'
 
 
@@ -490,12 +489,29 @@ def clip_sources(name):
     motion should ever be asked to fetch — for both of them the clip is
     display:none and there is nothing on screen to justify the download.
 
-    The big one is named on data-hi, and PICK — one call, in the body, right
-    after the element — swaps it in while the parser is still there, before
-    the browser has begun choosing a resource. That is why it is not a line in
-    site.js: site.js is deferred, and by the time a deferred script runs the
-    1080 file is already on the wire, so swapping it there would spend a
-    request to save a download. Here nothing is requested twice.
+    The big one is named on data-hi, and PICK — one call, **inside** the
+    element and ahead of its <source> — is what chooses.
+
+    It has to be exactly there. A <source> inserted into an empty media element
+    sets the resource selection algorithm going, and Chrome has picked its
+    candidate before the next tag is read: rewriting source.src afterwards
+    changes the attribute and not currentSrc, and calling load() to force it
+    through spends a second request to save a download. Ahead of the <source>
+    there is nothing to undo — the picker sets the *element's* src, which makes
+    <source> children moot by the spec's own rule, and exactly one file is ever
+    asked for. It is not in site.js for the same reason, only worse: site.js is
+    deferred, and by the time a deferred script runs the small file is already
+    on the wire.
+
+    The element is also served **preload="none" and without autoplay**, and the
+    picker is what turns both back on. That is what the three renders want. A
+    visitor with no script, or with reduced motion, has .hero-video set to
+    display:none — there is nothing on screen to justify a download, and now
+    there is not one; the same goes for a metered connection, which the picker
+    stands down for. The <source> still names the 1080 file, so the no-JS
+    document is complete and the reel below, which is not hidden, still has a
+    film behind its play button. The photograph under the clip is untouched and
+    is still what those visitors see.
     """
     for suffix in ('.mp4', '-1080.mp4', '.webp'):
         assert os.path.exists(f'out/video/{name}{suffix}'), (
@@ -546,9 +562,9 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
     clip = ''
     if video:
         poster, src, hi = clip_sources(video)
-        clip = (f'<video class="hero-video" data-autoplay data-hi="{hi}" autoplay muted loop '
-                f'playsinline preload="metadata" poster="{poster}" aria-hidden="true" tabindex="-1">'
-                f'<source src="{src}" type="video/mp4"></video>{PICK}')
+        clip = (f'<video class="hero-video" data-autoplay data-hi="{hi}" muted loop '
+                f'playsinline preload="none" poster="{poster}" aria-hidden="true" '
+                f'tabindex="-1">{PICK}<source src="{src}" type="video/mp4"></video>')
     media = (f'<div class="hero-media">'
              f'{pic(media_slug, media_alt, HERO_SIZES, extra="fetchpriority=\"high\"", lazy=False)}{clip}'
              f'</div><div class="hero-shade"></div>') if media_slug else ''
@@ -819,7 +835,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None)
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>(function(d){{var c=d.documentElement.classList;c.add('js');try{{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)c.add('motion')}}catch(e){{}}var hi=false;try{{hi=c.contains('motion')&&matchMedia('(min-width: 900px)').matches}}catch(e){{}}window.oagPick=function(){{var s=d.currentScript,v=s&&s.previousElementSibling,q;if(!hi||!v||!v.dataset||!v.dataset.hi)return;q=v.querySelector('source');if(q)q.src=v.dataset.hi}}}})(document)</script>
+<script>(function(d){{var c=d.documentElement.classList;c.add('js');try{{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)c.add('motion')}}catch(e){{}}var wide=false;try{{wide=matchMedia('(min-width: 900px)').matches}}catch(e){{}}var save=false;try{{var n=navigator.connection;save=!!(n&&n.saveData)}}catch(e){{}}window.oagPick=function(){{var s=d.currentScript,v=s&&s.parentElement;if(!v||v.tagName!=='VIDEO'||!v.dataset.hi||!c.contains('motion')||save)return;if(wide)v.src=v.dataset.hi;v.preload='metadata';if(v.hasAttribute('data-autoplay'))v.setAttribute('autoplay','')}}}})(document)</script>
 <title>{html.escape(title)}</title>
 <meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{canonical}">
@@ -1170,9 +1186,9 @@ def progress_band(p):
   <div class="progress-grid">
     <figure class="progress-phone rv">
       <video class="progress-video" data-inview data-hi="{hi}" width="1080" height="1920" controls
-             muted loop playsinline preload="metadata" poster="{poster}">
+             muted loop playsinline preload="none" poster="{poster}">{PICK}
         <source src="{src}" type="video/mp4">
-      </video>{PICK}
+      </video>
     </figure>
     <div class="progress-words rv rv-d1">
       <h2>The wall <em>going up</em></h2>
