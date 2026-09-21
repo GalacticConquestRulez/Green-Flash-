@@ -41,6 +41,8 @@ year      None until Ephraim confirms          category 'brand'|'portrait'|'civi
 hero      out/img/<hero>.webp and friends      gallery  extra image names
 video     out/video/<video>.{mp4,webp}, laid over the hero photograph
 progress  out/video/<progress>.{mp4,webp}, the portrait reel under the story
+film      out/video/<film>.{mp4,webp}, the whole film behind the play button,
+          with film_eyebrow and film_line as the words over it
 story     one paragraph                        credit   None until supplied
 featured  on the Home row and in the footer
 """
@@ -159,7 +161,10 @@ PROJECTS = [
   dict(slug='rains-new-york', title='Rains', client='AMC × Angel Media Co.',
        city='New York', state='NY', dim_w=None, dim_h=None, year=2024,
        category='brand', hero='rains-new-york-hero', video='hero-rains',
-       progress='rains-progress',
+       progress='rains-progress', film='film-rains',
+       film_eyebrow='with the sound on',
+       film_line='Ephraim\u2019s own edit of the job \u2014 the same flight the top of '
+                 'this page is cut from, at full size and with its sound.',
        gallery=['rains-new-york-1', 'rains-new-york-2', 'rains-new-york-3',
                 'rains-new-york-4'],
        story='Three faces and the word RAINS, painted on a Manhattan wall for '
@@ -176,7 +181,10 @@ PROJECTS = [
        client='Flower City Arts Center',
        city='Rochester', state='NY', dim_w=None, dim_h=None, year=2023,
        category='civic', hero='flower-city-arts-center-rochester-hero',
-       video='hero-flower-city',
+       video='hero-flower-city', film='film-flower-city',
+       film_eyebrow='with the sound on',
+       film_line='Max\u2019s film of the wall, start to finish: the crew, the lifts, '
+                 'and the people it was painted with.',
        gallery=['flower-city-arts-center-rochester-1',
                 'flower-city-arts-center-rochester-2',
                 'flower-city-arts-center-rochester-3'],
