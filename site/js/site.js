@@ -298,10 +298,49 @@
   try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
   if (!motion || reduced) return;
 
+  /* The whole film, behind a button.
+     The <video> is already in the server HTML with its controls, its poster
+     and preload="none", so with no script — and under reduced motion, where
+     this block never runs — it is a film a visitor can play with the browser's
+     own control, and nothing is fetched until they do. What is added here is
+     the one thing that control cannot be: a button the width of the picture,
+     in the site's own type, so a still reads as an invitation. It is built
+     here rather than in the server HTML because a button that cannot do
+     anything is worse than no button — the same reason the paint tin gets its
+     role from this file — and that is also why the play glyph lives here and
+     not in build.py's ICONS: the element it goes in is built here.
+     Splat never sees it. The click mechanic acts on a[href] and on a form's
+     submit button, and this is neither. */
+  const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" '
+             + 'focusable="false"><path d="M8 5.2v13.6c0 .9 1 1.5 1.8 1l11-6.8c.7-.5.7-1.5 '
+             + '0-1.9l-11-6.8C9 3.7 8 4.3 8 5.2z"/></svg>';
+  document.querySelectorAll('[data-film]').forEach(fig => {
+    const v = fig.querySelector('video');
+    if (!v) return;
+    v.controls = false;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn film-play';
+    b.innerHTML = PLAY + 'Watch the film';
+    b.addEventListener('click', () => {
+      // Pressed by a person, so the sound is allowed — which is the point of
+      // this and not of the muted loop at the top of the page.
+      v.controls = true;
+      v.preload = 'auto';
+      v.play().catch(() => { v.controls = true; });
+      b.remove();
+    });
+    fig.appendChild(b);
+  });
+
   /* The hero clip. It has the autoplay attribute, so it starts on its own
      where the browser allows; this is the nudge for the ones that wait for
      a script, and the one place data-saver is honoured: on a metered
-     connection the still stays and the clip never loads. */
+     connection the still stays and the clip never loads.
+     Which file it is playing was settled before this ran: the rendition is
+     picked by the one-line script the page writes after each element, while
+     the parser is still standing there (build.py, clip_sources()). Doing it
+     here would be too late — the 1080 file would already be on the wire. */
   document.querySelectorAll('video[data-autoplay]').forEach(v => {
     const c = navigator.connection;
     if (c && c.saveData) { v.removeAttribute('autoplay'); v.preload = 'none'; return; }

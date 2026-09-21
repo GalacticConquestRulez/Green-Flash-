@@ -427,6 +427,19 @@ accent. The short version:
   Rochester, and the Home band is headed "Two walls in Rochester" and counts them out
   loud in its own copy, so the list is now the civic Rochester walls we have the feet
   for, with an assert behind it. Change the copy before you change the filter.
+- **Every hero clip is built twice** (the `make-*.sh` scripts): the cut at the camera's
+  own size and rate, and a 1920-wide companion at crf 24. The server HTML names the
+  companion — a phone, a no-script visitor and a reduced-motion visitor must never be
+  asked for the 4K file — and `PICK`, one line **inside** each `<video>` ahead of its
+  `<source>`, sets the element's own src to the master above 900px. It has to be exactly
+  there: a `<source>` in an empty media element starts resource selection, so a script
+  after the element is already too late, and site.js is deferred, which is later still.
+- **Both films are on their pages whole, with sound, behind a play button** —
+  `film_band()`, `out/video/film-*.mp4`, remuxed with no re-encode. The element is
+  `preload="none"`, so nothing is fetched until somebody clicks; the button is built by
+  site.js under `html.motion` and with no script the browser's own control is already
+  there. Splat does not touch it: the click mechanic only acts on `a[href]` and a form's
+  submit.
 
 ### The two holes, and they are the same hole twice
 - **The feet for both walls.** Nobody has measured either for us, so both carry
@@ -436,6 +449,15 @@ accent. The short version:
 - **The years are answered** (the owner, 2026-09-20): RAINS **2024**, Flower City
   **2023** — the years he posted the films, not dates read off the walls, so they sit in
   the Year row of the project meta and nowhere else in the copy.
+- **`16_9 VFX.mp4` in the drop is damaged.** It has a corrupt packet at 50.35 s (frame
+  3021 of 3507) and every reader stops dead there — `-err_detect ignore_err` does not get
+  past it, because the NAL length written in the file is wrong and there is nothing after
+  it to resynchronise on. So `film-rains.mp4` is 50.35 s of Ephraim's 58.45 s cut: it
+  loses the tail of the closing pull-away and nothing else, and the hero cut is
+  untouched because its last beat ends at 49.3 s. `16_9 No FX.mp4` reads end to end but
+  is the same flight *without* the grade and the title card, so it is not a substitute.
+  **Ask Ephraim to send `16_9 VFX.mp4` again**, drop it in and re-run `./make-films.sh`;
+  the duration is how you check it arrived.
 
 ### And the standing rule both walls sit under
 **Never state a wall count** (the owner, 2026-09-19): *"Don't say 12 walls — he has more

@@ -12,7 +12,7 @@ content integrated into his site."* It is extracted to `assets/source/ephraim-dr
 | `16_9(2).jpg` 3217×1924 | High aerial, the block with the wall small | gallery 3 |
 | `16_9(1).jpg` 2078×1169 | Aerial, the wall on the red-brick building | gallery 4 |
 | `16_9 VFX.mp4` 4K60 H.264, 58 s | Drone film: opens on the Manhattan skyline with an "Open Air Gallery" title card, descends to the wall, close on the faces and the painter on the lift, pulls away. Same cut as "No FX" but with the graphics. | **RAINS page hero film** |
-| `16_9 No FX.mp4` | The same flight without graphics | keep as source, unused |
+| `16_9 No FX.mp4` | The same flight without graphics | keep as source, unused — and the only one of the two that reads end to end (see below) |
 | `9_16 Progress Visual_.mp4` 2160×3840 60fps, 34 s | Portrait reel: the RAINS artwork card, then the wall going up from the lift, ends on the Open Air Gallery card | **"the wall going up" portrait clip on the RAINS page** |
 | `flower-city-arts-center.mov` (was ` .mov`) 4K24 H.264, 60 s | Title card "FLOWER CITY ARTS CENTER — shot by @omgmaxgod". Rochester: an underpass wall by the ballpark, painters on lifts, a community group in front of the finished wall. Film by Max (DroneGodMax). | **Flower City Arts Center public-works project**: hero + gallery frames from the film, page hero film |
 
@@ -30,6 +30,15 @@ content integrated into his site."* It is extracted to `assets/source/ephraim-dr
   now the only hole left on either wall.** The years above are the years the films were
   posted, which is what the owner supplied — they are not dates read off the walls, so
   they sit in the Year row of the project meta and nowhere else in the copy.
+
+### The VFX file is damaged (found 2026-09-21, cutting the full film)
+`16_9 VFX.mp4` stops at **50.35 s of 58.45** — a corrupt packet at dts 3020000, frame 3021
+of 3507, which no reader gets past (`-err_detect ignore_err` included: the NAL length in
+the file is wrong, so there is nothing after it to resynchronise on). The hero cut is
+unaffected, because its last beat ends at 49.3 s. The full film on the page is therefore
+50.35 s and loses the tail of the closing pull-away. `16_9 No FX.mp4` is whole but is the
+same flight without the grade or the title card. **Ask Ephraim to re-send the file** and
+re-run `./make-films.sh`.
 
 ## What changes (one commit each, on `openairgallery-redesign`)
 1. **Dimensions become optional.** `projects.py` entries may carry `dim_w: None, dim_h: None`.
