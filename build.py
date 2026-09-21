@@ -17,6 +17,7 @@ Every root-absolute link in the output goes through u() and every image through
 img(), so the same build runs at the domain root and under a preview prefix.
 """
 import os, sys, re, html, json, struct, hashlib
+from collections import Counter
 from urllib.parse import quote as _urlq
 from art import brush_rule_svg, roller_pass_svg, spraycan_pass_svg, can_tipping_svg
 from strokes import stroke_svg, highlight_svg
@@ -517,7 +518,7 @@ def _uid(text):
 PICK = '<script>oagPick()</script>'
 
 
-def clip_sources(name):
+def clip_sources(name, hi=True):
     """(poster, the source the HTML names, the source a big screen swaps in).
 
     Every clip in out/video/ is built twice (make-*-clip.sh): the cut at the
@@ -551,14 +552,22 @@ def clip_sources(name):
     document is complete and the reel below, which is not hidden, still has a
     film behind its play button. The photograph under the clip is untouched and
     is still what those visitors see.
+
+    hi=False is for a clip that is never drawn bigger than its companion
+    already is — the portrait reel sits in a 300px frame at every width, and a
+    2160x3840 master swapped into a 300px box is thirty megabytes spent on
+    pixels no screen can show. There is then no big file to name, so the
+    master is not asked for on disk either: a rendition nothing can ever
+    fetch should not be built, shipped or synced.
     """
-    for suffix in ('.mp4', '-1080.mp4', '.webp'):
+    wanted = ('.mp4', '-1080.mp4', '.webp') if hi else ('-1080.mp4', '.webp')
+    for suffix in wanted:
         assert os.path.exists(f'out/video/{name}{suffix}'), (
             f'clip {name}: out/video/{name}{suffix} is missing — '
             f'run the make-*.sh that builds it')
     return (u(f'/assets/video/{name}.webp'),
             u(f'/assets/video/{name}-1080.mp4'),
-            u(f'/assets/video/{name}.mp4'))
+            u(f'/assets/video/{name}.mp4') if hi else None)
 
 
 def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_alt='',
@@ -1362,15 +1371,23 @@ TALLEST = max(MEASURED, key=lambda p: p['dim_h'])
 WIDEST = max(MEASURED, key=lambda p: p['dim_w'])
 # The Rochester pair is a pair because the two walls are the same size to the
 # foot, and that is what the band and the row on Home both say. It is not
-# "the civic category" — Flower City Arts Center is civic and in Rochester too,
-# and dropping it into a band headed "Two walls in Rochester" would make the
-# heading a lie the day it joined. So: the civic walls in Rochester we have the
-# feet for, and an assert, because the copy below counts them out loud.
-ROCHESTER = [p for p in PROJECTS if p['category'] == 'civic'
-             and p['city'] == 'Rochester' and p['dim_w'] is not None]
+# "the civic category" and it is not "the civic walls in Rochester" either:
+# Flower City Arts Center is civic, is in Rochester, and since 2026-09-21 has
+# feet of its own — 25 by 50, which is not the pair's 53 by 50. Having no feet
+# used to be what kept it out; feet that do not match are what keep it out
+# now, and that is the rule the copy actually states. So: the civic walls in
+# Rochester that share a measurement with another, and an assert, because the
+# band below counts them out loud and calls them the same size in the same
+# breath.
+_ROCHESTER_CIVIC = [p for p in PROJECTS if p['category'] == 'civic'
+                    and p['city'] == 'Rochester' and p['dim_w'] is not None]
+_ROCHESTER_SIZES = Counter((p['dim_w'], p['dim_h']) for p in _ROCHESTER_CIVIC)
+ROCHESTER = [p for p in _ROCHESTER_CIVIC
+             if _ROCHESTER_SIZES[(p['dim_w'], p['dim_h'])] > 1]
 assert len(ROCHESTER) == 2, (
-    'the Rochester band and the Vision row on Home both say "two": '
-    f'{[q["slug"] for q in ROCHESTER]}')
+    'the Rochester band and the Vision row on Home both say "two", and both '
+    'say the two are the same size to the foot: '
+    f'{[(q["slug"], q["dim_w"], q["dim_h"]) for q in _ROCHESTER_CIVIC]}')
 
 
 def stat(figure, label, mark=''):
@@ -1575,7 +1592,7 @@ def scale_hero(p):
 
 
 def film_hero(p):
-    """The top of a project page that has no feet to hang a figure on.
+    """The top of a project page that opens on a film, or has no feet.
 
     scale_hero() is the hook: the wall at full bleed with a six-foot figure
     standing on it, sized from the wall's own width. With no width there is
@@ -1585,6 +1602,12 @@ def film_hero(p):
     the words — and the film, where there is one, lies over the photograph
     exactly as Home's does: same element, same poster, same reduced-motion,
     data-saver and no-script behaviour, because it is the same function.
+
+    A wall Ephraim filmed opens here too, feet or no feet. RAINS and Flower
+    City were measured on 2026-09-21 and did not go back to scale_hero for
+    it: the film is the whole reason the drop exists and it is the better top
+    of the page, so the figure moved down into the words instead, where it is
+    still the first thing under the title.
 
     The crumbs stay in the words below, where every project page has always
     kept them: page_hero's crumb is two levels and a project is three.
@@ -1656,14 +1679,22 @@ def progress_band(p):
     Nothing here can move a box: the frame is an aspect-ratio 9/16 well, the
     clip carries its own intrinsic 720x1280, and the poster is the same shape.
 
+    It names one file and only one. The hero clips carry data-hi and PICK
+    because a hero is the width of the window and a 4K screen can show a 4K
+    frame; this reel is 300px wide on a desktop and narrower on a phone, so
+    the 1080x1920 companion is already more picture than the frame can hold
+    and there is nothing for a wide screen to swap in. No data-hi means
+    oagPick() would return on its first line, so the call goes too rather
+    than sitting in the markup doing nothing.
+
     The sentence is this reel's: a second progress reel would need its own.
     """
-    poster, src, hi = clip_sources(p['progress'])
+    poster, src, _ = clip_sources(p['progress'], hi=False)
     return f'''<section class="progress"><div class="wrap">
   <div class="progress-grid">
     <figure class="progress-phone rv">
-      <video class="progress-video" data-inview data-hi="{hi}" width="1080" height="1920" controls
-             muted loop playsinline preload="none" poster="{poster}">{PICK}
+      <video class="progress-video" data-inview width="1080" height="1920" controls
+             muted loop playsinline preload="none" poster="{poster}">
         <source src="{src}" type="video/mp4">
       </video>
     </figure>
@@ -1709,17 +1740,24 @@ def project_page(p):
                 f'<span class="pnav-t">{q["title"]}</span>'
                 f'<span class="pnav-d{"" if ft else " marker"}">{figure}</span></a>')
 
-    # A wall with feet leads with the figure standing on the photograph, and
-    # the words under it carry the title. A wall without them has no figure to
-    # stand, so the title is in the hero with the film and the words pick up
-    # at the note that says the feet are coming — the heading is not said twice.
+    # A wall with feet and no film leads with the figure standing on the
+    # photograph, and the words under it carry the title. A wall with a film
+    # opens on the film, so its title is already in the hero and the words
+    # pick up at the figure itself — the heading is never said twice, and a
+    # wall with neither feet nor a film gets the note where the figure goes.
     ft = p['dim_w'] is not None
-    head = (f'''<div class="eyebrow"><span class="marker">{place}</span></div>
+    film = bool(p.get('video'))
+    if film:
+        head = dims(p['dim_w'], p['dim_h']) or feet_note()
+    elif ft:
+        head = f'''<div class="eyebrow"><span class="marker">{place}</span></div>
   <h1 class="tall">{p['title']}</h1>
-  {dims(p['dim_w'], p['dim_h'])}''' if ft else feet_note())
+  {dims(p['dim_w'], p['dim_h'])}'''
+    else:
+        head = feet_note()
 
     return f'''
-{scale_hero(p) if ft else film_hero(p)}
+{scale_hero(p) if ft and not film else film_hero(p)}
 <section class="pintro">{glow()}<div class="wrap">
   <div class="crumbs"><a href="{u('/')}">Home</a><span>/</span><a href="{u('/work')}">Work</a><span>/</span><span>{p['title']}</span></div>
   {head}

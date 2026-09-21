@@ -13,11 +13,18 @@
 #
 #   out/video/rains-progress.mp4       2160x3840 60fps at source size and rate,
 #                                      H.264 high@5.2, crf 23 capped at 12
-#                                      Mbit, no audio, faststart.
-#   out/video/rains-progress-1080.mp4  1080x1920, crf 24 - the source the
-#                                      server HTML names, so no phone and no
-#                                      reduced-motion visitor fetches the big
-#                                      one. site.js swaps it above 900px.
+#                                      Mbit, no audio, faststart. A build
+#                                      intermediate only: the poster below is
+#                                      cut from it and nothing on the site
+#                                      names it, so it is not kept in
+#                                      out/video and never shipped (2026-09-21).
+#   out/video/rains-progress-1080.mp4  1080x1920, crf 24 - the ONLY file the
+#                                      page names, at every width. The frame is
+#                                      300px wide on a desktop and narrower on a
+#                                      phone, so there is nothing a big screen
+#                                      could usefully swap in: progress_band()
+#                                      carries no data-hi and calls
+#                                      clip_sources(..., hi=False).
 #   out/video/rains-progress.webp      poster, full size, from 12 s in: the
 #                                      lift at the wall, which is what the
 #                                      section is about.
@@ -36,4 +43,7 @@ enc() {   # enc <width> <height> <crf> <dest>
 enc 2160 3840 23 "$OUT.mp4"
 enc 1080 1920 24 "$OUT-1080.mp4"
 nice -n 15 ffmpeg -v error -y -ss 12 -i "$OUT.mp4" -frames:v 1 -c:v libwebp -quality 76 "$OUT.webp"
-ls -la "$OUT".mp4 "$OUT-1080.mp4" "$OUT.webp"
+# The master has done its job once the poster is out of it. Keeping it would put
+# thirty megabytes nothing on the site can fetch into every rsync of out/video/.
+rm -f "$OUT.mp4"
+ls -la "$OUT-1080.mp4" "$OUT.webp"

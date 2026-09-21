@@ -154,12 +154,13 @@ PROJECTS = [
 
   # Ephraim's own drop, 2026-09-20 (docs/ephraim-drop-2026-09-20.md): a wall
   # that was never on his Wix Work page, so it joins at the end of the order
-  # that page set rather than being slotted into the middle of it. He gave the
-  # films and the photographs and not the measurements — both dimensions stay
-  # None and the page says the feet are coming. The year is the year he posted
-  # the film (the owner, 2026-09-20), not a date read off the wall.
+  # that page set rather than being slotted into the middle of it. The films
+  # and the photographs came with the drop; the feet came from the owner on
+  # 2026-09-21 — "15x15 on rains" — written wide by tall like every other row
+  # in this file. The year is the year he posted the film (the owner,
+  # 2026-09-20), not a date read off the wall.
   dict(slug='rains-new-york', title='Rains', client='AMC × Angel Media Co.',
-       city='New York', state='NY', dim_w=None, dim_h=None, year=2024,
+       city='New York', state='NY', dim_w=15, dim_h=15, year=2024,
        category='brand', hero='rains-new-york-hero', video='hero-rains',
        progress='rains-progress', film='film-rains',
        film_eyebrow='with the sound on',
@@ -169,17 +170,20 @@ PROJECTS = [
                 'rains-new-york-4'],
        story='Three faces and the word RAINS, painted on a Manhattan wall for '
              'AMC — Angel Media Co., whose placard sits under it. It went up by '
-             'hand from a boom lift; the feet are still to come.',
+             'hand from a boom lift, 15 feet wide by 15 feet tall.',
        credit=None, featured=True),
 
   # The second wall out of the same drop. A community wall under the bridge by
   # the ballpark, filmed by Max (@omgmaxgod) — the only project on the site
   # with a credit on it, because it is the only one where somebody other than
-  # Ephraim's own camera is the source. Feet unknown, year from the post date
-  # (the owner, 2026-09-20). Its photographs are frames pulled from the film.
+  # Ephraim's own camera is the source. The feet came from the owner on
+  # 2026-09-21 — "25x50 on flower city" — and the year from the post date (the
+  # owner, 2026-09-20). Its photographs are frames pulled from the film. It is
+  # the one wall on the roster that is taller than it is wide, which is what a
+  # wall under a bridge abutment is.
   dict(slug='flower-city-arts-center-rochester', title='Flower City Arts Center',
        client='Flower City Arts Center',
-       city='Rochester', state='NY', dim_w=None, dim_h=None, year=2023,
+       city='Rochester', state='NY', dim_w=25, dim_h=50, year=2023,
        category='civic', hero='flower-city-arts-center-rochester-hero',
        video='hero-flower-city', film='film-flower-city',
        film_eyebrow='with the sound on',
@@ -190,7 +194,7 @@ PROJECTS = [
                 'flower-city-arts-center-rochester-3'],
        story='A community wall with Flower City Arts Center, on the underpass by the '
              'ballpark in Rochester — a block of storefronts and portraits, painted '
-             'from lifts along the concrete. The feet are still to come.',
+             'from lifts along the concrete, 25 feet wide by 50 feet tall.',
        credit='Film by Max — @omgmaxgod', featured=False),
 ]
 
