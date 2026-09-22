@@ -660,3 +660,49 @@
     });
   });
 })();
+
+
+/* =====================================================================
+   THE CLIENT STRIP — the light walks
+
+   The strip is monochrome with one mark left in colour (home.py's LIT), and
+   hovering any of them lights it — all of that is CSS and happens with no
+   script at all. This is the slow part: under html.motion the lit ring walks
+   to the next mark every four seconds, so a visitor who looks at the strip
+   for a moment sees each of Drew's clients in their own colours rather than
+   whichever one the markup happened to light.
+
+   It pauses while the pointer is on the strip (you are reading it; it should
+   hold still) and while the strip is off screen (an interval firing at a
+   section nobody is looking at is just a timer). Four seconds is deliberate:
+   the plan asks for a slow, gentle highlight, not a carousel.
+   ===================================================================== */
+(function(){
+  const mm=window.mm;
+  if(!mm||!mm.motion) return;
+  const strip=mm.$('[data-demo="logos"]');
+  if(!strip) return;
+  const chips=mm.$$('.chip',strip);
+  if(chips.length<2) return;
+
+  let i=chips.findIndex(c=>c.classList.contains('is-lit'));
+  if(i<0)i=0;
+  let timer=null, hover=false, seen=false;
+  const step=()=>{
+    chips[i].classList.remove('is-lit');
+    i=(i+1)%chips.length;
+    chips[i].classList.add('is-lit');
+  };
+  const halt=()=>{if(timer){clearInterval(timer);timer=null}};
+  const run=()=>{if(timer||hover||!seen)return;timer=setInterval(step,4000)};
+
+  const io=mm.io(es=>es.forEach(e=>{
+    seen=e.isIntersecting;
+    seen?run():halt();
+  }),{threshold:0.2});
+  if(!io) return;
+
+  strip.addEventListener('pointerenter',()=>{hover=true;halt()});
+  strip.addEventListener('pointerleave',()=>{hover=false;run()});
+  io.observe(strip);
+})();
