@@ -371,13 +371,19 @@
       const line=mkNS('polyline','mm-line',svg);
       line.setAttribute('points',pts);
       line.setAttribute('vector-effect','non-scaling-stroke');
+      // The undrawn state has to be put on WITHOUT the transition and then
+      // committed, or the browser spends the 2.2s transitioning INTO the full
+      // dash — the line draws itself backwards and then snaps. Suppress,
+      // set, read the computed value back (which commits it), restore.
       const len=(line.getTotalLength&&line.getTotalLength())||600;
+      line.style.transition='none';
       line.style.strokeDasharray=len;
       line.style.strokeDashoffset=len;
+      getComputedStyle(line).strokeDashoffset;
+      line.style.transition='';
       const fig=mk('b','mm-fig mono',well);
       fig.textContent=figText(f,1);
       fig.setAttribute('aria-hidden','true');
-      void well.offsetWidth;
       return {
         dur:3000,
         steps:[[0,()=>{line.style.strokeDashoffset='0'}],

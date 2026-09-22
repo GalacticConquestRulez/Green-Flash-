@@ -48,6 +48,11 @@
    under the visitor's pointer.
    ===================================================================== */
 
+/* A card with a demo running lights its well. On a desktop the card's own
+   hover already does this (10-home.css); on a phone there is no hover, so
+   this is the only thing that says the tap did something. */
+html.motion .svc.mm-on .svc-demo{border-color:var(--green)}
+
 /* The website card: the wires draw in, then a button lands and is clicked.
    The button sits on the third rule's line, to the right of it — the shortest
    of the three wires is the one with room beside it, and a button drawn over
