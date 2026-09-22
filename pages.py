@@ -211,10 +211,116 @@ def drone_rail():
         cls='band-alt')
 
 
+# ------------------------------------------------------------------ /pricing
+def pricing_page():
+    B = _b()
+    groups = []
+    for s in SERVICES:
+        keys = [k for k, p in PRICING.items() if p['service'] == s['slug']]
+        if not keys:
+            continue
+        bullets = {k: TBC for k in keys} if s['slug'] == 'social' else None
+        words = 'prices-words' if s['slug'] == 'lead-conversion' else ''
+        about = (f'<a class="btn btn-ghost" href="{B.u("/" + s["slug"])}">'
+                 f'About this service</a>')
+        groups.append(
+            '<div class="pg-group">'
+            + sec_head(s['name'], two_tone(s['name'], 1), aside=about)
+            + price_row(keys, bullets=bullets, cls=words)
+            + '</div>')
+    return dict(
+        title=f'Pricing | {SITE["name"]}',
+        desc='Every Mendoza Marketing package and what it costs: website design '
+             'and re-design, Meta ad setup and filming, social media, logo design, '
+             'drone sessions and lead conversion.',
+        og='logo',
+        body='\n'.join([
+            B.page_hero('Pricing', 'Every package.<span>Every price.</span>',
+                        'What each service costs, up front. Where a job is bigger '
+                        'than the package, the price moves with it &mdash; and you '
+                        'are told before anything starts.',
+                        crumb='Pricing'),
+            section('\n'.join(groups)),
+            B.cta(title='Not sure which one you need?',
+                  text='Tell Drew what the business is and what you want it to do. '
+                       'You get a plan and a price back.',
+                  primary=('Get a quote', '/contact'),
+                  secondary=('See the results', '/results')),
+        ]))
+
+
+# --------------------------------------------------------------------- /work
+def work_page():
+    B = _b()
+    logos = ''.join(
+        f'<div class="logo-card panel rv rv-d{i % 3 + 1}">'
+        f'<div class="logo-shot">{B.pic(c["slug"], c["name"] + " logo", B.CARD_SIZES)}</div>'
+        f'<h3>{c["name"]}</h3>'
+        f'<p class="mono logo-work">{c["work"]}</p>'
+        f'<p class="logo-note">{c["detail"] or "Details to confirm with Drew."}</p>'
+        f'</div>' for i, c in enumerate(CLIENTS))
+
+    renders = ''.join(
+        f'<figure class="case-shot rv">{B.pic(slug, alt, "(min-width:960px) 45vw, 100vw")}'
+        f'<figcaption>{alt}</figcaption></figure>' for slug, alt in CASE['renders'])
+
+    sites = ''.join(
+        f'<div class="site-card panel rv rv-d{i % 3 + 1}"><h3>{s["name"]}</h3>'
+        f'<p class="mono logo-work">{s["work"]}</p><p>{s["blurb"]}</p></div>'
+        for i, s in enumerate(SITES))
+
+    reels = ''.join(reel_card(slug, title, sub) for slug, title, sub in REELS)
+
+    return dict(
+        title=f'Work | {SITE["name"]}',
+        desc='Brands, websites and content by Mendoza Marketing: logo and brand '
+             'work, the Isle de Grande logo, and the reels running on client pages '
+             'around Grand Island and Buffalo, New York.',
+        og='isle-de-grande',
+        body='\n'.join([
+            B.page_hero('Work', 'The marks.<span>The films.</span>',
+                        'A selection of what Drew has built &mdash; the logos, the '
+                        'websites and the content. There is more of it than fits on '
+                        'one page: ask him what he has done in your line of business.',
+                        crumb='Work'),
+            section(sec_head('Brands', 'Logo and<span>brand work.</span>')
+                    + f'<div class="grid grid-4 logos">{logos}</div>'),
+            section(sec_head(CASE['work'],
+                             f'{CASE["name"]}<span>{CASE["blurb"]}</span>',
+                             aside=f'<a class="btn btn-ghost" href="{B.u("/logo")}">'
+                                   f'About logo design</a>')
+                    + f'<div class="grid grid-2 case">{renders}</div>',
+                    cls='band-alt'),
+            section(sec_head('Websites', 'Built and<span>launched.</span>')
+                    + f'<div class="grid grid-3 sites">{sites}</div>'),
+            section(sec_head('Content in action', 'Made for the feed.<span>Filmed for the client.</span>',
+                             aside='<p class="sec-note">Kelly&rsquo;s Country Store &mdash; '
+                                   'viral content management and Meta ad campaigns.</p>')
+                    + f'<div class="grid grid-3 reels">{reels}</div>',
+                    cls='band-alt'),
+            B.cta(primary=('Get a quote', '/contact'),
+                  secondary=('See the results', '/results')),
+        ]))
+
+
+def reel_card(slug, title, sub):
+    """One vertical reel in a phone frame. Sound is part of the work, so these
+    are never autoplayed and never muted-by-default: the visitor presses play."""
+    B = _b()
+    poster, src = B.clip(slug)
+    return (f'<figure class="reel rv">'
+            f'<div class="phone"><video controls preload="none" playsinline '
+            f'poster="{poster}"><source src="{src}" type="video/mp4"></video></div>'
+            f'<figcaption><b>{title}</b><span class="mono">{sub}</span></figcaption>'
+            f'</figure>')
+
+
 # ---------------------------------------------------------------------- all
 def inner_pages():
     """Every page in this file, keyed the way build.py's write loop wants it."""
     out = {}
     for s in SERVICES:
         out['/' + s['slug']] = service_page(s)
+    out['/pricing'] = pricing_page()
+    out['/work'] = work_page()
     return out
