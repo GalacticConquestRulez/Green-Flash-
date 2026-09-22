@@ -445,7 +445,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, og=None):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>(function(d){{var c=d.documentElement.classList;c.add('js');try{{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)c.add('motion')}}catch(e){{}}}})(document)</script>
+<script>(function(d){{var c=d.documentElement.classList;c.add('js');try{{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)c.add('motion')}}catch(e){{}}var wide=false;try{{wide=matchMedia('(min-width: 900px)').matches}}catch(e){{}}var save=false;try{{var n=navigator.connection;save=!!(n&&n.saveData)}}catch(e){{}}window.mmPick=function(v){{if(!v||v.tagName!=='VIDEO'||!v.dataset.hi||!c.contains('motion')||save)return;if(wide)v.src=v.dataset.hi;v.preload='metadata';if(v.hasAttribute('data-autoplay'))v.setAttribute('autoplay','')}}}})(document)</script>
 <title>{html.escape(title)}</title>
 <meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{canonical}">

@@ -85,3 +85,56 @@
   /* ---- the year in the footer ------------------------------------------ */
   const y=$('#year'); if(y) y.textContent=new Date().getFullYear();
 })();
+
+
+/* =====================================================================
+   mm — the motion kit.
+
+   Step 5's layer. Everything below this line is enhancement on a page that
+   is already complete: every module returns on its first line unless
+   html.motion is on the document, and html.motion is only on it when the
+   browser runs JavaScript and the visitor has not asked for reduced motion.
+   Nothing here supplies a word, a figure or a frame that the server HTML
+   does not already hold.
+
+   One rAF loop for the whole page, the DGM way (window.dgmLoop is the same
+   shape): add() registers a callback for good, and pump(+1)/pump(-1) is how
+   a module that needs frames holds the loop open and lets it go. A page with
+   nothing moving asks for no frames at all.
+
+   The flags are read once, here, rather than in six places:
+     motion  html.motion — the whole contract
+     fine    a real pointer that can hover; a phone gets taps instead
+     save    the visitor is on a metered connection — no film is fetched
+
+   `window.mmPick`, the hero's 4K/1080 picker, is NOT here: it has to exist
+   before the hero <video> parses, so it is defined inline in the head by
+   build.py's layout(). This file is deferred and would arrive far too late.
+   ===================================================================== */
+(function(){
+  const root=document.documentElement;
+  const mq=q=>{try{return matchMedia(q).matches}catch(e){return false}};
+  const q=[]; let ticking=false, pumps=0;
+  const onFrame=now=>{
+    ticking=false;
+    for(let i=0;i<q.length;i++){try{q[i](now)}catch(e){}}
+    if(pumps>0) tick();
+  };
+  const tick=()=>{if(!ticking){ticking=true;requestAnimationFrame(onFrame)}};
+  // add() hands back its own remover, so a demo that has finished stops
+  // costing the loop a function call on every frame for the rest of the visit.
+  const add=f=>{q.push(f);return ()=>{const i=q.indexOf(f);if(i>=0)q.splice(i,1)}};
+  const pump=d=>{pumps=Math.max(0,pumps+d);if(pumps>0)tick()};
+  // One factory so a module never has to remember the feature test. No
+  // IntersectionObserver (or a browser old enough not to have one) means the
+  // module simply does not run and the page stays as the server wrote it.
+  const io=(cb,opt)=>('IntersectionObserver' in window)?new IntersectionObserver(cb,opt):null;
+  window.mm={
+    motion:root.classList.contains('motion'),
+    fine:mq('(hover:hover) and (pointer:fine)'),
+    save:(()=>{try{const n=navigator.connection;return !!(n&&n.saveData)}catch(e){return false}})(),
+    add, pump, tick, io,
+    $:(s,c=document)=>c.querySelector(s),
+    $$:(s,c=document)=>[...c.querySelectorAll(s)],
+  };
+})();
