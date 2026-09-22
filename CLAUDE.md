@@ -117,6 +117,8 @@ site/js/site.js          the base layer only: nav, active link, reveal
                          observer, lightbox shell
 process.sh               logos, client logos, photos → webp sets  (media builder)
 make-clips.sh            the hero film, the drone rail, Kelly's reels (media builder)
+tools/make-og.py         the mark cut out of assets/logo.jpg → the favicon set
+                         and the 1200x630 share cards, into out/img/
 assets/                  the originals Drew sent            (gitignored)
 out/img, out/video       the renditions the pipeline makes  (gitignored)
 site/assets/             symlinks into out/ so `python3 -m http.server -d site`
@@ -145,6 +147,68 @@ Git: branch `main`, remote `gf`
 (`git@github.com:GalacticConquestRulez/Green-Flash-.git`), pushed to
 **`drew-main`** there — the same remote Open Air Gallery uses with its own
 branch names. One idea per commit.
+
+---
+
+## SEO
+
+Every page carries the same head, built in `layout()`: a `<title>` from
+`seo_title()` (the brand, an em dash, what the page is — asserted at 60
+characters, which is what a search result prints), a `description` asserted at
+155, a canonical, `og:type/site_name/title/description/url/image` with the
+card's real pixel size, `twitter:card summary_large_image`, `theme-color`
+`#050A0A`, and the four icons. Absolute URLs — canonical, `og:url`,
+`og:image`, every `@id` in the graph — are built from `BASE_URL` plus a bare
+path and **never** through `u()`: on the preview `BASE_URL` already ends in
+`/p/<slug>`, so prefixing twice makes every share card 404.
+
+| page | carries, beyond the head |
+|---|---|
+| `/` | `LocalBusiness` |
+| the six services | `LocalBusiness` + `Service` with an `Offer` per package the page prints, priced from `PRICING`; `og-<slug>.png` |
+| `/pricing` | `LocalBusiness` + `OfferCatalog`, all nine rows |
+| `/work`, `/results` | `LocalBusiness` |
+| `/about` | `LocalBusiness` + `Person` (Drew) |
+| `/contact` | `LocalBusiness` + `ContactPage` |
+| `/404` | noindex, no graph, not in the sitemap |
+
+Descriptions for the six service pages live in `content.SEO` beside the copy
+they were shortened from — they are Drew's own opening sentences, fewer words.
+The rest are written where their page is defined. Prices in the graph come from
+`PRICING` like everything else (rule 6); lead conversion is an `Offer` with his
+sentence and **no price**, because commission-or-hourly is not a number.
+
+`tools/make-og.py` makes the icons and the cards out of `assets/logo.jpg` —
+the mark measured out of the top two thirds, his black cut away by luminance.
+Run it once after a fresh clone, or the build warns (rule 10) and the tabs have
+no icon. It fetches Space Grotesk and Inter from google/fonts into
+`assets/fonts/` with their SIL OFL text.
+
+`sitemap.xml` lists every public page with `lastmod` = the build date.
+`robots.txt` is `Allow: /` with the sitemap line at the domain root, and
+`Disallow: /` under `PREFIX` — belt and braces, since `publish-preview.sh`
+already overwrites robots and deletes the sitemap in its staging copy *after*
+the rsync.
+
+**On go-live, three things change and nothing else.**
+
+1. `BASE_URL` — `deploy.sh` must export `https://drew.greenflashusa.com` (the
+   build's default), and every canonical, `og:url`, `@id` and sitemap entry
+   follows it.
+2. The canonicals then point at the live domain rather than the preview, which
+   is the moment the site becomes indexable. Check `robots.txt` on the server
+   reads `Allow: /` and that `/sitemap.xml` is there.
+3. `sameAs` in the `LocalBusiness` block is `[url for ... in SITE['socials']
+   if url]` — an empty list today. The day Drew sends his Instagram and
+   Facebook URLs, filling them in `content.SITE['socials']` links his profiles
+   to his business in the graph and lights up the footer icons at the same
+   time. Nothing else needs touching.
+
+Also still open: the business `image`/`logo` in the graph is `og.png`, the card
+we cut from his JPEG. When the transparent PNG or the vector lands, re-run
+`tools/make-og.py` and both improve without a code change. There is no street
+address, no opening hours and no rating in the graph, because the site
+publishes none of them.
 
 ---
 
