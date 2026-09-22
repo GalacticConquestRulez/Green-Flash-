@@ -411,7 +411,7 @@ def price_card(key, bullets=(), featured=False, badge=None, cta_label='Get a quo
   {f'<span class="badge">{badge}</span>' if badge else ''}
   <span class="tier">{p['tier']}</span>
   <h3>{p['name']}</h3>
-  <div class="amount">{qual}{p['amount']}{note}</div>
+  <div class="amount">{qual}{' ' if qual else ''}{p['amount']}{note}</div>
   {f'<ul>{b}</ul>' if b else ''}
   <a class="btn" href="{href}">{cta_label}</a>
 </div>'''
