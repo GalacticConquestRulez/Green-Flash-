@@ -79,7 +79,12 @@ plus the client's daily ad budget. If the current site is right, change
    `html.motion` only, and carries the 2.8s self-reveal bail-out. No-JS and
    `prefers-reduced-motion` must render the page **complete** and identical to
    each other. No counters, scores, XP or checklists — the only numbers that
-   move are Drew's own dashboard figures. No sound.
+   move are Drew's own dashboard figures. The site never starts sound: the three Kelly's
+   reels play muted, and a visitor can turn one reel's sound on with a tap (a "Sound on"
+   chip shows it, one reel at a time, off again when it leaves view). Nothing else makes a
+   sound.
+   On a phone the first tap on a service card plays that card's demo and stays put; the
+   second tap opens the page (a phone has no hover). Enter on a focused card always navigates.
 5. **PREFIX.** Every root-absolute link goes through `u()`, every image through
    `img()`/`pic()`. `PREFIX=/p/test python3 build.py` must be as correct as a
    plain build — that is what makes the preview work.
