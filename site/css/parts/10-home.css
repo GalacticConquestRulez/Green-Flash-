@@ -1,0 +1,263 @@
+/* Mendoza Marketing — the Home page.
+
+   This file styles Home and nothing else: the hero, the client strip, the
+   module grid, the results band, the reels, the beats, the About teaser and
+   the twin cards. The tokens, the type, the buttons, the nav, the footer and
+   the reveal contract are 00-base.css's and are not restated here.
+
+   site/css/site.css is concatenated from site/css/parts/*.css in name order,
+   so this file lands after the base and before the inner pages. It may
+   therefore lean on every token the base declares, and it must not redefine
+   any of them.
+
+   =====================================================================
+   CONTRAST — the pairs this file introduces (CLAUDE.md rule 9: add a pair,
+   add the number). Computed with the WCAG 2.x relative-luminance formula,
+   the same arithmetic as the table at the top of 00-base.css.
+
+   --band #070d0d is the recessed band the strip, the results, the beats and
+   the twin cards sit on: one notch darker than the canvas, which is what
+   separates them without drawing a line. --well #0b1413 is the inside of a
+   demo well and of an icon chip — a hole in a panel rather than a surface.
+
+     foreground        background      ratio     verdict
+     --ink    #f0ffff  --band #070d0d  19.07:1   AAA   headings, figures
+     --green  #2de8b5  --band #070d0d  12.42:1   AAA   eyebrows, deltas
+     --green-2#7FF2D1  --band #070d0d  14.48:1   AAA   hover
+     --muted  #93A3A3  --band #070d0d   7.47:1   AAA   labels, leads
+     --ink    #f0ffff  --well #0b1413  18.20:1   AAA   (no type today)
+     --green  #2de8b5  --well #0b1413  11.86:1   AAA   the card icons
+     --muted  #93A3A3  --well #0b1413   7.13:1   AAA   (no type today)
+
+   Two pairs carry no type and are exempt by definition:
+     --band   #070d0d  on --bg    #050A0A  1.02:1  surface only
+     --well   #0b1413  on --panel #1A1F1F  1.12:1  surface only
+
+   =====================================================================
+   MOTION — every animated thing on this page is step 5's, and every one of
+   them is animated ON TOP of a finished element: the bars are drawn at their
+   widths here, the chart holds all ninety of its points, the figures are
+   printed, the films have their posters. Nothing below hides anything from a
+   visitor with no script. The only hiding on the page is .rv, which is the
+   base's contract and bails out after 2.8s.
+*/
+
+:root{
+  --band:#070d0d;                 /* 19.07:1 with --ink — see the table */
+  --well:#0b1413;                 /* the inside of a well or an icon chip */
+}
+
+/* A band is the same page, one notch back. Hairlines top and bottom so two
+   bands in a row still read as two. */
+.band{background:var(--band);border-block:1px solid var(--line)}
+
+/* --------------------------------------------------------------- the hero */
+/* Taller than an inner page's hero — this is the one full-height thing on the
+   site — and the words sit on the floor of it, over the film's darkest part.
+   svh rather than vh so a phone's collapsing address bar does not push the
+   buttons off the bottom. */
+.home-hero{position:relative;isolation:isolate;overflow:hidden;
+  min-height:88svh;display:flex;align-items:flex-end;
+  padding:calc(var(--nav-h) + 3rem) 0 3.5rem}
+@media (min-width:960px){.home-hero{min-height:92svh;
+  padding:calc(var(--nav-h) + 5rem) 0 4rem}}
+.home-hero .hero-media{position:absolute;inset:0;z-index:-2}
+.home-hero .hero-media video{width:100%;height:100%;object-fit:cover;
+  filter:saturate(.85)}
+/* The shade is what makes white type legible on a film nobody has graded for
+   it: dark at the top so the glass nav has something to sit on, dark again at
+   the bottom where the words are, and resolved into the canvas so the band
+   below begins without a seam. */
+.home-hero .hero-shade{position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(180deg,rgba(5,10,10,.66),rgba(5,10,10,.5) 45%,
+    rgba(5,10,10,.82) 78%,var(--bg))}
+.home-hero .hero-inner{max-width:980px}
+/* Bigger than an inner page's h1: Drew's references set the home headline as
+   large as the canvas allows, and this is the one place on the site that
+   does it. */
+.home-hero h1{font-size:clamp(3rem,7.4vw,6.6rem);margin-top:.15em}
+.home-hero .lead{margin:1.3rem 0 0;max-width:46ch}
+.home-hero .btn-row{margin-top:1.8rem}
+
+/* ------------------------------------------------------- the client strip */
+.strip{padding:1.6rem 0}
+.strip .wrap{display:flex;align-items:center;justify-content:space-between;
+  gap:1.2rem 2rem;flex-wrap:wrap}
+.strip-k{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted)}
+.strip-logos{list-style:none;display:flex;align-items:center;
+  gap:1rem;flex-wrap:wrap;margin:0;padding:0}
+@media (min-width:640px){.strip-logos{gap:1.6rem}}
+/* Monochrome by filter, not by a second set of files: the client's own logo
+   is what is on disk, and the strip's job is to be a strip. brightness lifts
+   the darker marks so grey does not become black on black. */
+.chip{width:48px;height:48px;border-radius:50%;overflow:hidden;
+  background:var(--panel);border:1px solid var(--line);
+  filter:grayscale(1) brightness(1.12);opacity:.75;
+  transition:filter .25s,opacity .25s,box-shadow .25s}
+@media (min-width:640px){.chip{width:64px;height:64px}}
+.chip img{width:100%;height:100%;object-fit:cover}
+/* One chip is left in colour so the row reads as logos rather than as discs.
+   Hover lights any of them, with no script involved. */
+.chip.is-lit,.chip:hover{filter:none;opacity:1}
+.chip.is-lit{box-shadow:0 0 0 2px var(--green)}
+
+/* ------------------------------------------------------- a section heading */
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;
+  gap:1.2rem 2rem;flex-wrap:wrap;margin-bottom:2.4rem}
+.sec-head .lead{max-width:36ch;margin:0}
+.sec-head .btn{flex:0 0 auto}
+
+/* --------------------------------------------------------- the module grid */
+.svc-grid{display:grid;gap:1rem}
+@media (min-width:640px){.svc-grid{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:960px){.svc-grid{grid-template-columns:repeat(3,1fr)}}
+.svc{display:flex;flex-direction:column;min-height:250px;
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:1.5rem;
+  transition:border-color .25s,transform .25s,background .25s}
+.svc:hover{border-color:var(--green);transform:translateY(-3px)}
+.svc-top{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:1rem;margin-bottom:1.2rem}
+/* The icon sits in a well of its own — the same hole the demo is cut into
+   lower down, at 44px. The drawing inside it is art.py's, at exactly this
+   size, so no stroke is ever scaled. */
+.ico{flex:0 0 auto;display:grid;place-items:center;width:48px;height:48px;
+  border-radius:13px;background:var(--well);border:1px solid var(--line);
+  color:var(--green);transition:border-color .25s,color .25s}
+/* 44px, exactly the size art.py draws them: one SVG unit to one CSS pixel, so
+   a 1.6px stroke is 1.6px and nothing lands on a half pixel. The chip is the
+   drawing plus its margin, not a box the drawing is squeezed into. */
+.ico svg{width:44px;height:44px}
+.svc:hover .ico{border-color:var(--green);color:var(--green-2)}
+.svc-price{font-size:.78rem;letter-spacing:.04em;color:var(--green);
+  text-align:right;padding-top:.35rem}
+.svc p{color:var(--muted);font-size:.95rem;margin:.6rem 0 1.4rem}
+/* The stage the card's three-second demo runs on. Dashed while it is empty,
+   solid once there is something in it — the well says, without a word,
+   which cards have something to show already. */
+.svc-demo{position:relative;margin-top:auto;height:56px;border-radius:10px;
+  background:var(--well);border:1px dashed var(--line);overflow:hidden}
+.svc-demo:not(:empty){border-style:solid}
+.svc:hover .svc-demo{border-color:var(--green)}
+/* The website card's wireframe, drawn rather than animated: three rules at
+   the widths the demo settles on. */
+.wire{position:absolute;left:12px;right:12px;height:6px;border-radius:3px;
+  background:var(--green);display:block}
+.wire.w1{top:11px;width:58%}
+.wire.w2{top:25px;width:82%;opacity:.5}
+.wire.w3{top:39px;width:38%;opacity:.32}
+/* The quad, parked at the left of its strip of sky until something flies it. */
+.quad{position:absolute;left:14px;top:50%;width:46px;height:26px;
+  transform:translateY(-50%);color:var(--green)}
+
+/* ------------------------------------------------------------- the results */
+.stats{display:grid;gap:1rem}
+@media (min-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1100px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:1.3rem;display:grid;
+  align-content:start;gap:.15rem;min-width:0}
+.stat-k{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted)}
+/* The figure. Tabular mono, so a count-up cannot make the tile change width
+   as it runs. */
+.stat-v{font-size:clamp(1.7rem,4.4vw,2.1rem);line-height:1.1;color:var(--ink);
+  margin:.55rem 0 .1rem;overflow-wrap:anywhere}
+.stat-up{font-size:.8rem;color:var(--green)}
+.stat-note{font-size:.86rem;color:var(--muted);margin-top:.35rem}
+
+.panels{display:grid;gap:1rem;margin-top:1rem}
+@media (min-width:960px){.panels{grid-template-columns:1fr 1fr}}
+.panels .panel{padding:1.3rem;min-width:0}
+.panel-k{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:1rem}
+
+/* One bar: the label, the track, the figure. The track is the full row width
+   at every viewport, so four bars read as one chart rather than four. */
+.bar{display:grid;grid-template-columns:4.6rem 1fr 3.2rem;align-items:center;
+  gap:.75rem;margin:.7rem 0;font-size:.86rem;color:var(--muted)}
+.bar-k{overflow:hidden;text-overflow:ellipsis}
+.bar-track{height:8px;border-radius:4px;background:var(--well);
+  border:1px solid var(--line);overflow:hidden}
+.bar-track b{display:block;height:100%;background:var(--green);
+  border-radius:4px;transition:width .9s var(--ease)}
+/* A bar with a real but tiny number still has to be visible: 1.7K against
+   365K is half a percent, and half a percent of a track is nothing at all. */
+.bar-track b[style]:not([style*=":0%"]){min-width:3px}
+.bar-v{text-align:right;color:var(--ink);font-size:.82rem}
+
+.chart-box{height:120px}
+.chart{width:100%;height:100%;display:block}
+.chart-line{fill:none;stroke:var(--green);stroke-width:2;
+  stroke-linejoin:round;stroke-linecap:round}
+.chart-fill{fill:rgba(45,232,181,.12);stroke:none}
+
+/* --------------------------------------------------------------- the reels */
+/* Capped at 900px: three 9:16 frames at full container width would be a
+   metre of phone, and the mockup holds them to the left of the band. */
+.reels{display:grid;gap:1.2rem;max-width:900px}
+@media (min-width:560px){.reels{grid-template-columns:repeat(3,1fr);gap:1.5rem}}
+.phone{position:relative;aspect-ratio:9/16;border-radius:26px;overflow:hidden;
+  background:#000;border:1px solid var(--line)}
+.phone video{width:100%;height:100%;object-fit:cover}
+/* The glyph is decoration on a poster, not a control: it is aria-hidden and
+   it does not take the pointer, because until step 5 lands there is nothing
+   for a click to do. */
+.play{position:absolute;right:12px;bottom:12px;width:40px;height:40px;
+  border-radius:50%;display:grid;place-items:center;pointer-events:none;
+  background:var(--green);color:var(--bg)}
+.play svg{width:18px;height:18px;margin-left:2px}
+.reels-cap{margin:1.1rem 0 0;color:var(--muted);font-size:.95rem}
+
+/* --------------------------------------------------------------- the beats */
+.beats{list-style:none;display:grid;gap:1.4rem;margin:0;padding:0}
+@media (min-width:640px){.beats{grid-template-columns:repeat(3,1fr);gap:1rem}}
+.beat{border-top:2px solid var(--green);padding-top:1.1rem}
+.beat-k{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted)}
+.beat h3{margin-top:.55rem;font-size:1.12rem}
+
+/* --------------------------------------------------------------- the about */
+.about{display:grid;gap:2rem;align-items:center}
+@media (min-width:860px){.about{grid-template-columns:1fr 1.4fr;gap:2.8rem}}
+/* His headshot is a tall portrait; left at its own ratio it is a metre of
+   photograph next to two lines of text. The frame is 4:5 and the crop is
+   taken from the top, which is where his face is. */
+.about-pic{max-width:420px}
+.about-pic picture{display:block}
+/* height:auto is not optional here: the width/height attributes pic() writes
+   are presentational hints, so an <img> given only a width keeps the file's
+   own pixel height and the photograph comes out three times too tall. */
+.about-pic img{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;
+  object-position:50% 18%;border-radius:var(--radius);
+  border:1px solid var(--line);display:block}
+.about-txt .lead{margin:1.2rem 0 1.6rem}
+
+/* ---------------------------------------------------------- the twin cards */
+.twin{display:grid;gap:1rem}
+@media (min-width:640px){.twin{grid-template-columns:1fr 1fr}}
+.tw{display:flex;flex-direction:column;align-items:flex-start;
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:1.6rem;
+  transition:border-color .25s}
+.tw:hover{border-color:var(--green)}
+.tw p{color:var(--muted);font-size:.95rem;margin:.7rem 0 1.4rem;max-width:34ch}
+.tw h3{font-size:1.25rem}
+.tw .btn{margin-top:auto}
+
+/* -------------------------------------------------------- the service mark */
+/* art.service_mark(): Drew's lockup with the service named under it, until
+   the vector arrives and the name can be set into the mark itself. It is used
+   by the service pages rather than by Home; these are the defaults so the
+   markup is never naked, and 20-pages.css — which lands after this file — is
+   free to say otherwise. */
+.mark{display:inline-grid;justify-items:center;gap:.7rem}
+.mark img{width:clamp(120px,22vw,180px);height:auto;border-radius:10px}
+.mark-cap{font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--green)}
+
+@media (prefers-reduced-motion:reduce){
+  .svc:hover,.tw:hover{transform:none}
+  .bar-track b{transition:none}
+}
