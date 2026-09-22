@@ -565,9 +565,18 @@
     const L=Math.ceil(line.getTotalLength())||0;
     if(!L)return;
     len.set(svg,L);
+    // Suppressed, set, committed, restored — the same trap the tile's little
+    // chart fell into: the line is already on screen and already painted, so
+    // handing it a full dash with the transition live spends 1.8s wiping a
+    // drawn line away rather than starting from an undrawn one.
+    line.style.transition='none';
+    if(fill)fill.style.transition='none';
     line.style.strokeDasharray=L;
     line.style.strokeDashoffset=L;
     if(fill)fill.style.opacity='0';
+    getComputedStyle(line).strokeDashoffset;
+    line.style.transition='';
+    if(fill)fill.style.transition='';
     io.observe(svg);
   });
 })();
