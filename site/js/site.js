@@ -612,7 +612,12 @@
   const near=mm.io(es=>es.forEach(e=>{
     if(!e.isIntersecting)return;
     const v=e.target;
-    if(v.preload!=='metadata'){v.preload='metadata';v.load()}
+    // preload alone: flipping it off "none" is what starts the fetch, and
+    // v.load() here resets the element and aborts the request it has just
+    // made — one ERR_ABORTED per reel in the network log, and two requests
+    // per film instead of one. Coming into view calls play(), which fetches
+    // on any browser that ignored the preload change.
+    if(v.preload!=='metadata')v.preload='metadata';
     near.unobserve(v);                      // arming is a once
   }),{rootMargin:'300px 0px'});
   const live=mm.io(es=>es.forEach(e=>{
