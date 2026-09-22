@@ -223,6 +223,10 @@ publishes none of them.
   one.** What he sent is a square stacked lockup — mark, MENDOZA MARKETING,
   CONTENT | WEBSITES | DRONES. In a 72px nav bar at 58px tall the two lines of
   small caps are not readable. It works; a wide lockup would work better.
+  **The crop is now load-bearing:** `tools/make-og.py` cuts the mark out of
+  that square to make the favicon, the apple-touch icon and every share card,
+  so the permission is worth asking for explicitly — and a transparent PNG or
+  the vector would replace the luminance cut-out with the real edges.
 - **The social-media tier contents.** Emerald $500 / Sapphire $1,000 / Diamond
   $2,000 are priced, but what is *in* each tier is not written down anywhere we
   hold. `/social` and `/pricing` cannot be finished without it.
