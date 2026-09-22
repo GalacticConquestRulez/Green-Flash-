@@ -169,20 +169,18 @@ html.motion .roll.in .roll-c{--d:var(--v)}
 /* --- the bar row -----------------------------------------------------
    The widths are the server's inline styles and are never touched: the bar
    is scaled from its left edge instead, so there is one value in the page
-   and it is the one results.py computed. The 2.8s animation is the house
-   bail-out (CLAUDE.md rule 4) — a script that never arrives, or arrives
-   broken, leaves the row drawn rather than empty. */
-html.motion .bar-track b{transform-origin:left center;transform:scaleX(0);
-  transition:transform .9s var(--ease);
-  animation:mmFill 0s linear 2.8s forwards}
-/* .mm-live is the script saying "I am here and I have an observer", put on
-   each bar the moment it is taken over — which cancels the bail-out for good
-   rather than letting a 0s-forwards animation come back every time the row
-   leaves the screen and pin the bars full. The bail-out is for the page where
-   this line never runs. */
-html.motion .bar.mm-live .bar-track b{animation:none}
-html.motion .bar.in .bar-track b{transform:none}
-@keyframes mmFill{to{transform:none}}
+   and it is the one results.py computed.
+
+   Nothing here needs the house 2.8s bail-out, because nothing here hides a
+   bar the script is not already holding: .mm-live is put on a row by the
+   script, one row at a time, at the moment it is taken over and after the
+   observer that will reveal it exists. A page with no script, a script that
+   died before this module, a browser with no IntersectionObserver, or a bar
+   row this module does not recognise all keep their bars drawn — there is no
+   state to fall out of. */
+html.motion .bar.mm-live .bar-track b{transform-origin:left center;
+  transform:scaleX(0);transition:transform .9s var(--ease)}
+html.motion .bar.mm-live.in .bar-track b{transform:none}
 
 /* --- the daily-leads line --------------------------------------------
    The dash is set by the script off the path's own length — nothing here

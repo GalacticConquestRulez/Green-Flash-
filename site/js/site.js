@@ -474,7 +474,14 @@
 (function(){
   const mm=window.mm;
   if(!mm||!mm.motion) return;
-  const figs=mm.$$('[data-count]'), bars=mm.$$('[data-bar]'), charts=mm.$$('[data-chart]');
+  // Two bar shapes, because the site has two: Home marks each row with
+  // data-bar (its percentage), the inner pages mark the panel with data-bars
+  // and leave the rows plain. Neither is read for a value — the inline width
+  // the server computed is the width, and this only scales it — so one
+  // selector covers both and a row that matches neither simply stays drawn.
+  const figs=mm.$$('[data-count]'),
+        bars=mm.$$('[data-bar],[data-bars] .bar'),
+        charts=mm.$$('[data-chart]');
   if(!figs.length&&!bars.length&&!charts.length) return;
 
   const LIVE=0.35;                 // the share of a thing that has to show
@@ -556,8 +563,9 @@
     wheels.set(el,made);
     io.observe(el);
   });
-  // .mm-live cancels the stylesheet's 2.8s bail-out on this bar: from here
-  // the observer owns it, in both directions. See 15-motion.css.
+  // .mm-live is the script taking the row over — it is what puts the bar at
+  // zero in the first place, and it goes on only now, with the observer that
+  // will fill it already made. See 15-motion.css.
   bars.forEach(el=>{el.classList.add('mm-live');io.observe(el)});
   charts.forEach(svg=>{
     const line=mm.$('.chart-line',svg), fill=mm.$('.chart-fill',svg);
