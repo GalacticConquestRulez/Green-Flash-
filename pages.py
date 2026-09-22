@@ -44,6 +44,53 @@ def _b():
     return m
 
 
+# ------------------------------------------------------------- the figures
+# TODO(step 5 / integrator): results.py is the Home builder's file and is the
+# home of every one of these numbers. It did not exist when this file was
+# written, so the dashboards below read from this local copy; swap the dict for
+# `from results import FIGURES` (or whatever it calls them) the moment it
+# lands, and delete this block. Nothing else in this file needs to change —
+# every figure is read from FIGURES by key, and none is typed into markup.
+#
+# The values are transcribed from the six client dashboard screenshots Drew
+# sent (incoming/Drew's stretched hole/, read 2026-09-22) and are the figures
+# the plan quotes. They are HIS clients' numbers: nothing here is rounded,
+# scaled or improved.
+FIGURES = {
+    # One client page under management, last 28 days.
+    'a-views':      dict(label='Views · 28 days',       shown='344,880', count=344880,  delta='↑ 11×'),
+    'a-earnings':   dict(label='Earnings · 28 days',    shown='$42.15',  count=42.15,   delta='↑ 802%', prefix='$', decimals=2),
+    'a-engagement': dict(label='Engagement · 28 days',  shown='14,164',  count=14164,   delta='↑ 646%'),
+    'a-followers':  dict(label='Net followers · 28 days', shown='511',   count=511,     delta='↑ 30×'),
+    # Kelly's Country Store, last 28 days.
+    'k-views':      dict(label='Views · 28 days',       shown='413,311', count=413311,  delta='↑ 211%'),
+    'k-earnings':   dict(label='Earnings · 28 days',    shown='$104.56', count=104.56,  delta='↑ 621%', prefix='$', decimals=2),
+    'k-engagement': dict(label='Engagement · 28 days',  shown='20,983',  count=20983,   delta=None),
+    'k-followers':  dict(label='Followers · 28 days',   shown='1,380',   count=1380,    delta='↑ 190%'),
+    # The same page over 90 days.
+    'd90-views':    dict(label='Views · 90 days',       shown='569,027', count=569027,  delta=None),
+    'd90-followers': dict(label='New followers · 90 days', shown='+904', count=904,     delta=None, prefix='+'),
+    # Meta Leads Center.
+    'leads':        dict(label='Leads Center',          shown='614',     count=614,     delta='↑ 27.4%'),
+}
+
+# The two bar rows. `pct` is the width of the bar, `shown` the figure printed
+# at the end of it — they are not the same thing: 365K reels against 32K
+# stories is the shape of the row, and the bar is drawn to it.
+BARS_CONTENT = dict(
+    caption='Views by content type · 226,373 viewers reached',
+    rows=[('Reels', 100, '365K'), ('Stories', 9, '32K'),
+          ('Posts', 1, '1.7K'), ('Live', 0, '0')])
+BARS_AUDIENCE = dict(
+    caption='Who watched · 90 days',
+    rows=[('Non-followers', 88, '87.6%'), ('Followers', 12, '12.4%')])
+
+# The daily-new-leads line, June to September, as the shape of the chart in the
+# Leads Center screenshot. A polyline in a 300x100 box, y measured down.
+LEADS_LINE = ('0,70 20,60 40,66 60,50 80,58 100,44 120,52 140,40 160,48 '
+              '180,36 200,44 220,30 240,38 260,22 280,30 300,12')
+
+
 # --------------------------------------------------------------- small parts
 def txt(s):
     """Markup down to the sentence inside it, for a <meta> description."""
@@ -114,6 +161,56 @@ def price_row(keys, bullets=None, featured=None, cls=''):
 
 
 TBC = ('<span class="tbc">Tier contents &mdash; to confirm with Drew</span>',)
+
+
+def stat(key):
+    """One dashboard tile.
+
+    The figure is in the HTML as text, so the page is complete with no script
+    and under reduced motion; data-count is what step 5's counter animates
+    from zero towards, and data-prefix/data-decimals are how it formats the
+    frames in between. Nothing here is load-bearing.
+    """
+    f = FIGURES[key]
+    attrs = f' data-count="{f["count"]}"'
+    if f.get('decimals'):
+        attrs += f' data-decimals="{f["decimals"]}"'
+    if f.get('prefix'):
+        attrs += f' data-prefix="{f["prefix"]}"'
+    delta = f'<i class="stat-delta">{f["delta"]}</i>' if f.get('delta') else ''
+    return (f'<div class="stat panel rv">'
+            f'<span class="stat-label">{f["label"]}</span>'
+            f'<b class="stat-num"{attrs}>{f["shown"]}</b>{delta}</div>')
+
+
+def stats_row(keys, caption):
+    tiles = ''.join(stat(k) for k in keys)
+    return (f'<div class="grid grid-4 stats">{tiles}</div>'
+            f'<p class="fig-cap rv">{caption}</p>')
+
+
+def bars(spec):
+    """A bar row. The width is inline so it is right with no script; data-w
+    repeats it so step 5 can run the bars out from zero under html.motion."""
+    rows = ''.join(
+        f'<div class="bar"><span class="bar-name">{n}</span>'
+        f'<div class="bar-track"><b style="width:{p}%" data-w="{p}"></b></div>'
+        f'<span class="bar-val">{v}</span></div>'
+        for n, p, v in spec['rows'])
+    return (f'<div class="panel figure rv" data-bars>'
+            f'<div class="fig-h">{spec["caption"]}</div>{rows}</div>')
+
+
+def chart(caption, points, label):
+    """The leads line. Drawn in the markup, so a reader with no script sees
+    the same shape; data-chart is step 5's hook to draw it on."""
+    return (f'<div class="panel figure rv" data-chart>'
+            f'<div class="fig-h">{caption}</div>'
+            f'<div class="chart"><svg viewBox="0 0 300 100" preserveAspectRatio="none" '
+            f'role="img" aria-label="{html.escape(label)}">'
+            f'<polyline class="chart-fill" points="{points} 300,100 0,100"></polyline>'
+            f'<polyline class="chart-line" points="{points}"></polyline>'
+            f'</svg></div></div>')
 
 
 # ------------------------------------------------------------ service pages
@@ -315,6 +412,60 @@ def reel_card(slug, title, sub):
             f'</figure>')
 
 
+# ------------------------------------------------------------------ /results
+def results_page():
+    B = _b()
+    return dict(
+        title=f'Results | {SITE["name"]}',
+        desc='The client dashboards, in full: 344,880 views in 28 days, 569,027 '
+             'over 90, 614 leads through the Meta Leads Center, and what Kelly’s '
+             'Country Store did in the same window.',
+        og='logo',
+        body='\n'.join([
+            B.page_hero('Results', 'Real dashboards.<span>Real numbers.</span>',
+                        'Every figure on this page is read off a client’s own '
+                        'dashboard. Nothing is modelled, projected or rounded up.',
+                        crumb='Results'),
+            section(
+                sec_head('28 days', 'One page,<span>four weeks.</span>')
+                + stats_row(['a-views', 'a-earnings', 'a-engagement', 'a-followers'],
+                            'A client page under Mendoza Marketing management · '
+                            'last 28 days, against the 28 before it.')),
+            section(
+                sec_head('Kelly&rsquo;s Country Store', 'The same month,<span>a busier page.</span>')
+                + stats_row(['k-views', 'k-earnings', 'k-engagement', 'k-followers'],
+                            'Kelly&rsquo;s Country Store · last 28 days, against the '
+                            '28 before it. Viral content management and Meta ads.'),
+                cls='band-alt'),
+            section(
+                sec_head('90 days', 'A quarter of<span>the same work.</span>')
+                + '<div class="grid grid-2 stats stats-2">'
+                + stat('d90-views') + stat('d90-followers')
+                + '</div>'
+                + '<p class="fig-cap rv">The same client page · last 90 days. '
+                  '87.6% of the people who watched were not following the page when '
+                  'they did.</p>'
+                + f'<div class="grid grid-2 figures">{bars(BARS_AUDIENCE)}'
+                + bars(BARS_CONTENT) + '</div>'),
+            section(
+                sec_head('Meta Leads Center', 'Leads in,<span>day after day.</span>')
+                + '<div class="grid grid-2 figures">'
+                + f'<div class="grid stats stats-1">{stat("leads")}</div>'
+                + chart('Daily new leads · June to September', LEADS_LINE,
+                        'Daily new leads from June to September, trending upward '
+                        'from roughly 30 a day to roughly 90')
+                + '</div>'
+                + '<p class="fig-cap rv">Meta Leads Center · intake leads over the '
+                  'reporting window, up 27.4% on the window before it.</p>',
+                cls='band-alt'),
+            B.cta(title='Want numbers like these?',
+                  text='This is what a page looks like after a few months of content '
+                       'and campaigns. Tell Drew where yours is now.',
+                  primary=('Get a quote', '/contact'),
+                  secondary=('See the pricing', '/pricing')),
+        ]))
+
+
 # ---------------------------------------------------------------------- all
 def inner_pages():
     """Every page in this file, keyed the way build.py's write loop wants it."""
@@ -323,4 +474,5 @@ def inner_pages():
         out['/' + s['slug']] = service_page(s)
     out['/pricing'] = pricing_page()
     out['/work'] = work_page()
+    out['/results'] = results_page()
     return out
