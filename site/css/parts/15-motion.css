@@ -189,3 +189,31 @@ html.motion .chart-line{transition:stroke-dashoffset 1.8s cubic-bezier(.35,.1,.2
    on the way in only and the script sets it, because a fill that lingers on
    the way out is the same mistake in reverse. */
 html.motion .chart-fill{transition:opacity .6s var(--ease)}
+
+/* =====================================================================
+   THE REELS — playing while you are looking at them
+
+   The posters are the server's render and stay it: with no script, reduced
+   motion or a metered connection these three films are three stills and
+   nothing is fetched. Under html.motion the script arms a clip as it
+   approaches, plays it muted while it is on screen and pauses it the moment
+   it is not — a film running behind the visitor's back is battery spent on
+   something nobody is watching.
+
+   Sound is off, always, until somebody asks for it. 10-home.css draws the
+   play glyph as decoration with pointer-events:none, because until this
+   file there was nothing for a click on it to do; the script upgrades the
+   glyph to a real button (role, tabindex, aria-pressed) on the reels it has
+   taken over, and .mm-sound is it saying so. One reel at a time.
+   ===================================================================== */
+html.motion .phone.mm-sound .play{pointer-events:auto;cursor:pointer;
+  transition:transform .2s var(--ease),background .2s linear}
+html.motion .phone.mm-sound .play:hover{transform:scale(1.08)}
+html.motion .phone.is-snd .play{background:var(--green-2)}
+/* The state, small and in the corner: the one label on this page that is not
+   a figure of Drew's, and it is there because sound being on is a thing a
+   visitor has to be able to see. --bg on --green, 12.64:1. */
+html.motion .mm-snd{position:absolute;left:12px;bottom:14px;
+  background:var(--green);color:var(--bg);border-radius:4px;
+  padding:.1rem .4rem;font-size:.6rem;letter-spacing:.12em;
+  text-transform:uppercase;pointer-events:none}

@@ -565,3 +565,98 @@
     io.observe(svg);
   });
 })();
+
+
+/* =====================================================================
+   THE REELS — armed on approach, playing in view, sound only if asked
+
+   Kelly's three films are posters in the server HTML with preload="none",
+   so a visitor with no script, with reduced motion asked for, or on a
+   metered connection gets three stills and no request at all. That is the
+   render, and this module is what happens on top of it:
+
+     approaching   preload flips to metadata and the file is fetched — once,
+                   300px before the frame reaches the viewport, so the clip
+                   is ready rather than starting on a black frame
+     in view       muted, looping, playing
+     out of view   paused, and its sound given up
+
+   Sound is never started by this site. The play glyph is decoration until
+   here — 10-home.css gives it pointer-events:none — and the script upgrades
+   it to a real button on the reels it has taken over, so a tap (a user
+   gesture, which is the only thing a browser will unmute for) turns sound on
+   for THAT reel and off for any other. Leaving the frame gives it up again:
+   sound that carries on out of sight is sound nobody asked for twice.
+   ===================================================================== */
+(function(){
+  const mm=window.mm;
+  if(!mm||!mm.motion||mm.save) return;      // saveData: the posters, and nothing else
+  const reels=mm.$$('video[data-reel]');
+  if(!reels.length) return;
+
+  const near=mm.io(es=>es.forEach(e=>{
+    if(!e.isIntersecting)return;
+    const v=e.target;
+    if(v.preload!=='metadata'){v.preload='metadata';v.load()}
+    near.unobserve(v);                      // arming is a once
+  }),{rootMargin:'300px 0px'});
+  const live=mm.io(es=>es.forEach(e=>{
+    const v=e.target;
+    if(e.intersectionRatio>=0.4){
+      v.muted=(v!==loud);            // only the one that was asked for is heard
+      const p=v.play(); p&&p.catch(()=>{});
+    }else{
+      hush(v);
+      try{v.pause()}catch(_){}
+    }
+  }),{threshold:[0,0.4]});
+  if(!near||!live) return;
+
+  let loud=null;                            // the one reel allowed to be heard
+
+  const hush=v=>{
+    v.muted=true;
+    const ph=v.closest('.phone');
+    if(ph){
+      ph.classList.remove('is-snd');
+      const chip=mm.$('.mm-snd',ph); if(chip)chip.remove();
+      const g=mm.$('.play',ph);
+      if(g){g.setAttribute('aria-pressed','false');g.setAttribute('aria-label','Play with sound')}
+    }
+    if(loud===v)loud=null;
+  };
+
+  reels.forEach(v=>{
+    v.muted=true;
+    near.observe(v);
+    live.observe(v);
+    const ph=v.closest('.phone'), g=ph&&mm.$('.play',ph);
+    if(!g)return;
+    ph.classList.add('mm-sound');
+    g.removeAttribute('aria-hidden');
+    g.setAttribute('role','button');
+    g.setAttribute('tabindex','0');
+    g.setAttribute('aria-pressed','false');
+    g.setAttribute('aria-label','Play with sound');
+    const toggle=()=>{
+      if(loud===v){hush(v);return}
+      if(loud)hush(loud);
+      loud=v;
+      v.muted=false;
+      const p=v.play(); p&&p.catch(()=>{});
+      ph.classList.add('is-snd');
+      if(!mm.$('.mm-snd',ph)){
+        const chip=document.createElement('span');
+        chip.className='mm-snd mono';
+        chip.textContent='Sound on';
+        ph.appendChild(chip);
+      }
+      g.setAttribute('aria-pressed','true');
+      g.setAttribute('aria-label','Mute');
+    };
+    g.addEventListener('click',toggle);
+    g.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}
+    });
+  });
+})();
