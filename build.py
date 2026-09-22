@@ -507,6 +507,8 @@ pages['/404'] = dict(
   <div class="btn-row"><a class="btn" href="{u('/')}">Back to the home page {ICONS['arrow']}</a><a class="btn btn-ghost" href="{u('/contact')}">Get a quote</a></div>
 </div></div></section>''')
 
+from pages import inner_pages; pages.update(inner_pages())
+
 
 # --------------------------------------------------------------------- write
 os.makedirs(OUT, exist_ok=True)

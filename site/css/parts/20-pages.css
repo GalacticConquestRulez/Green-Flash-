@@ -1,0 +1,116 @@
+/* ==========================================================================
+   The inner pages — the six services, /pricing, /work, /results, /about.
+   Owned by pages.py; 00-base.css owns the tokens, the nav, the footer, the
+   buttons, .panel, .price, .swipe and the reveal contract, and nothing here
+   redefines any of them.
+
+   Everything is built to the Home mockup the owner reviewed
+   (docs/mockup/home.html): two-tone headlines, a mono eyebrow over every
+   section, panel cards on hairlines, one green, and every figure and price in
+   JetBrains Mono. Where this file draws a dashboard it uses the same class
+   names and the same data- attributes Home's does, so step 5's counters, bars
+   and chart bind to both pages with one selector.
+
+   New text/background pairs this file introduces, computed the same way as the
+   table at the top of 00-base.css:
+     --muted  #93A3A3  on .band-alt #070D0D   7.44:1   AAA   captions, bullets
+     --green  #2de8b5  on .band-alt #070D0D  12.38:1   AAA   eyebrows, figures
+     --ink    #f0ffff  on .band-alt #070D0D  19.00:1   AAA   headings
+     --muted  #93A3A3  on .logo-shot #0B1413  6.94:1   AA    (carries no type)
+   ========================================================================== */
+
+/* The two-tone headline, without the .h-two class.
+   page_hero() puts the class on the SECTION, and `.h-two span` would then also
+   catch the <span>s inside the breadcrumb — which every inner page has and
+   Home does not. Scoping to the direct child of the heading gets line two
+   green and leaves the crumbs alone. */
+.page-hero .hero-inner > h1 > span,
+.sec-head h2 > span,
+.bio-copy h2 > span { color: var(--green); display: block; }
+
+/* An in-page anchor must not land under the fixed bar. */
+section[id] { scroll-margin-top: calc(var(--nav-h) + 1rem); }
+
+/* The starting price, in mono, straight under the hero lead. */
+.hero-price {
+  display: inline-block; color: var(--green); font-size: .82rem;
+  letter-spacing: .14em; text-transform: uppercase;
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: .42rem .9rem; margin-bottom: 1.4rem;
+}
+
+/* The alternate band: a shade darker than the canvas, ruled top and bottom.
+   The mockup uses it to separate one section from the next without a second
+   colour. */
+.band-alt {
+  background: #070D0D;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+
+/* ------------------------------------------------------------ section head */
+.sec-head {
+  display: flex; flex-wrap: wrap; gap: 1.2rem 2rem;
+  align-items: flex-end; justify-content: space-between;
+  margin-bottom: clamp(1.8rem, 4vw, 2.6rem);
+}
+.sec-head h2 { max-width: 20ch; }
+.sec-aside { max-width: 42ch; }
+.sec-note { color: var(--muted); font-size: .95rem; margin: 0; }
+
+/* ------------------------------------------------- his copy + his breakdown */
+.split { display: grid; gap: 1.6rem; align-items: start; }
+@media (min-width: 960px) { .split { grid-template-columns: 1.35fr 1fr; gap: 3rem; } }
+.prose p { font-size: 1.04rem; color: var(--muted); max-width: 62ch; }
+.prose p:last-child { margin-bottom: 0; }
+@media (min-width: 960px) { .prose p { font-size: 1.08rem; } }
+
+.bd-h {
+  font-family: var(--font-mono); font-size: .74rem; font-weight: 600;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--green);
+  margin-bottom: 1rem;
+}
+.bd ul { list-style: none; display: grid; gap: .7rem; font-size: .95rem; color: var(--muted); }
+.bd li { display: flex; gap: .6rem; }
+.bd li::before {
+  content: ""; flex: 0 0 auto; width: 7px; height: 7px; margin-top: .55rem;
+  border-radius: 2px; background: var(--green);
+}
+/* His own price sentence. Mono, because it carries the figure. */
+.bd-price { font-family: var(--font-mono); font-size: .88rem; color: var(--ink); }
+
+/* -------------------------------------------------------- the Included trio */
+.inc-card h3 { color: var(--ink); }
+.inc-card p { margin: .6rem 0 0; color: var(--muted); font-size: .95rem; }
+.inc-card::before {
+  content: ""; display: block; width: 28px; height: 2px;
+  background: var(--green); margin-bottom: 1.1rem;
+}
+
+/* ---------------------------------------------------------------- prices */
+.grid-4 { grid-template-columns: 1fr; }
+@media (min-width: 640px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+/* One card should not stretch the width of the page. */
+.prices-1 { max-width: 420px; }
+/* "Commission or hourly" is a sentence, not a figure, and does not want the
+   2rem tabular size the amounts are set in. */
+.prices-words .amount { font-size: 1.3rem; line-height: 1.35; }
+/* The three social tiers are priced and their contents are not written down
+   anywhere we hold. Marked rather than invented — CLAUDE.md rule 7. */
+.tbc { font-style: italic; }
+.price li:has(.tbc)::before { background: var(--line); }
+
+/* -------------------------------------------------------- the drone rail */
+.clip-card { margin: 0; }
+.clip-card video {
+  width: 100%; aspect-ratio: 16 / 9; background: #000;
+  border: 1px solid var(--line); border-radius: var(--radius);
+}
+.clip-card figcaption {
+  display: flex; flex-direction: column; gap: .2rem;
+  margin-top: .8rem; font-size: .95rem; color: var(--muted);
+}
+.clip-card figcaption .mono {
+  font-size: .7rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--green);
+}
