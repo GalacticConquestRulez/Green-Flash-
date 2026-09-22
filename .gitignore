@@ -16,3 +16,9 @@ incoming/
 __pycache__/
 *.bak
 site/css/site.css
+
+# The worktree symlinks: `out` and `assets` here point into the main
+# checkout so a parallel worktree shares one copy of the media. The patterns
+# above end in a slash and so do not match a symlink of the same name.
+/out
+/assets
