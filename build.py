@@ -25,7 +25,7 @@ collected and printed at the end, so nothing goes quiet.
     python3 build.py                        → site/ at the domain root
     PREFIX=/p/test python3 build.py         → site/ under a preview prefix
 """
-import os, html, json, hashlib, struct
+import os, html, json, hashlib, struct, datetime
 
 from content import (SITE, SERVICES, SEO, PRICING, BY_SLUG, TODO,
                      FORM_ENDPOINT, price)
@@ -752,14 +752,32 @@ for path, p in pages.items():
 
 # sitemap + robots. A page marked noindex is a working page, not a public one:
 # it must not be advertised in the sitemap any more than it should be indexed.
+#
+# lastmod is the build date. The site is generated from this repo in one pass,
+# so every page is exactly as old as the build that made it — a per-page date
+# would have to come from git, and a date that is a guess is worse than a date
+# that is honest about being the whole site's.
+LASTMOD = datetime.date.today().isoformat()
 urls = [BASE_URL + ('/' if p == '/index' else p) for p, d in pages.items()
         if p != '/404' and not d.get('noindex')]
 with open(os.path.join(OUT, 'sitemap.xml'), 'w') as f:
     f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-            + ''.join(f'<url><loc>{x}</loc></url>' for x in urls) + '</urlset>\n')
+            + ''.join(f'<url><loc>{x}</loc><lastmod>{LASTMOD}</lastmod></url>'
+                      for x in urls) + '</urlset>\n')
+
+# Under a PREFIX the build is a preview, and a preview is never indexed.
+# publish-preview.sh already overwrites robots.txt in its staging copy AFTER
+# rsyncing site/ into it, and deletes the sitemap, so the published preview is
+# closed whatever this writes — but a build under a prefix that leaves an
+# "Allow: /" robots lying in site/ is a trap waiting for the day somebody
+# copies that directory somewhere else by hand. It says Disallow instead, and
+# names no sitemap, so the two agree.
 with open(os.path.join(OUT, 'robots.txt'), 'w') as f:
-    f.write(f'User-agent: *\nAllow: /\nSitemap: {BASE_URL}/sitemap.xml\n')
+    if PREFIX:
+        f.write('User-agent: *\nDisallow: /\n')
+    else:
+        f.write(f'User-agent: *\nAllow: /\nSitemap: {BASE_URL}/sitemap.xml\n')
 print('wrote', os.path.join(OUT, 'sitemap.xml'), 'and robots.txt')
 
 # Soft asserts, printed rather than raised — the media is being made in
