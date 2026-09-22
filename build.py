@@ -492,6 +492,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, og=None,
 #  /pricing and /contact arrive in steps 4 and 6.
 # ========================================================================
 from home import home_page
+from contact import contact_page
 
 pages = {}
 
@@ -513,6 +514,11 @@ pages['/404'] = dict(
   <p class="lead">The page you asked for does not exist, or it moved.</p>
   <div class="btn-row"><a class="btn" href="{u('/')}">Back to the home page {ICONS['arrow']}</a><a class="btn btn-ghost" href="{u('/contact')}">Get a quote</a></div>
 </div></div></section>''')
+
+# The quote form his README asks for, and the ways to reach him that are not a
+# form. It carries its own script (site/js/form.js) rather than adding one to
+# every page of the site — layout()'s `extra_scripts` is the hook.
+pages['/contact'] = contact_page()
 
 
 # --------------------------------------------------------------------- write

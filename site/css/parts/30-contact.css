@@ -1,0 +1,158 @@
+/* Mendoza Marketing — the /contact page.
+
+   This file styles the quote form and the "or reach out" column and nothing
+   else. The tokens, the type, the buttons, the panel, the nav, the footer and
+   the reveal contract are 00-base.css's and are not restated here; --band and
+   --well are declared by 10-home.css, which lands before this file, and are
+   written with their literal fallback so this part still renders alone.
+
+   site/css/site.css is concatenated from site/css/parts/*.css in name order,
+   so this is the last part in and may lean on every token above it.
+
+   =====================================================================
+   CONTRAST — every pair this file sets type in (CLAUDE.md rule 9). All six
+   are already computed in the tables above; the numbers are repeated rather
+   than assumed, because this file is where a reviewer looks for the form.
+
+     foreground        background      ratio     verdict
+     --ink    #f0ffff  --panel#1A1F1F  16.24:1   AAA   the form card's words
+     --green  #2de8b5  --panel#1A1F1F  10.58:1   AAA   eyebrows, the card icons
+     --muted  #93A3A3  --panel#1A1F1F   6.36:1   AA    field labels, hints,
+                                                       the note under the button
+     --ink    #f0ffff  --well #0b1413  18.20:1   AAA   what the visitor types
+     --muted  #93A3A3  --well #0b1413   7.13:1   AAA   placeholders, the caret
+     --green  #2de8b5  --well #0b1413  11.86:1   AAA   the focus ring's edge
+     --bg     #050A0A  --green#2de8b5  12.64:1   AAA   "Send the brief"
+
+   The form has no red. CLAUDE.md rule 1 allows one accent and this page is
+   not the exception: a failed send is said in --ink on the same surface with
+   a white edge down its left side, which reads as "stop" without introducing
+   a second colour to the site.
+
+   =====================================================================
+   MOTION — the two columns are .rv, which is the base's contract (hidden only
+   under html.motion, self-revealing after 2.8s). Nothing else on this page
+   moves, and nothing at all is hidden from a visitor with no script: the
+   whole form, both selects and every option are in the server HTML.
+*/
+
+/* --------------------------------------------------------------- the hero */
+/* The two-tone headline. page_hero() puts `cls` on the <section>, not on the
+   <h1>, so the base's `.h-two span` would also catch the two <span>s in the
+   breadcrumb and drop them down the page in green. The rule is therefore
+   restated here against this hero's own heading. */
+.contact-hero h1 span{color:var(--green);display:block}
+.contact-hero h1{font-size:clamp(2.3rem,6.4vw,4.2rem)}
+/* The base's 62svh floor is there so a photograph has room to be one. This
+   hero has no photograph, so it is as tall as its words and the floor never
+   binds; what would be left is a stack of black between the headline and the
+   only thing the page is for. The hero keeps its top padding — the words need
+   to clear the nav — and gives the bottom back. */
+@media (min-width:960px){
+  .page-hero.contact-hero{min-height:0;padding-bottom:2.5rem}
+}
+
+/* --------------------------------------------------------------- the grid */
+.contact-sec{padding-top:clamp(2rem,4vw,2.5rem)}
+.contact-grid{display:grid;gap:1.2rem;align-items:start}
+@media (min-width:960px){
+  .contact-grid{grid-template-columns:7fr 5fr;gap:1.6rem}
+}
+/* Both columns are grid items: without this a long email address or a wide
+   select stretches the track instead of wrapping inside it. */
+.contact-grid>*{min-width:0}
+
+/* --------------------------------------------------------------- the form */
+.quote{padding:1.3rem}
+@media (min-width:640px){.quote{padding:2rem}}
+.quote h2{font-size:clamp(1.5rem,3.6vw,2rem)}
+
+.form{display:grid;gap:1rem;margin-top:1.5rem}
+.form .row{display:grid;grid-template-columns:1fr;gap:1rem}
+@media (min-width:560px){.form .row{grid-template-columns:1fr 1fr}}
+.form .row>*{min-width:0}
+
+.field{display:grid;gap:.4rem;min-width:0}
+.field label{font-family:var(--font-mono);font-size:.7rem;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.field input,.field textarea,.field select{
+  width:100%;padding:.8rem .9rem;border-radius:var(--radius-s);
+  border:1px solid var(--line);background:var(--well,#0b1413);color:var(--ink);
+  font-family:var(--font-body);font-size:1rem;line-height:1.45;
+  transition:border-color .2s,box-shadow .2s}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);opacity:1}
+.field input:focus,.field textarea:focus,.field select:focus{
+  outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(45,232,181,.18)}
+.field textarea{min-height:140px;resize:vertical}
+/* The dropdown itself is the platform's, and on a dark page the platform
+   paints it light unless it is told otherwise. */
+.field option{background:var(--panel);color:var(--ink)}
+.field .hint{font-size:.82rem;line-height:1.5;color:var(--muted)}
+
+/* The caret is drawn rather than left to the platform: appearance:none takes
+   the native arrow away, and a select with no arrow does not look like one. */
+.sel{position:relative;display:block}
+.sel select{appearance:none;-webkit-appearance:none;padding-right:2.4rem;
+  cursor:pointer}
+.sel::after{content:"";position:absolute;right:1rem;top:50%;
+  width:8px;height:8px;margin-top:-6px;pointer-events:none;
+  border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+  transform:rotate(45deg)}
+.sel:focus-within::after{border-color:var(--green)}
+
+/* The honeypot. Off the page rather than display:none, because a bot that
+   reads the stylesheet skips a hidden field and fills a visible one; a human
+   never reaches it (tabindex -1, aria-hidden) and a screen reader is not told
+   about it. Its name is Formspree's own: _gotcha. */
+.gotcha{position:absolute;left:-9999px;top:auto;width:1px;height:1px;
+  overflow:hidden}
+
+.form .btn-row{margin-top:.4rem}
+.form-status{display:none;padding:.9rem 1.1rem;border:1px solid var(--line);
+  border-left:3px solid var(--green);border-radius:var(--radius-s);
+  background:var(--well,#0b1413);color:var(--ink);font-size:.95rem;
+  overflow-wrap:anywhere}
+.form-status.on{display:block}
+.form-status.is-bad{border-left-color:var(--ink)}
+.form-status a{color:var(--green);text-decoration:underline;
+  text-underline-offset:2px}
+.form-status a:hover{color:var(--green-2)}
+.form-note{margin:0;font-size:.85rem;line-height:1.6;color:var(--muted);
+  overflow-wrap:anywhere}
+.form-note a{color:var(--green)}
+.form-note a:hover{color:var(--green-2)}
+
+/* ------------------------------------------------------------ the sidebar */
+.contact-side{display:grid;gap:.8rem}
+.contact-side .eyebrow{margin-bottom:.2rem}
+.side-card{display:flex;gap:.9rem;align-items:flex-start;min-width:0;
+  padding:1.1rem 1.2rem;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);transition:border-color .2s}
+a.side-card:hover,a.side-card:focus-visible{border-color:var(--green)}
+.side-card .ic{flex:0 0 auto;display:grid;place-items:center;width:40px;height:40px;
+  border-radius:var(--radius-s);border:1px solid var(--line);
+  background:var(--well,#0b1413);color:var(--green)}
+.side-card .ic svg{width:19px;height:19px}
+.side-card>div{min-width:0}
+.side-card b{display:block;margin-bottom:.15rem;font-size:.95rem;color:var(--ink)}
+.side-card span{display:block;font-size:.9rem;line-height:1.55;color:var(--muted);
+  overflow-wrap:anywhere}
+a.side-card:hover b{color:var(--green)}
+
+/* The two accounts Drew has not sent us yet: drawn, not linked, exactly as the
+   footer does it. The base already styles .socials; only the spacing inside a
+   card is this file's business. */
+.side-social .socials{margin-top:.8rem}
+
+/* The one card that is an offer rather than a detail, so it is a column with a
+   button at the bottom of it instead of an icon beside a line of text. */
+.side-card.book{display:flex;flex-direction:column;align-items:flex-start;
+  padding:1.4rem 1.2rem}
+.side-card.book h3{margin-top:.1rem;font-size:1.12rem}
+.side-card.book p{margin:.6rem 0 1.2rem;font-size:.92rem;color:var(--muted);
+  max-width:32ch}
+.side-card.book .btn{margin-top:auto}
+
+@media (prefers-reduced-motion:reduce){
+  .field input,.field textarea,.field select,.side-card{transition:none}
+}

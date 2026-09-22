@@ -33,8 +33,16 @@ SITE = dict(
 )
 
 # Where the quote form posts. Unset is a supported state, not a broken one:
-# site.js then hands the filled-in message to the visitor's own mail app. Set a
-# Formspree endpoint here (or in the environment) when Drew supplies the id.
+# site/js/form.js then hands the filled-in brief to the visitor's own mail app,
+# addressed to SITE['email'] — and with no script at all the form's own
+# action="mailto:..." does the same thing. Nothing is lost while this is empty.
+#
+# When Drew supplies the id, this becomes the whole Formspree endpoint URL:
+#
+#     FORM_ENDPOINT = 'https://formspree.io/f/<the id from his dashboard>'
+#
+# build.py hands it to the page as window.MM.form and form.js POSTs the fields
+# to it as JSON. Nothing else in the build changes.
 FORM_ENDPOINT = ''                                  # TODO Drew's Formspree id
 
 # Every field above that is still a placeholder, named so the build can say so.
