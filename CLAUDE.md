@@ -192,9 +192,11 @@ the rsync.
 
 **On go-live, three things change and nothing else.**
 
-1. `BASE_URL` — `deploy.sh` must export `https://drew.greenflashusa.com` (the
-   build's default), and every canonical, `og:url`, `@id` and sitemap entry
-   follows it.
+1. `BASE_URL` — `deploy.sh` already exports `https://drew.greenflashusa.com`
+   (the build's default), and every canonical, `og:url`, `@id` and sitemap
+   entry follows it. It also rsyncs `out/img/` to `/var/www/drew/assets/img/`,
+   which is how the icons and the share cards get to the server; nothing extra
+   to do, but if a card 404s in a link preview, that rsync is where to look.
 2. The canonicals then point at the live domain rather than the preview, which
    is the moment the site becomes indexable. Check `robots.txt` on the server
    reads `Allow: /` and that `/sitemap.xml` is there.
