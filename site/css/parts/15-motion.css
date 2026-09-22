@@ -217,3 +217,17 @@ html.motion .mm-snd{position:absolute;left:12px;bottom:14px;
   background:var(--green);color:var(--bg);border-radius:4px;
   padding:.1rem .4rem;font-size:.6rem;letter-spacing:.12em;
   text-transform:uppercase;pointer-events:none}
+
+/* =====================================================================
+   THE REVEALS — twelve pixels, and nothing else
+
+   The observer is the base's (site.js's first IIFE) and stays exactly as it
+   is: .rv takes .in once, on the way in, and the stylesheet's 2.8s self
+   reveal is still the bail-out for a script that never arrives. This is only
+   the distance. Twenty-two pixels was the scaffold's guess; with six live
+   tiles, four rolling figures, a bar row, a drawing chart, three films and a
+   walking light on the page, the sections themselves should arrive quietly —
+   a rise and a fade, no scale, no blur, no stagger beyond the .rv-d* delays
+   the markup already asks for.
+   ===================================================================== */
+html.motion .rv{transform:translateY(12px)}
