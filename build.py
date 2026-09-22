@@ -55,13 +55,12 @@ FONTS = ('https://fonts.googleapis.com/css2?'
          '&family=Space+Grotesk:wght@500;700'
          '&display=swap')
 
-# A drawn mark rather than a file: the green bracket on Drew's black. Inline so
-# there is no favicon request to 404 before the logo renditions are made.
-FAVICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E"
-           f"%3Crect width='64' height='64' fill='{BG.replace('#', '%23')}'/%3E"
-           f"%3Cpath d='M14 46V18l18 16 18-16v28' fill='none' "
-           f"stroke='{GREEN.replace('#', '%23')}' stroke-width='7' "
-           f"stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E")
+# The icon set and the share card, all cut from Drew's own logo by
+# tools/make-og.py and written into out/img/ with the rest of the media. A page
+# that names no card of its own gets OG_DEFAULT; the six service pages name
+# their own, which has the service on it.
+FAVICONS = ('favicon.ico', 'favicon-32.png', 'favicon.svg', 'apple-touch-icon.png')
+OG_DEFAULT = 'og.png'
 
 # The wordmark. The media pipeline writes out/img/logo.webp — Drew's mark and
 # name on black. The transparent PNG and the vector arrive from him in a day or
@@ -147,6 +146,17 @@ def webp_size(path):
         return ((h[24] | h[25] << 8 | h[26] << 16) + 1,
                 (h[27] | h[28] << 8 | h[29] << 16) + 1)
     raise ValueError(f'{path}: unknown WebP chunk {fmt!r}')
+
+
+def png_size(path):
+    """(width, height) out of a PNG's IHDR. Same reason as webp_size(): the
+    share-card tags say how big the card is, and the number is read off the
+    file rather than repeated from the script that made it."""
+    with open(path, 'rb') as f:
+        h = f.read(24)
+    if h[:8] != b'\x89PNG\r\n\x1a\n':
+        raise ValueError(f'{path}: not a PNG')
+    return struct.unpack('>II', h[16:24])
 
 
 def pic(name, alt, sizes, cls='', extra='', lazy=True):
@@ -443,11 +453,22 @@ def layout(path, title, desc, body, ld=None, noindex=False, og=None,
     """
     canonical = BASE_URL + (path if path != '/index' else '/')
     robots = '<meta name="robots" content="noindex,nofollow">' if noindex else ''
-    ogimg = ''
-    if og:
-        have(f'img/{og}.webp')
-        ogimg = (f'<meta property="og:image" content="{BASE_URL}{PREFIX}/assets/img/{og}.webp">'
-                 f'<meta property="og:image:alt" content="{html.escape(title)}">')
+    # An absolute URL built from BASE_URL and a bare path, never through u():
+    # on the preview BASE_URL already ends in /p/<slug>, so prefixing it a
+    # second time writes the slug twice and every share card 404s.
+    og = og or OG_DEFAULT
+    ogimg = f'<meta property="og:image" content="{BASE_URL}/assets/img/{og}">'
+    if have(f'img/{og}'):
+        w, h = png_size(os.path.join(SRC, 'out', 'img', og))
+        ogimg += (f'<meta property="og:image:width" content="{w}">'
+                  f'<meta property="og:image:height" content="{h}">')
+    ogimg += f'<meta property="og:image:alt" content="{html.escape(title)}">'
+    for f in FAVICONS:
+        have(f'img/{f}')
+    icons = (f'<link rel="icon" href="{u("/assets/img/favicon.ico")}" sizes="32x32">'
+             f'<link rel="icon" href="{u("/assets/img/favicon.svg")}" type="image/svg+xml">'
+             f'<link rel="icon" href="{u("/assets/img/favicon-32.png")}" type="image/png" sizes="32x32">'
+             f'<link rel="apple-touch-icon" href="{u("/assets/img/apple-touch-icon.png")}">')
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -462,7 +483,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, og=None,
 {ogimg}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="{BG}">
-<link rel="icon" href="{FAVICON}">
+{icons}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="{FONTS}" rel="stylesheet">
 <link rel="stylesheet" href="{u('/css/site.css')}?v={asset_v('css/site.css')}">

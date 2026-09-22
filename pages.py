@@ -243,7 +243,7 @@ def service_page(s):
     return dict(
         title=f'{name} | {SITE["name"]}',
         desc=txt(s['lead'])[:300],
-        og='logo',
+        og=f"og-{slug}.png",
         body='\n'.join(out))
 
 
@@ -294,7 +294,6 @@ def pricing_page():
         desc='Every Mendoza Marketing package and what it costs: website design '
              'and re-design, Meta ad setup and filming, social media, logo design, '
              'drone sessions and lead conversion.',
-        og='logo',
         body='\n'.join([
             B.page_hero('Pricing', 'Every package.<span>Every price.</span>',
                         'What each service costs, up front. Where a job is bigger '
@@ -337,7 +336,6 @@ def work_page():
         desc='Brands, websites and content by Mendoza Marketing: logo and brand '
              'work, the Isle de Grande logo, and the reels running on client pages '
              'around Grand Island and Buffalo, New York.',
-        og='isle-de-grande',
         body='\n'.join([
             B.page_hero('Work', 'The marks.<span>The films.</span>',
                         'A selection of what Drew has built &mdash; the logos, the '
@@ -395,7 +393,6 @@ def results_page():
         desc='The client dashboards, in full: 344,880 views in 28 days, 569,027 '
              'over 90, 614 leads through the Meta Leads Center, and what Kelly\u2019s '
              'Country Store did in the same window.',
-        og='logo',
         body='\n'.join([
             B.page_hero('Results', 'Real dashboards.<span>Real numbers.</span>',
                         'Every figure on this page is read off a client\u2019s own '
@@ -464,7 +461,6 @@ def about_page():
     return dict(
         title=f'About Drew | {SITE["name"]}',
         desc=txt(ABOUT['lead'])[:300],
-        og='drew-headshot',
         body='\n'.join([
             B.page_hero('About', ABOUT['hero_title'], ABOUT['lead'], crumb='About Drew'),
             section(
