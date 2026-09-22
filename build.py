@@ -431,8 +431,16 @@ def ld_json(ld):
             + '</script>')
 
 
-def layout(path, title, desc, body, ld=None, noindex=False, og=None):
-    """The document around a page body."""
+def layout(path, title, desc, body, ld=None, noindex=False, og=None,
+           extra_scripts=''):
+    """The document around a page body.
+
+    `extra_scripts` is markup appended after site.js — the hook for a script
+    that belongs to exactly one page and that every other page should not have
+    to download. /contact's form.js is the only one today. It defaults to empty,
+    so a page dict that says nothing about scripts gets the document it always
+    got.
+    """
     canonical = BASE_URL + (path if path != '/index' else '/')
     robots = '<meta name="robots" content="noindex,nofollow">' if noindex else ''
     ogimg = ''
@@ -469,7 +477,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, og=None):
 {footer_html()}
 <div class="lb" role="dialog" aria-modal="true" aria-label="Media viewer"><div><div class="lb-inner"></div><div class="lb-cap"></div></div></div>
 <script>window.MM={{form:{json.dumps(FORM_ENDPOINT)}}}</script>
-<script src="{u('/js/site.js')}?v={asset_v('js/site.js')}" defer></script>
+<script src="{u('/js/site.js')}?v={asset_v('js/site.js')}" defer></script>{extra_scripts}
 </body>
 </html>'''
 
@@ -484,6 +492,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, og=None):
 #  /pricing and /contact arrive in steps 4 and 6.
 # ========================================================================
 from home import home_page
+from contact import contact_page
 
 pages = {}
 
@@ -507,6 +516,10 @@ pages['/404'] = dict(
 </div></div></section>''')
 
 from pages import inner_pages; pages.update(inner_pages())
+# The quote form his README asks for, and the ways to reach him that are not a
+# form. It carries its own script (site/js/form.js) rather than adding one to
+# every page of the site — layout()'s `extra_scripts` is the hook.
+pages['/contact'] = contact_page()
 
 
 # --------------------------------------------------------------------- write
@@ -533,7 +546,8 @@ for path, p in pages.items():
     os.makedirs(os.path.dirname(fn), exist_ok=True)
     with open(fn, 'w') as f:
         f.write(layout(path, p['title'], p['desc'], p['body'], p.get('ld'),
-                       p.get('noindex', False), p.get('og')))
+                       p.get('noindex', False), p.get('og'),
+                       p.get('extra_scripts', '')))
     print('wrote', fn)
 
 # sitemap + robots. A page marked noindex is a working page, not a public one:
