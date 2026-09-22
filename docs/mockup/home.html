@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mendoza Marketing — mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050A0A;--panel:#1A1F1F;--line:#2E3535;--ink:#f0ffff;--muted:#9fb3ad;--green:#2de8b5;--green-2:#7FF2D1;--max:1240px;--r:14px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.55 Inter,system-ui,sans-serif}
+a{color:inherit;text-decoration:none}.wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+.mono{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--green)}
+h1,h2,h3{font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.02;margin:0}
+h1{font-size:clamp(3rem,7.4vw,6.6rem)}h2{font-size:clamp(2rem,4.2vw,3.6rem)}h3{font-size:1.25rem;line-height:1.2}
+.two span{color:var(--green);display:block}
+p.lead{font-size:1.15rem;color:var(--muted);max-width:44ch}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:999px;font-weight:600;font-size:15px;background:var(--green);color:#050A0A;border:1px solid var(--green)}
+.btn.ghost{background:var(--panel);color:var(--green);border-color:var(--line)}
+.nav{position:sticky;top:0;z-index:10;backdrop-filter:blur(14px);background:rgba(5,10,10,.72);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;height:72px;gap:28px}
+.nav img{height:44px;width:auto;border-radius:6px}
+.nav ul{display:flex;gap:22px;list-style:none;margin:0 0 0 auto;padding:0;font-size:15px;color:#cfe3dd}.nav .btn{padding:10px 18px}
+.hero{position:relative;min-height:92svh;display:flex;align-items:flex-end;overflow:hidden}
+.hero img.plate{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.85)}
+.hero .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,10,10,.35),rgba(5,10,10,.55) 55%,#050A0A 100%)}
+.hero .wrap{position:relative;padding-bottom:64px;padding-top:120px}
+.hero .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:28px 0;background:#070d0d}
+.strip .wrap{display:flex;gap:40px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.strip img{height:64px;width:64px;border-radius:50%;object-fit:cover;filter:grayscale(1) brightness(1.1);opacity:.75}
+.strip img.on{filter:none;opacity:1;box-shadow:0 0 0 2px var(--green)}
+section{padding:96px 0}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:40px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:26px;position:relative;overflow:hidden;min-height:250px;display:flex;flex-direction:column}
+.card .ico{width:44px;height:44px;border-radius:12px;background:#0b1413;border:1px solid var(--line);display:grid;place-items:center;color:var(--green);margin-bottom:22px}
+.card .price{margin-left:auto}
+.card p{color:var(--muted);font-size:15px;margin:10px 0 0}
+.card .demo{margin-top:auto;height:56px;border-radius:10px;background:#0b1413;border:1px dashed var(--line);position:relative}
+.card.live{border-color:var(--green)}
+.card.live .demo{border-style:solid;border-color:var(--green)}
+.demo .wire{position:absolute;left:10px;top:10px;right:10px;height:6px;background:var(--green);border-radius:3px;width:60%}
+.demo .wire2{top:24px;width:85%;opacity:.5}.demo .wire3{top:38px;width:40%;opacity:.35}
+.results{background:#070d0d;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+.stat b{display:block;font:600 2.1rem/1 "JetBrains Mono",monospace;color:var(--ink);margin:10px 0 6px}
+.stat i{font-style:normal;color:var(--green);font-family:"JetBrains Mono";font-size:13px}
+.stat span{color:var(--muted);font-size:14px}
+.bars{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.bar{display:grid;grid-template-columns:90px 1fr 60px;align-items:center;gap:12px;font-size:14px;color:var(--muted);margin:8px 0}
+.bar div{height:8px;background:#0b1413;border-radius:4px;overflow:hidden}.bar div b{display:block;height:100%;background:var(--green)}
+.chart{height:120px;position:relative}.chart svg{width:100%;height:100%}
+.reels{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:900px}
+.phone{aspect-ratio:9/16;border-radius:26px;border:1px solid var(--line);background:#000;overflow:hidden;position:relative}
+.phone img{width:100%;height:100%;object-fit:cover}.phone .play{position:absolute;inset:auto 14px 14px auto;width:40px;height:40px;border-radius:50%;background:var(--green);color:#050A0A;display:grid;place-items:center;font-weight:700}
+.beats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.beat{border-top:2px solid var(--green);padding-top:18px}.beat .mono{color:var(--muted)}
+.about{display:grid;grid-template-columns:1fr 1.4fr;gap:40px;align-items:center}
+.about img{width:100%;border-radius:var(--r);border:1px solid var(--line)}
+.twin{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.twin .card{min-height:0}
+footer{border-top:1px solid var(--line);padding:56px 0 28px;background:#070d0d;font-size:14px;color:var(--muted)}
+footer .cols{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px}
+footer h4{color:var(--ink);margin:0 0 12px;font:600 13px/1 "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase}
+footer li{list-style:none;margin:6px 0}footer ul{padding:0;margin:0}
+footer .bottom{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+footer .gf{color:var(--green)}
+@media (max-width:960px){.grid,.stats,.reels,.beats{grid-template-columns:1fr 1fr}.about,.bars{grid-template-columns:1fr}footer .cols{grid-template-columns:1fr 1fr}.nav ul{display:none}}
+@media (max-width:640px){.grid,.stats,.beats,.twin,.reels{grid-template-columns:1fr}.strip img{height:48px;width:48px}section{padding:64px 0}.hero{min-height:88svh}}
+</style></head>
+<body>
+<nav class="nav"><div class="wrap"><img src="logo.jpg" alt="Mendoza Marketing"><ul><li>Services ▾</li><li>Work</li><li>Results</li><li>About</li><li>Pricing</li><li>Contact</li></ul><a class="btn" href="#">Get a quote</a></div></nav>
+
+<header class="hero"><img class="plate" src="frame-2.5.jpg" alt=""><div class="shade"></div>
+<div class="wrap"><div class="mono">Mendoza Marketing · Grand Island, NY</div>
+<h1 class="two" style="margin-top:14px">Content. Websites.<span>Drones.</span></h1>
+<p class="lead" style="margin-top:22px">Data-driven digital marketing built to strengthen brand visibility and drive measurable results.</p>
+<div class="row"><a class="btn" href="#">Get a quote →</a><a class="btn ghost" href="#">See the results</a></div></div></header>
+
+<div class="strip"><div class="wrap"><span class="mono" style="color:var(--muted)">Trusted by</span>
+<img src="77CA1550-D0E3-4C1A-BC73-ADDDDD898C9D.png" alt="Buffalo Holistic Center"><img class="on" src="D8D29CE4-0BC3-4DAE-9A4C-E34437C234C6.png" alt="Zen Zone"><img src="IMG_4366.PNG" alt="Britt Fitness"><img src="IMG_5450.PNG" alt="Adam's Detailing"><img src="isle.png" alt="Isle de Grande"><span class="mono" style="color:var(--muted)">+ Kelly's Country Store</span></div></div>
+
+<section><div class="wrap"><div class="head"><div><div class="mono">Six services, one team</div><h2 class="two" style="margin-top:12px">Everything your brand needs.<span>Priced up front.</span></h2></div><a class="btn ghost" href="#">Every package →</a></div>
+<div class="grid">
+ <div class="card live"><div style="display:flex;align-items:flex-start"><div class="ico">▤</div><span class="mono price">from $1,250</span></div><h3>Website design</h3><p>Sleek, responsive sites that elevate brands and turn ideas into launches. Re-designs from $600.</p><div class="demo"><i class="wire"></i><i class="wire wire2"></i><i class="wire wire3"></i></div></div>
+ <div class="card"><div style="display:flex;align-items:flex-start"><div class="ico">◎</div><span class="mono price">$750</span></div><h3>Meta ads &amp; filming</h3><p>Campaigns planned, filmed, launched and managed through Meta Business Suite.</p><div class="demo"></div></div>
+ <div class="card"><div style="display:flex;align-items:flex-start"><div class="ico">▶</div><span class="mono price">from $500</span></div><h3>Social media</h3><p>Weekly short-form reels, engagement and planning. Emerald · Sapphire · Diamond.</p><div class="demo"></div></div>
+ <div class="card"><div style="display:flex;align-items:flex-start"><div class="ico">◆</div><span class="mono price">$500</span></div><h3>Logo design</h3><p>A mark that scales from social to signage, with full rights on delivery.</p><div class="demo"></div></div>
+ <div class="card"><div style="display:flex;align-items:flex-start"><div class="ico">✈</div><span class="mono price">$1,000</span></div><h3>Drone sessions</h3><p>Aerial film and stills for listings, businesses and events.</p><div class="demo"></div></div>
+ <div class="card"><div style="display:flex;align-items:flex-start"><div class="ico">↗</div><span class="mono price">Priced to need</span></div><h3>Lead conversion</h3><p>Closing the leads your Meta campaigns generate. Commission or hourly.</p><div class="demo"></div></div>
+</div></div></section>
+
+<section class="results"><div class="wrap"><div class="head"><div><div class="mono">Results</div><h2 class="two" style="margin-top:12px">Real dashboards.<span>Real numbers.</span></h2></div><p class="lead" style="max-width:36ch">From client pages under Mendoza Marketing management, last 28–90 days.</p></div>
+<div class="stats">
+ <div class="stat"><span class="mono" style="color:var(--muted)">Views · 28 days</span><b>344,880</b><i>↑ 11×</i><br><span>one client page</span></div>
+ <div class="stat"><span class="mono" style="color:var(--muted)">Earnings · 28 days</span><b>$42.15</b><i>↑ 802%</i><br><span>approximate, same page</span></div>
+ <div class="stat"><span class="mono" style="color:var(--muted)">Views · 90 days</span><b>569,027</b><i>+904 followers</i><br><span>87.6% new audience</span></div>
+ <div class="stat"><span class="mono" style="color:var(--muted)">Leads Center</span><b>614</b><i>↑ 27.4%</i><br><span>intake leads</span></div>
+</div>
+<div class="bars"><div><div class="mono" style="color:var(--muted);margin-bottom:10px">Views by content type · 226,373 viewers</div>
+ <div class="bar">Reels<div><b style="width:100%"></b></div><span>365K</span></div><div class="bar">Stories<div><b style="width:9%"></b></div><span>32K</span></div><div class="bar">Posts<div><b style="width:1%"></b></div><span>1.7K</span></div><div class="bar">Live<div><b style="width:0"></b></div><span>0</span></div></div>
+ <div><div class="mono" style="color:var(--muted);margin-bottom:10px">Daily new leads · Jun–Sep</div><div class="chart"><svg viewBox="0 0 300 100" preserveAspectRatio="none"><polyline fill="none" stroke="#2de8b5" stroke-width="2" points="0,70 20,60 40,66 60,50 80,58 100,44 120,52 140,40 160,48 180,36 200,44 220,30 240,38 260,22 280,30 300,12"/><polyline fill="rgba(45,232,181,.12)" stroke="none" points="0,70 20,60 40,66 60,50 80,58 100,44 120,52 140,40 160,48 180,36 200,44 220,30 240,38 260,22 280,30 300,12 300,100 0,100"/></svg></div></div></div>
+</div></section>
+
+<section><div class="wrap"><div class="head"><div><div class="mono">Content in action</div><h2 class="two" style="margin-top:12px">Made for the feed.<span>Filmed for the client.</span></h2></div></div>
+<div class="reels"><div class="phone"><img src="reel1.png" alt=""><span class="play">▶</span></div><div class="phone"><img src="reel2.png" alt=""><span class="play">▶</span></div><div class="phone"><img src="reel3.png" alt=""><span class="play">▶</span></div></div>
+<p class="lead" style="margin-top:18px">Kelly's Country Store · Fall Fest and holiday campaigns</p></div></section>
+
+<section class="results"><div class="wrap"><div class="beats">
+ <div class="beat"><div class="mono">01 · Design</div><h3 style="margin-top:8px">We create clean visuals that stand out.</h3></div>
+ <div class="beat"><div class="mono">02 · Launch</div><h3 style="margin-top:8px">We build, test and deploy your vision.</h3></div>
+ <div class="beat"><div class="mono">03 · Grow</div><h3 style="margin-top:8px">We turn traffic into paying customers.</h3></div></div></div></section>
+
+<section><div class="wrap about"><img src="drew.png" alt="Drew Mendoza"><div><div class="mono">About</div><h2 class="two" style="margin-top:12px">Drew Mendoza.<span>Content, websites, drones.</span></h2><p class="lead" style="margin-top:18px">Helping small and mid-sized businesses grow and compete online, with the same precision on a Meta campaign as on a drone shot. Based on Grand Island, working across Buffalo and Western New York.</p><a class="btn ghost" href="#" style="margin-top:18px">Meet Drew →</a></div></div></section>
+
+<section class="results"><div class="wrap twin">
+ <div class="card"><div class="mono">Get in touch</div><h3 style="margin-top:10px">Tell us what you're building.</h3><p>A quote comes back within a business day, priced to the package.</p><a class="btn" href="#" style="margin-top:18px;align-self:flex-start">Get a quote →</a></div>
+ <div class="card"><div class="mono">Book a call</div><h3 style="margin-top:10px">Twenty minutes, no pitch deck.</h3><p>We'll talk through what you need and what it costs.</p><a class="btn ghost" href="#" style="margin-top:18px;align-self:flex-start">Schedule a call</a></div>
+</div></section>
+
+<footer><div class="wrap"><div class="cols">
+ <div><img src="logo.jpg" alt="" style="height:56px;border-radius:6px"><p style="margin:14px 0 0;max-width:34ch">Content · Websites · Drones. Data-driven marketing for businesses that want to be seen.</p></div>
+ <div><h4>Services</h4><ul><li>Website design</li><li>Meta ads &amp; filming</li><li>Social media</li><li>Logo design</li><li>Drone sessions</li><li>Lead conversion</li></ul></div>
+ <div><h4>Explore</h4><ul><li>Work</li><li>Results</li><li>About Drew</li><li>Pricing</li><li>Contact</li></ul></div>
+ <div><h4>Contact</h4><ul><li>hello@mendozamarketing.com</li><li>Instagram · Facebook</li><li>Grand Island · Buffalo, NY</li></ul></div>
+</div><div class="bottom"><span>© 2026 Mendoza Marketing</span><span class="gf">Built by Green Flash</span></div></div></footer>
+</body></html>
