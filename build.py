@@ -27,7 +27,8 @@ collected and printed at the end, so nothing goes quiet.
 """
 import os, html, json, hashlib, struct
 
-from content import SITE, SERVICES, PRICING, BY_SLUG, TODO, FORM_ENDPOINT, price
+from content import (SITE, SERVICES, SEO, PRICING, BY_SLUG, TODO,
+                     FORM_ENDPOINT, price)
 
 SRC = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(SRC, 'site')
@@ -559,6 +560,160 @@ from pages import inner_pages; pages.update(inner_pages())
 # form. It carries its own script (site/js/form.js) rather than adding one to
 # every page of the site — layout()'s `extra_scripts` is the hook.
 pages['/contact'] = contact_page()
+
+
+# ================================================================== the graph
+#  What a machine reads instead of the page. Two rules run through all of it.
+#
+#  First, the business is described once, at a stable @id, and every other
+#  block points at that id rather than repeating the name and the address — a
+#  Service that re-states the business is a second business as far as a crawler
+#  is concerned, and two Mendoza Marketings is worse than none.
+#
+#  Second, nothing in here is a fact the site does not already print. No street
+#  address (Drew has not published one), no opening hours, no aggregate rating,
+#  no founding date. `sameAs` is the socials from content.py, which today is an
+#  empty list, and an empty list is what it stays until he sends the URLs: a
+#  guessed profile link is a wrong answer given confidently.
+# ============================================================================
+BUSINESS_ID = f'{BASE_URL}/#business'
+OG_URL = f'{BASE_URL}/assets/img/{OG_DEFAULT}'
+
+
+def city(name):
+    """A named place a crawler can match against a searcher's location."""
+    return {'@type': 'City', 'name': name,
+            'address': {'@type': 'PostalAddress', 'addressLocality': name,
+                        'addressRegion': 'NY', 'addressCountry': 'US'}}
+
+
+# Where he works, from the narrowest out: the island he is on, the city whose
+# market he sells into, and the region both sit in.
+AREA = [city('Grand Island'), city('Buffalo'),
+        {'@type': 'AdministrativeArea', 'name': 'Western New York'}]
+
+BUSINESS = {
+  '@type': 'LocalBusiness',
+  '@id': BUSINESS_ID,
+  'name': SITE_NAME,
+  'url': BASE_URL + '/',
+  'description': pages['/index']['desc'],
+  'slogan': SITE['tagline'],
+  'email': SITE['email'],
+  # The E.164 form of the same number the footer prints — content.py holds
+  # both, and this is the one a machine can dial.
+  'telephone': SITE['phone_href'],
+  'image': OG_URL,
+  'logo': OG_URL,
+  'address': {'@type': 'PostalAddress', 'addressLocality': 'Grand Island',
+              'addressRegion': 'NY', 'addressCountry': 'US'},
+  'areaServed': AREA,
+  'founder': {'@type': 'Person', 'name': SITE['owner']},
+  'sameAs': [url for _label, _icon, url in SITE['socials'] if url],
+  'knowsAbout': [s['name'] for s in SERVICES],
+}
+
+
+def money(amount):
+    """'$1,250' -> '1250'. 'Commission or hourly' -> None, because a price
+    nobody has set is not a number and must not be rendered as one."""
+    n = amount.replace('$', '').replace(',', '').strip()
+    return n if n.replace('.', '', 1).isdigit() else None
+
+
+def offer(key):
+    """One row of PRICING as an Offer. The figure comes from the same table the
+    price card reads (rule 6), so the graph can never quote a price the page
+    does not print."""
+    row = PRICING[key]
+    o = {'@type': 'Offer',
+         'name': row['name'],
+         'url': f'{BASE_URL}/pricing',
+         'itemOffered': {'@type': 'Service', 'name': row['name'],
+                         'provider': {'@id': BUSINESS_ID}}}
+    amount = money(row['amount'])
+    if amount is None:
+        # Lead conversion: commission or hourly, and Drew has not set either.
+        # The offer stays in the graph — he does sell it — with his own
+        # sentence in place of a figure.
+        o['description'] = f"{row['amount']}. {row['note'] or ''}".strip()
+        return o
+    o['price'] = amount
+    o['priceCurrency'] = 'USD'
+    o['availability'] = 'https://schema.org/InStock'
+    if row['qualifier'] == 'from':
+        # "from $1,250" is a floor, not a price. minPrice says exactly that.
+        o['priceSpecification'] = {'@type': 'PriceSpecification',
+                                   'priceCurrency': 'USD', 'minPrice': amount}
+    return o
+
+
+def service_prices(s):
+    """Every package the service page actually prints, in page order — its own
+    and any its `extra` block carries (/websites shows re-design under the
+    fold). The graph offers exactly what the page offers, no more."""
+    keys = list(s['prices'])
+    keys += [k for k in (s.get('extra') or {}).get('prices', []) if k not in keys]
+    return keys
+
+
+def service_ld(s):
+    """One service page as a Service, offered by the one business."""
+    path = '/' + s['slug']
+    return {
+      '@type': 'Service',
+      '@id': f'{BASE_URL}{path}#service',
+      'name': s['name'],
+      'serviceType': s['name'],
+      'url': BASE_URL + path,
+      'description': SEO[s['slug']]['meta'],
+      'provider': {'@id': BUSINESS_ID},
+      'areaServed': AREA,
+      'offers': [offer(k) for k in service_prices(s)],
+    }
+
+
+CATALOG = {
+  '@type': 'OfferCatalog',
+  '@id': f'{BASE_URL}/pricing#catalog',
+  'name': f'{SITE_NAME} packages',
+  'url': f'{BASE_URL}/pricing',
+  'provider': {'@id': BUSINESS_ID},
+  'itemListElement': [offer(k) for k in PRICING],
+}
+
+PERSON = {
+  '@type': 'Person',
+  '@id': f'{BASE_URL}/about#drew',
+  'name': SITE['owner'],
+  'jobTitle': 'Founder',
+  'worksFor': {'@id': BUSINESS_ID},
+  'url': f'{BASE_URL}/about',
+  'description': pages['/about']['desc'],
+}
+if have('img/drew-headshot.webp'):
+    PERSON['image'] = f'{BASE_URL}/assets/img/drew-headshot.webp'
+
+CONTACT_LD = {
+  '@type': 'ContactPage',
+  '@id': f'{BASE_URL}/contact#page',
+  'url': f'{BASE_URL}/contact',
+  'name': f'Contact {SITE_NAME}',
+  'about': {'@id': BUSINESS_ID},
+  'mainEntity': {'@id': BUSINESS_ID},
+}
+
+# Every public page carries the business; a page that is also something in its
+# own right carries that too, in one @graph. /404 carries nothing: it is
+# noindex, and there is no sense describing a page we ask not to be read.
+for _path in pages:
+    if _path != '/404':
+        pages[_path]['ld'] = BUSINESS
+for _s in SERVICES:
+    pages['/' + _s['slug']]['ld'] = [BUSINESS, service_ld(_s)]
+pages['/pricing']['ld'] = [BUSINESS, CATALOG]
+pages['/about']['ld'] = [BUSINESS, PERSON]
+pages['/contact']['ld'] = [BUSINESS, CONTACT_LD]
 
 
 # --------------------------------------------------------------------- write
