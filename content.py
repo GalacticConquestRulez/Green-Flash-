@@ -425,6 +425,52 @@ for _s in SERVICES:
 
 BY_SLUG = {s['slug']: s for s in SERVICES}
 
+
+# ---------------------------------------------------------- the search result
+# What a service page looks like in Google, which is the only place most people
+# will ever read it. Two fields:
+#
+#   head   the phrase after "Mendoza Marketing — " in the <title>. Google
+#          prints about 60 characters of a title and drops the rest, so the
+#          whole line has to fit inside that; build.seo_title() checks it.
+#   meta   the description under it, about 155 characters. Each one is Drew's
+#          own opening sentence from `lead` above, shortened to fit — his
+#          words, fewer of them. Nothing here says anything his page does not.
+#
+# Where his page names a place, so does this: Grand Island is where he is,
+# Buffalo is the market, and a local search is the whole reason to name either.
+SEO = {
+    'websites': dict(
+        head='Website design in Grand Island, NY',
+        meta='We will work with you to design and deliver a professional website '
+             'built on WordPress with the same quality and creativity found in our '
+             'cinematic content.'),
+    'meta-ads': dict(
+        head='Meta ads & filming, Grand Island NY',
+        meta='We will work with you to plan, launch and manage high-performing ad '
+             'campaigns through Meta Business Suite, with the filming that feeds '
+             'them.'),
+    'social': dict(
+        head='Social media management, Buffalo NY',
+        meta='We will work with you to plan, create and deliver professional social '
+             'media content with the same quality and creativity found in our '
+             'cinematic work.'),
+    'logo': dict(
+        head='Logo design in Grand Island, NY',
+        meta='We will work with you to design and deliver a professional logo that '
+             'captures your brand identity with creativity, precision and polish.'),
+    'drones': dict(
+        head='Drone sessions in Buffalo, NY',
+        meta='We will work with you to plan and fly a drone session that shows your '
+             'property, your business or your event from an angle nobody on the '
+             'ground can reach.'),
+    'lead-conversion': dict(
+        head='Lead conversion for Meta ads',
+        meta='The ads bring the inquiry in; this service is everything after that — '
+             'calling, qualifying and booking every lead so ad spend turns into '
+             'customers.'),
+}
+
 # Every price row points at a service that exists, and every service at a price
 # row that exists. Cheap to check, and it is the kind of typo that reaches the
 # page as a wrong number rather than as a crash.
@@ -432,6 +478,7 @@ for _k, _p in PRICING.items():
     assert _p['service'] in BY_SLUG, f'PRICING[{_k!r}].service is not a service slug'
 for _s in SERVICES:
     assert _s['price_key'] in PRICING, f'SERVICES {_s["slug"]!r}: no PRICING row'
+    assert _s['slug'] in SEO, f'SERVICES {_s["slug"]!r}: no SEO row'
 
 
 def price(key):

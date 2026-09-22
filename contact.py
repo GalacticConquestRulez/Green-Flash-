@@ -214,10 +214,10 @@ def contact_page():
   </div>
 </div></section>'''
     return dict(
-        title=f'Contact | {b.SITE_NAME}',
+        title=b.seo_title('Get a quote, Grand Island NY'),
         desc=f'Get a quote from {b.SITE_NAME} — websites, Meta ads and filming, '
              f'social media, logo design, drone sessions and lead conversion in '
-             f'Grand Island and Buffalo, NY. Or write to {SITE["email"]}.',
+             f'Buffalo, NY.',
         body=body,
         extra_scripts=f'<script src="{b.u("/js/form.js")}?v='
                       f'{b.asset_v("js/form.js")}" defer></script>')

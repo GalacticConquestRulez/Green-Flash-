@@ -19,8 +19,8 @@ which is the temporary local copy of what results.py will own.
 import html
 import re
 
-from content import (SITE, SERVICES, PRICING, BY_SLUG, CLIENTS, CASE, SITES,
-                     REELS, DRONE_CLIPS, ABOUT, BEATS, price, price_text)
+from content import (SITE, SERVICES, SEO, PRICING, BY_SLUG, CLIENTS, CASE,
+                     SITES, REELS, DRONE_CLIPS, ABOUT, BEATS, price, price_text)
 from results import (DASH1, DASH2, DASH3, DASH5, CONTENT_TYPES, LEADS,
                      bar_pct, leads_points)
 
@@ -241,8 +241,8 @@ def service_page(s):
         secondary=('See the results', '/results')))
 
     return dict(
-        title=f'{name} | {SITE["name"]}',
-        desc=txt(s['lead'])[:300],
+        title=B.seo_title(SEO[slug]['head']),
+        desc=SEO[slug]['meta'],
         og=f"og-{slug}.png",
         body='\n'.join(out))
 
@@ -290,10 +290,10 @@ def pricing_page():
             + price_row(keys, bullets=bullets, cls=words)
             + '</div>')
     return dict(
-        title=f'Pricing | {SITE["name"]}',
-        desc='Every Mendoza Marketing package and what it costs: website design '
-             'and re-design, Meta ad setup and filming, social media, logo design, '
-             'drone sessions and lead conversion.',
+        title=B.seo_title('Pricing for every package'),
+        desc='Every Mendoza Marketing package and what it costs: website design and '
+             're-design, Meta ads and filming, social media, logo design and drone '
+             'sessions.',
         body='\n'.join([
             B.page_hero('Pricing', 'Every package.<span>Every price.</span>',
                         'What each service costs, up front. Where a job is bigger '
@@ -332,10 +332,10 @@ def work_page():
     reels = ''.join(reel_card(slug, title, sub) for slug, title, sub in REELS)
 
     return dict(
-        title=f'Work | {SITE["name"]}',
+        title=B.seo_title('Work, brands and client reels'),
         desc='Brands, websites and content by Mendoza Marketing: logo and brand '
-             'work, the Isle de Grande logo, and the reels running on client pages '
-             'around Grand Island and Buffalo, New York.',
+             'work, the Isle de Grande logo, and reels running on client pages '
+             'around Buffalo, NY.',
         body='\n'.join([
             B.page_hero('Work', 'The marks.<span>The films.</span>',
                         'A selection of what Drew has built &mdash; the logos, the '
@@ -389,10 +389,9 @@ def results_page():
     audience_rows = [('Non-followers', split['count'], split['value']),
                      ('Followers', followers, f'{followers}%')]
     return dict(
-        title=f'Results | {SITE["name"]}',
-        desc='The client dashboards, in full: 344,880 views in 28 days, 569,027 '
-             'over 90, 614 leads through the Meta Leads Center, and what Kelly\u2019s '
-             'Country Store did in the same window.',
+        title=B.seo_title('Client results and dashboards'),
+        desc='The client dashboards in full: 344,880 views in 28 days, 569,027 over '
+             '90, and 614 leads through the Meta Leads Center.',
         body='\n'.join([
             B.page_hero('Results', 'Real dashboards.<span>Real numbers.</span>',
                         'Every figure on this page is read off a client\u2019s own '
@@ -459,8 +458,10 @@ def about_page():
         f'<h3>{line}</h3></div>' for i, (n, t, line) in enumerate(BEATS))
 
     return dict(
-        title=f'About Drew | {SITE["name"]}',
-        desc=txt(ABOUT['lead'])[:300],
+        title=B.seo_title('About Drew Mendoza, Grand Island NY'),
+        desc='At Mendoza Marketing, our mission is to help small and mid-sized '
+             'businesses grow and compete online with data-driven marketing and '
+             'measurable results.',
         body='\n'.join([
             B.page_hero('About', ABOUT['hero_title'], ABOUT['lead'], crumb='About Drew'),
             section(

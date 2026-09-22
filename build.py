@@ -95,6 +95,25 @@ def ext(href):
     return f'href="{href}" target="_blank" rel="noopener"'
 
 
+# A search result prints roughly 60 characters of a title and 155 of a
+# description, and truncates the rest mid-word. Both limits are asserted rather
+# than trusted: the write loop checks every description, and this checks every
+# title as it is built, so a line that has grown too long fails the build
+# instead of arriving in Google with an ellipsis through it.
+TITLE_MAX = 60
+DESC_MAX = 155
+
+
+def seo_title(head):
+    """The brand, an em dash, and what this page is: 'Mendoza Marketing —
+    Website design in Grand Island, NY'. Brand first because it is the thing
+    Drew wants recognised, and because every page of a six-page marketing site
+    otherwise reads as an orphan in a results list."""
+    t = f'{SITE_NAME} — {head}'
+    assert len(t) <= TITLE_MAX, f'title is {len(t)} characters, over {TITLE_MAX}: {t}'
+    return t
+
+
 CSS_PARTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'site', 'css', 'parts')
 
 def concat_css():
@@ -518,14 +537,13 @@ from contact import contact_page
 pages = {}
 
 pages['/index'] = dict(
-    title=f'{SITE_NAME} | Content, websites and drones in Grand Island & Buffalo, NY',
-    desc='Mendoza Marketing — websites, Meta ad campaigns and filming, social media '
-         'management, logo design, drone sessions and lead conversion, out of Grand '
-         'Island and Buffalo, New York.',
+    title=seo_title(f"{SITE['tagline']}, Buffalo NY"),
+    desc='Mendoza Marketing builds websites, runs Meta ad campaigns, films content '
+         'and flies drones for businesses in Grand Island and Buffalo, New York.',
     body=home_page())
 
 pages['/404'] = dict(
-    title=f'Page not found | {SITE_NAME}',
+    title=seo_title('Page not found'),
     desc='That page is not here.',
     noindex=True,
     body=f'''
@@ -559,6 +577,12 @@ for kind in ('img', 'video'):
 
 _titles = [p['title'] for p in pages.values()]
 assert len(set(_titles)) == len(_titles), 'two pages share a title'
+# seo_title() has already checked every title's length; this is the other half
+# of the same rule. A description over DESC_MAX is cut mid-word in the result,
+# which reads as carelessness on a page whose whole job is to look professional.
+for _path, _p in pages.items():
+    assert len(_p['desc']) <= DESC_MAX, \
+        f"{_path}: description is {len(_p['desc'])} characters, over {DESC_MAX}"
 
 concat_css()
 
