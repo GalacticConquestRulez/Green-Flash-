@@ -1,0 +1,236 @@
+/* Mendoza Marketing — the motion states.
+
+   Step 5's stylesheet, and only step 5's: every rule in this file describes a
+   state that site.js puts an element into, or styles a node site.js builds.
+   Nothing here lays out a page, and nothing here is a second copy of
+   10-home.css's geometry — the wells, the wheels and the tracks are already
+   sized there and this file moves what is in them.
+
+   site/css/site.css concatenates site/css/parts/*.css in name order, so this
+   lands after 10-home.css and may lean on every token the base declares.
+
+   =====================================================================
+   THE CONTRACT (CLAUDE.md rule 4)
+   Every selector in this file starts at `html.motion`. With no script, or
+   with prefers-reduced-motion asked for, the class is not on the document,
+   not one of these rules matches, and the page is exactly the server's HTML:
+   the wires at their widths, the quad parked, the figures printed, the bars
+   drawn, the chart whole. Nothing below hides anything from anybody, and
+   nothing below supplies a word or a figure the page does not already hold.
+
+   =====================================================================
+   CONTRAST (CLAUDE.md rule 9)
+   This file introduces no new colour pair. Everything it sets type in is
+   already computed in the two tables above it:
+
+     --green  #2de8b5  on --well  #0b1413  11.86:1  AAA  the demo figures,
+                                                         the typed caption
+     --ink    #f0ffff  on --well  #0b1413  18.20:1  AAA  the demo counter
+     --bg     #050A0A  on --green #2de8b5  12.64:1  AAA  the "Sound on" chip
+
+   The wheels of a rolling figure are the figure's own colour on the figure's
+   own surface — they are the same glyphs, moved — so they add no pair either.
+*/
+
+/* =====================================================================
+   THE LIVE TILES — a three-second demo of the service, in the card's well
+
+   One verb per card, no score, no counter left behind, nothing that unlocks:
+   hover on a desktop or the first tap on a phone runs the demo, it finishes,
+   and the well goes back to exactly what the server sent. Every node the
+   script builds carries .mm-fx and is removed at rest; the two wells that
+   are not empty (the website card's wires, the drone card's quad) get inline
+   styles for the length of the run and have them taken off again.
+
+   The well is position:relative and overflow:hidden (10-home.css), and every
+   node below is absolutely positioned inside it, so a demo can never change
+   the card's box — which is the whole reason the demo is allowed to run
+   under the visitor's pointer.
+   ===================================================================== */
+
+/* A card with a demo running lights its well. On a desktop the card's own
+   hover already does this (10-home.css); on a phone there is no hover, so
+   this is the only thing that says the tap did something. */
+html.motion .svc.mm-on .svc-demo{border-color:var(--green)}
+
+/* The website card: the wires draw in, then a button lands and is clicked.
+   The button sits on the third rule's line, to the right of it — the shortest
+   of the three wires is the one with room beside it, and a button drawn over
+   a paragraph is not a wireframe of anything. */
+html.motion .mm-btn{position:absolute;right:12px;top:36px;width:52px;height:15px;
+  border-radius:4px;background:var(--green);opacity:0;
+  transform:translateY(4px) scale(.82);transform-origin:center;
+  transition:opacity .28s var(--ease),transform .28s var(--ease)}
+html.motion .mm-btn.on{opacity:.9;transform:none}
+html.motion .mm-btn.hit{opacity:1;transform:scale(.92)}
+/* The cursor: a ring with a dot in it, so it reads as a pointer rather than
+   as a bullet. It crosses the well to the button and presses. */
+html.motion .mm-dot{position:absolute;left:14px;top:58%;width:11px;height:11px;
+  margin:-5.5px 0 0 -5.5px;border-radius:50%;border:1.6px solid var(--ink);
+  background:rgba(240,255,255,.22);opacity:0;
+  transition:left .8s var(--ease),top .8s var(--ease),
+             transform .16s ease-out,opacity .2s linear}
+html.motion .mm-dot.go{opacity:1;left:calc(100% - 38px);top:43px}
+html.motion .mm-dot.tap{transform:scale(.55)}
+
+/* The Meta card: the figure climbs, and a small arrow lifts off the end of
+   it when it lands. The figure is the one printed in the results band below
+   — the script reads it off that tile's data-count and can only ever count
+   to a number the page already says. */
+html.motion .mm-num{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+  text-align:center;font-size:1.25rem;letter-spacing:.02em;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+html.motion .mm-up{position:absolute;top:50%;right:14px;margin-top:-.7em;
+  font-style:normal;font-size:.95rem;color:var(--green);opacity:0;
+  transition:opacity .3s linear,transform .5s var(--ease)}
+html.motion .mm-up.on{opacity:1;transform:translateY(-8px)}
+
+/* The social card: the reels' own posters, going past like a feed. The
+   window is one poster wide and the column is as tall as there are posters,
+   so the slide is a whole number of windows and nothing lands half-way. */
+html.motion .mm-feed{position:absolute;left:50%;top:6px;bottom:6px;width:26px;
+  margin-left:-13px;border-radius:4px;overflow:hidden;
+  border:1px solid var(--line);background:#000}
+/* The column is as many windows tall as there are posters and each cell is
+   one window of it — both set inline by the script, because only it knows how
+   many reels the page holds. The slide is then translateY of a whole window
+   however many there are. */
+html.motion .mm-feed-col{position:absolute;left:0;top:0;width:100%;
+  display:flex;flex-direction:column;
+  transition:transform .55s cubic-bezier(.62,.03,.2,1)}
+html.motion .mm-feed-col>i{background-size:cover;background-position:center}
+
+/* The logo card: the mark's caption, typed. Six services, half a second
+   each, with the caret that is doing the typing. */
+html.motion .mm-type{position:absolute;left:12px;right:12px;top:50%;
+  transform:translateY(-50%);font-size:.72rem;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--green);
+  white-space:nowrap;overflow:hidden}
+html.motion .mm-type::after{content:"";display:inline-block;width:.55em;height:1em;
+  margin-left:.15em;vertical-align:-.15em;background:var(--green);
+  animation:mmCaret .7s steps(1) infinite}
+@keyframes mmCaret{0%,49%{opacity:1}50%,100%{opacity:.15}}
+
+/* The drone card: the quad's shadow on the ground it is leaving. It is the
+   only thing that says the machine went up rather than merely across. */
+html.motion .mm-shadow{position:absolute;left:14px;bottom:7px;width:46px;height:4px;
+  border-radius:50%;background:var(--green);opacity:.3;filter:blur(1px)}
+
+/* The lead-conversion card: the daily-leads line drawing itself, and the
+   Leads Center figure landing at the end of it. Both are read off the
+   results band — the line's own points, and that tile's data-count. */
+html.motion .mm-chart{position:absolute;inset:0;width:100%;height:100%}
+html.motion .mm-line{fill:none;stroke:var(--green);stroke-width:2;
+  stroke-linejoin:round;stroke-linecap:round;
+  transition:stroke-dashoffset 2.2s cubic-bezier(.35,.1,.25,1)}
+html.motion .mm-fig{position:absolute;right:12px;top:50%;margin-top:-.62em;
+  font-size:1.05rem;color:var(--green);opacity:0;
+  transform:translateY(-10px) scale(.86);
+  transition:opacity .22s linear,transform .32s var(--ease)}
+html.motion .mm-fig.on{opacity:1;transform:none}
+
+/* =====================================================================
+   THE RESULTS BAND — his dashboards, arriving and leaving
+
+   The plan: the four figures count up on entry, the bar row fills, the
+   daily-leads line draws itself on scroll. Open Air Gallery's Live is the
+   pattern and the reason it runs BOTH ways — its owner asked to "see motion
+   as he scrolls up and down from them", and a figure that only ever animates
+   once is a thing you miss by arriving from the wrong direction.
+
+   These are the only numbers on this site that are allowed to move
+   (CLAUDE.md rule 4): they are Drew's own dashboard figures, they are in the
+   server HTML as text, and every one of them is still that text underneath —
+   the wheels are laid over the real characters, which stay in the DOM,
+   carry the box, are what a screen reader reads and what a visitor selects.
+   ===================================================================== */
+
+/* --- the figures as mechanical counters (OAG's Live, ported) ----------
+   The window is one line tall plus a sixth of an em of air at each end,
+   pulled back by an equal negative margin so the line box is unchanged. Each
+   wheel is a grid of ten cells one window high, so the roll is a translateY
+   of a whole number of windows and the digit lands exactly where the text's
+   digit was. The ghost goes transparent rather than hidden: it is still the
+   figure, it is still selectable, and it is still what sizes the box — which
+   is why a figure rolling cannot shift a pixel of the page. */
+html.motion .roll{position:relative;display:inline-block;font-variant-numeric:tabular-nums}
+html.motion .roll-g{color:transparent}
+html.motion .roll-w{position:absolute;inset:0;display:flex;align-items:stretch;overflow:hidden}
+html.motion .roll-x{flex:none;display:flex;align-items:center}
+html.motion .roll-d{flex:none;position:relative;overflow:hidden;height:calc(100% + .34em);margin:-.17em 0}
+html.motion .roll-c{display:grid;grid-auto-rows:100%;height:100%;
+  transform:translateY(calc(var(--d,0) * -100%));
+  transition:transform var(--rt,.6s) cubic-bezier(.22,.78,.26,1) var(--rd,0s)}
+html.motion .roll-c>span{display:flex;align-items:center;justify-content:center}
+/* .in is added on the way in and taken away on the way out: one declaration
+   is the whole of both directions. */
+html.motion .roll.in .roll-c{--d:var(--v)}
+
+/* --- the bar row -----------------------------------------------------
+   The widths are the server's inline styles and are never touched: the bar
+   is scaled from its left edge instead, so there is one value in the page
+   and it is the one results.py computed.
+
+   Nothing here needs the house 2.8s bail-out, because nothing here hides a
+   bar the script is not already holding: .mm-live is put on a row by the
+   script, one row at a time, at the moment it is taken over and after the
+   observer that will reveal it exists. A page with no script, a script that
+   died before this module, a browser with no IntersectionObserver, or a bar
+   row this module does not recognise all keep their bars drawn — there is no
+   state to fall out of. */
+html.motion .bar.mm-live .bar-track b{transform-origin:left center;
+  transform:scaleX(0);transition:transform .9s var(--ease)}
+html.motion .bar.mm-live.in .bar-track b{transform:none}
+
+/* --- the daily-leads line --------------------------------------------
+   The dash is set by the script off the path's own length — nothing here
+   hides the line, because a stylesheet cannot measure it. If the script is
+   not there the polyline is simply drawn, which is how the server sent it. */
+html.motion .chart-line{transition:stroke-dashoffset 1.8s cubic-bezier(.35,.1,.25,1)}
+/* The area under the line waits for the line: shaded ground where the stroke
+   has not reached yet reads as a chart that is ahead of itself. The delay is
+   on the way in only and the script sets it, because a fill that lingers on
+   the way out is the same mistake in reverse. */
+html.motion .chart-fill{transition:opacity .6s var(--ease)}
+
+/* =====================================================================
+   THE REELS — playing while you are looking at them
+
+   The posters are the server's render and stay it: with no script, reduced
+   motion or a metered connection these three films are three stills and
+   nothing is fetched. Under html.motion the script arms a clip as it
+   approaches, plays it muted while it is on screen and pauses it the moment
+   it is not — a film running behind the visitor's back is battery spent on
+   something nobody is watching.
+
+   Sound is off, always, until somebody asks for it. 10-home.css draws the
+   play glyph as decoration with pointer-events:none, because until this
+   file there was nothing for a click on it to do; the script upgrades the
+   glyph to a real button (role, tabindex, aria-pressed) on the reels it has
+   taken over, and .mm-sound is it saying so. One reel at a time.
+   ===================================================================== */
+html.motion .phone.mm-sound .play{pointer-events:auto;cursor:pointer;
+  transition:transform .2s var(--ease),background .2s linear}
+html.motion .phone.mm-sound .play:hover{transform:scale(1.08)}
+html.motion .phone.is-snd .play{background:var(--green-2)}
+/* The state, small and in the corner: the one label on this page that is not
+   a figure of Drew's, and it is there because sound being on is a thing a
+   visitor has to be able to see. --bg on --green, 12.64:1. */
+html.motion .mm-snd{position:absolute;left:12px;bottom:14px;
+  background:var(--green);color:var(--bg);border-radius:4px;
+  padding:.1rem .4rem;font-size:.6rem;letter-spacing:.12em;
+  text-transform:uppercase;pointer-events:none}
+
+/* =====================================================================
+   THE REVEALS — twelve pixels, and nothing else
+
+   The observer is the base's (site.js's first IIFE) and stays exactly as it
+   is: .rv takes .in once, on the way in, and the stylesheet's 2.8s self
+   reveal is still the bail-out for a script that never arrives. This is only
+   the distance. Twenty-two pixels was the scaffold's guess; with six live
+   tiles, four rolling figures, a bar row, a drawing chart, three films and a
+   walking light on the page, the sections themselves should arrive quietly —
+   a rise and a fade, no scale, no blur, no stagger beyond the .rv-d* delays
+   the markup already asks for.
+   ===================================================================== */
+html.motion .rv{transform:translateY(12px)}
