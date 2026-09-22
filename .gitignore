@@ -15,3 +15,4 @@ incoming/
 
 __pycache__/
 *.bak
+site/css/site.css

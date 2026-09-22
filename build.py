@@ -96,6 +96,22 @@ def ext(href):
     return f'href="{href}" target="_blank" rel="noopener"'
 
 
+CSS_PARTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'site', 'css', 'parts')
+
+def concat_css():
+    """site/css/site.css is built from site/css/parts/*.css in name order, so
+    parallel builders each own a part file and never merge-conflict on one
+    stylesheet (the DGM merge that swallowed a whole block is the lesson)."""
+    parts = sorted(f for f in os.listdir(CSS_PARTS) if f.endswith('.css'))
+    out = []
+    for f in parts:
+        with open(os.path.join(CSS_PARTS, f)) as fh:
+            out.append(f'/* ==== {f} ==== */\n' + fh.read().rstrip() + '\n')
+    with open(os.path.join(OUT, 'css', 'site.css'), 'w') as fh:
+        fh.write('\n'.join(out))
+    return parts
+
+
 def asset_v(rel):
     """Short content hash so browsers refetch css/js after every edit."""
     with open(os.path.join(OUT, rel.lstrip('/')), 'rb') as f:
@@ -508,6 +524,8 @@ for kind in ('img', 'video'):
 
 _titles = [p['title'] for p in pages.values()]
 assert len(set(_titles)) == len(_titles), 'two pages share a title'
+
+concat_css()
 
 for path, p in pages.items():
     fn = os.path.join(OUT, path.strip('/') + '.html')
