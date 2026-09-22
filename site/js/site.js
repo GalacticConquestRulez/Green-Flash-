@@ -449,3 +449,119 @@
     card.addEventListener('focus',()=>start(card));
   });
 })();
+
+
+/* =====================================================================
+   THE RESULTS BAND — the figures roll, the bars fill, the line draws
+
+   Both directions, every time, which is Open Air Gallery's Live: its owner
+   asked to "see motion as he scrolls up and down from them", and the same
+   is true here — the results band is the middle of the page and is as often
+   arrived at from below as from above.
+
+   Every value moved here is already in the server HTML and stays there. The
+   figures keep their own characters (the wheels are laid over them and are
+   aria-hidden), the bars keep results.py's inline widths and are scaled
+   rather than resized, and the chart keeps all ninety of its points. This
+   module animates the page; it does not supply it.
+   ===================================================================== */
+(function(){
+  const mm=window.mm;
+  if(!mm||!mm.motion) return;
+  const figs=mm.$$('[data-count]'), bars=mm.$$('[data-bar]'), charts=mm.$$('[data-chart]');
+  if(!figs.length&&!bars.length&&!charts.length) return;
+
+  const LIVE=0.35;                 // the share of a thing that has to show
+  const STAG=0.04;                 // between one wheel and the next
+
+  /* A figure's digits as columns of 0-9, over the figure's own text.
+     Straight out of /root/openairgallery-src/site/js/site.js: the text node
+     is replaced by a wrapper holding the original characters (the ghost,
+     which is what carries the box) and a row of wheels over them. The wheel
+     on the right sets off first, the way a counter's wheels turn, and each
+     one's own turn is shortened by the stagger ahead of it so a wide figure
+     does not take proportionally longer than a narrow one. */
+  const rollUp=host=>{
+    const made=[];
+    [...host.childNodes].forEach(node=>{
+      if(node.nodeType!==3||!/[0-9]/.test(node.nodeValue))return;
+      const text=node.nodeValue;
+      let n=0;
+      for(const ch of text) if(ch>='0'&&ch<='9')n++;
+      const span=cls=>{const s=document.createElement('span');s.className=cls;return s};
+      const wrap=span('roll'), ghost=span('roll-g'), cols=span('roll-w');
+      ghost.textContent=text;                      // the real figure, and the real box
+      cols.setAttribute('aria-hidden','true');
+      const all=Math.min(1.2,0.4+0.175*(n-1));
+      const each=Math.max(0.28,all-STAG*(n-1));
+      let right=n;
+      for(const ch of text){
+        if(ch<'0'||ch>'9'){
+          const s=span('roll-x');
+          s.textContent=ch;                        // $ , . + % — never rolled
+          cols.appendChild(s);
+          continue;
+        }
+        right--;
+        const win=span('roll-d'), col=span('roll-c');
+        col.setAttribute('style','--v:'+ch+';--rt:'+each.toFixed(3)+'s;--rd:'
+          +(right*STAG).toFixed(3)+'s');
+        for(let d=0;d<10;d++){
+          const cell=document.createElement('span');
+          cell.textContent=String(d);
+          col.appendChild(cell);
+        }
+        win.appendChild(col);
+        cols.appendChild(win);
+      }
+      wrap.appendChild(ghost);
+      wrap.appendChild(cols);
+      node.parentNode.replaceChild(wrap,node);
+      made.push(wrap);
+    });
+    return made;
+  };
+
+  /* No observer, nothing to say when a thing is on screen — so nothing is
+     taken apart. The figures stay as text, the bars stay at their widths
+     (the stylesheet's 2.8s bail-out sees to that) and the line stays drawn.
+     This has to be decided BEFORE anything is built, which is why the
+     observer is made first. */
+  const wheels=new Map(), len=new WeakMap();
+  const io=mm.io(es=>es.forEach(e=>{
+    const el=e.target, on=e.intersectionRatio>=LIVE;
+    const w=wheels.get(el);
+    if(w){w.forEach(r=>r.classList.toggle('in',on));return}
+    if(el.hasAttribute('data-bar')){el.classList.toggle('in',on);return}
+    if(el.hasAttribute('data-chart')){
+      const line=mm.$('.chart-line',el), fill=mm.$('.chart-fill',el), L=len.get(el);
+      if(line&&L){line.style.strokeDashoffset=on?'0':L}
+      if(fill){
+        fill.style.transitionDelay=on?'1.15s':'0s';   // it follows the stroke in
+        fill.style.opacity=on?'1':'0';
+      }
+    }
+  }),{threshold:[0,LIVE]});
+  if(!io) return;
+
+  figs.forEach(el=>{
+    const made=rollUp(el);
+    if(!made.length)return;
+    wheels.set(el,made);
+    io.observe(el);
+  });
+  // .mm-live cancels the stylesheet's 2.8s bail-out on this bar: from here
+  // the observer owns it, in both directions. See 15-motion.css.
+  bars.forEach(el=>{el.classList.add('mm-live');io.observe(el)});
+  charts.forEach(svg=>{
+    const line=mm.$('.chart-line',svg), fill=mm.$('.chart-fill',svg);
+    if(!line||!line.getTotalLength)return;
+    const L=Math.ceil(line.getTotalLength())||0;
+    if(!L)return;
+    len.set(svg,L);
+    line.style.strokeDasharray=L;
+    line.style.strokeDashoffset=L;
+    if(fill)fill.style.opacity='0';
+    io.observe(svg);
+  });
+})();

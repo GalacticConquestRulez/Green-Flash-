@@ -123,3 +123,69 @@ html.motion .mm-fig{position:absolute;right:12px;top:50%;margin-top:-.62em;
   transform:translateY(-10px) scale(.86);
   transition:opacity .22s linear,transform .32s var(--ease)}
 html.motion .mm-fig.on{opacity:1;transform:none}
+
+/* =====================================================================
+   THE RESULTS BAND — his dashboards, arriving and leaving
+
+   The plan: the four figures count up on entry, the bar row fills, the
+   daily-leads line draws itself on scroll. Open Air Gallery's Live is the
+   pattern and the reason it runs BOTH ways — its owner asked to "see motion
+   as he scrolls up and down from them", and a figure that only ever animates
+   once is a thing you miss by arriving from the wrong direction.
+
+   These are the only numbers on this site that are allowed to move
+   (CLAUDE.md rule 4): they are Drew's own dashboard figures, they are in the
+   server HTML as text, and every one of them is still that text underneath —
+   the wheels are laid over the real characters, which stay in the DOM,
+   carry the box, are what a screen reader reads and what a visitor selects.
+   ===================================================================== */
+
+/* --- the figures as mechanical counters (OAG's Live, ported) ----------
+   The window is one line tall plus a sixth of an em of air at each end,
+   pulled back by an equal negative margin so the line box is unchanged. Each
+   wheel is a grid of ten cells one window high, so the roll is a translateY
+   of a whole number of windows and the digit lands exactly where the text's
+   digit was. The ghost goes transparent rather than hidden: it is still the
+   figure, it is still selectable, and it is still what sizes the box — which
+   is why a figure rolling cannot shift a pixel of the page. */
+html.motion .roll{position:relative;display:inline-block;font-variant-numeric:tabular-nums}
+html.motion .roll-g{color:transparent}
+html.motion .roll-w{position:absolute;inset:0;display:flex;align-items:stretch;overflow:hidden}
+html.motion .roll-x{flex:none;display:flex;align-items:center}
+html.motion .roll-d{flex:none;position:relative;overflow:hidden;height:calc(100% + .34em);margin:-.17em 0}
+html.motion .roll-c{display:grid;grid-auto-rows:100%;height:100%;
+  transform:translateY(calc(var(--d,0) * -100%));
+  transition:transform var(--rt,.6s) cubic-bezier(.22,.78,.26,1) var(--rd,0s)}
+html.motion .roll-c>span{display:flex;align-items:center;justify-content:center}
+/* .in is added on the way in and taken away on the way out: one declaration
+   is the whole of both directions. */
+html.motion .roll.in .roll-c{--d:var(--v)}
+
+/* --- the bar row -----------------------------------------------------
+   The widths are the server's inline styles and are never touched: the bar
+   is scaled from its left edge instead, so there is one value in the page
+   and it is the one results.py computed. The 2.8s animation is the house
+   bail-out (CLAUDE.md rule 4) — a script that never arrives, or arrives
+   broken, leaves the row drawn rather than empty. */
+html.motion .bar-track b{transform-origin:left center;transform:scaleX(0);
+  transition:transform .9s var(--ease);
+  animation:mmFill 0s linear 2.8s forwards}
+/* .mm-live is the script saying "I am here and I have an observer", put on
+   each bar the moment it is taken over — which cancels the bail-out for good
+   rather than letting a 0s-forwards animation come back every time the row
+   leaves the screen and pin the bars full. The bail-out is for the page where
+   this line never runs. */
+html.motion .bar.mm-live .bar-track b{animation:none}
+html.motion .bar.in .bar-track b{transform:none}
+@keyframes mmFill{to{transform:none}}
+
+/* --- the daily-leads line --------------------------------------------
+   The dash is set by the script off the path's own length — nothing here
+   hides the line, because a stylesheet cannot measure it. If the script is
+   not there the polyline is simply drawn, which is how the server sent it. */
+html.motion .chart-line{transition:stroke-dashoffset 1.8s cubic-bezier(.35,.1,.25,1)}
+/* The area under the line waits for the line: shaded ground where the stroke
+   has not reached yet reads as a chart that is ahead of itself. The delay is
+   on the way in only and the script sets it, because a fill that lingers on
+   the way out is the same mistake in reverse. */
+html.motion .chart-fill{transition:opacity .6s var(--ease)}
