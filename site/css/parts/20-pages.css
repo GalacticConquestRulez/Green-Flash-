@@ -183,7 +183,14 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 1rem); }
   font-size: clamp(1.7rem, 4.4vw, 2.1rem); line-height: 1.1; color: var(--ink);
 }
 .stat-delta { font-style: normal; font-family: var(--font-mono); font-size: .8rem; color: var(--green); }
+.stat-note { font-size: .82rem; color: var(--muted); }
+/* A one-tile group is still a grid, and a lone auto-sized implicit column
+   does not stretch to its track — the tile came out a third of the width of
+   the chart beside it, with its label wrapping. Name the column. */
+.stats-1 { grid-template-columns: minmax(0, 1fr); }
 .stats-1, .stats-2 { align-content: start; }
+.figures { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .figures { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 .fig-cap { color: var(--muted); font-size: .92rem; margin: 1.1rem 0 0; max-width: 72ch; }
 .figures { margin-top: 1.2rem; align-items: start; }
