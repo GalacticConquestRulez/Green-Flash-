@@ -466,6 +466,53 @@ def results_page():
         ]))
 
 
+# -------------------------------------------------------------------- /about
+def about_page():
+    B = _b()
+    lead_slug, lead_alt = ABOUT['photo_lead']
+    # The class carries the crop: these are phone photographs of very
+    # different shapes, and the one in the leaves is a noisy full-figure frame
+    # that wants cropping in to him rather than showing every leaf.
+    photos = ''.join(
+        f'<figure class="ph ph-{slug} rv rv-d{i + 1}">'
+        f'{B.pic(slug, alt, "(min-width:960px) 33vw, 50vw")}</figure>'
+        for i, (slug, alt) in enumerate(ABOUT['photos']))
+    spec = ''.join(f'<li>{x}</li>' for x in ABOUT['specialize'])
+    beats = ''.join(
+        f'<div class="beat rv rv-d{i + 1}"><div class="mono">{n} · {t}</div>'
+        f'<h3>{line}</h3></div>' for i, (n, t, line) in enumerate(BEATS))
+
+    return dict(
+        title=f'About Drew | {SITE["name"]}',
+        desc=txt(ABOUT['lead'])[:300],
+        og='drew-headshot',
+        body='\n'.join([
+            B.page_hero('About', ABOUT['hero_title'], ABOUT['lead'], crumb='About Drew'),
+            section(
+                '<div class="bio">'
+                f'<figure class="bio-shot rv">'
+                f'{B.pic(lead_slug, lead_alt, "(min-width:960px) 420px, 100vw")}'
+                f'<figcaption>{lead_alt}</figcaption></figure>'
+                '<div class="bio-copy rv">'
+                f'<div class="eyebrow">{ABOUT["specialize_title"]}</div>'
+                f'<ul class="spec">{spec}</ul>'
+                f'<h2>{two_tone(ABOUT["together_title"], 2)}</h2>'
+                f'<p class="lead">{ABOUT["together"]}</p>'
+                f'<div class="btn-row"><a class="btn" href="{B.u("/contact")}">'
+                f'Get a quote {B.ICONS["arrow"]}</a>'
+                f'<a class="btn btn-ghost" href="{B.u("/work")}">See the work</a></div>'
+                '</div></div>'),
+            section(f'<div class="grid grid-3 photos">{photos}</div>', cls='band-alt'),
+            section(sec_head('How it goes', 'Design.<span>Launch. Grow.</span>')
+                    + f'<div class="grid grid-3 beats">{beats}</div>'),
+            B.cta(title='Let&rsquo;s build something great together.',
+                  text='Tell Drew what the business is and what you want it to do. '
+                       'You get a plan and a price back.',
+                  primary=('Get a quote', '/contact'),
+                  secondary=('See the pricing', '/pricing')),
+        ]))
+
+
 # ---------------------------------------------------------------------- all
 def inner_pages():
     """Every page in this file, keyed the way build.py's write loop wants it."""
@@ -475,4 +522,5 @@ def inner_pages():
     out['/pricing'] = pricing_page()
     out['/work'] = work_page()
     out['/results'] = results_page()
+    out['/about'] = about_page()
     return out
