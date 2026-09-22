@@ -185,12 +185,20 @@ branch names. One idea per commit.
   the site's own mono: the same information, plainly set, rather than a
   forgery of his artwork in the wrong typeface. When the vector arrives, that
   one function changes and no page that calls it does.
-- **Two sentences on Home that promise something on his behalf.** The twin
-  cards say "A quote comes back within a business day" and "Twenty minutes, no
-  pitch deck". Both came from the mockup the owner approved, and both are
-  commitments only Drew can make — confirm or reword before launch. "Schedule
-  a call" goes to `/contact` because there is no booking link yet; a Calendly
-  (or equivalent) URL would make it a real button.
+- **Two sentences that promise something on his behalf.** Home's twin cards say
+  "A quote comes back within a business day" and "Twenty minutes, no pitch
+  deck". Both came from the mockup the owner approved, and both are commitments
+  only Drew can make — confirm or reword before launch. `/contact` repeats both
+  on purpose rather than inventing a third: the hero's lede is the first
+  sentence, the "Book a call" card is the second, and form.js says "Sent — Drew
+  will reply within a business day" when a send succeeds. One decision from him
+  changes all four; they are in `contact.py` (`contact_page`, `sidebar`) and
+  `site/js/form.js`.
+- **A booking link.** There is none, so every "book a call" on the site is a
+  stand-in: Home's card goes to `/contact`, and the button on `/contact` opens
+  a `mailto:` to Drew with the subject already written ("Booking a call —
+  Mendoza Marketing", `contact.sidebar()`). A Calendly or equivalent URL makes
+  both real buttons and nothing else changes.
 - **The Home one-liners for Drones and Lead conversion** (`HOME_LINES` in
   `home.py`) are new copy in his register, because those two pages are blank
   on his current site. Flagged here as well as in `content.py`'s TODO: the
