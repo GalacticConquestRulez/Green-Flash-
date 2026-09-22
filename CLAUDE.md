@@ -175,3 +175,29 @@ branch names. One idea per commit.
   from his current site and neither sent a logo file, so neither can appear in
   the /work logo strip yet.
 - **The three price disagreements** listed under Context.
+- **The vector, again — the per-service marks depend on it.** His README asks
+  for "the Mendoza logo with the text changed" on each service page. What we
+  hold is a 2000×2000 JPEG with CONTENT | WEBSITES | DRONES baked into the
+  pixels, so swapping that line means setting it in his typeface at his
+  tracking and compositing it into his mark — which needs the vector (or the
+  transparent PNG **and** the name of the face). Until then
+  `art.service_mark(slug)` renders his logo with the service named under it in
+  the site's own mono: the same information, plainly set, rather than a
+  forgery of his artwork in the wrong typeface. When the vector arrives, that
+  one function changes and no page that calls it does.
+- **Two sentences on Home that promise something on his behalf.** The twin
+  cards say "A quote comes back within a business day" and "Twenty minutes, no
+  pitch deck". Both came from the mockup the owner approved, and both are
+  commitments only Drew can make — confirm or reword before launch. "Schedule
+  a call" goes to `/contact` because there is no booking link yet; a Calendly
+  (or equivalent) URL would make it a real button.
+- **The Home one-liners for Drones and Lead conversion** (`HOME_LINES` in
+  `home.py`) are new copy in his register, because those two pages are blank
+  on his current site. Flagged here as well as in `content.py`'s TODO: the
+  moment `SERVICES[*]['one_line']` is filled with his own sentence, his wins
+  automatically and the fallback stops being used.
+- **The daily-leads numbers, if he has them.** `results.LEADS['series']` was
+  read back off the pixels of his chart screenshot (dash-6) — accurate to
+  about one lead a day, with his real peaks and his real floor. A table, a CSV
+  or a fresh export from the Leads Center would replace it exactly; nothing
+  else on the page would change.

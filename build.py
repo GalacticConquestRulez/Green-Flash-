@@ -476,10 +476,15 @@ def layout(path, title, desc, body, ld=None, noindex=False, og=None):
 
 # ========================================================================
 #  THE PAGES
-#  Step 1 of the plan is the scaffold: Home is a placeholder hero and the
-#  closing CTA, and /404 is the way back. The six service pages, /work,
-#  /results, /about, /pricing and /contact arrive in steps 3, 4 and 6.
+#  A page long enough to have sections of its own lives in its own module and
+#  is imported here: home.py is Home, section by section. Those modules are
+#  pages of this file rather than libraries it uses — they reach back for u(),
+#  pic() and the rest at call time, so this import stays one way and this file
+#  is never executed twice. The six service pages, /work, /results, /about,
+#  /pricing and /contact arrive in steps 4 and 6.
 # ========================================================================
+from home import home_page
+
 pages = {}
 
 pages['/index'] = dict(
@@ -487,13 +492,7 @@ pages['/index'] = dict(
     desc='Mendoza Marketing — websites, Meta ad campaigns and filming, social media '
          'management, logo design, drone sessions and lead conversion, out of Grand '
          'Island and Buffalo, New York.',
-    body=f'''
-{page_hero('Mendoza Marketing',
-           'Content. Websites.<span>Drones.</span>',
-           'The scaffold: the palette, the type, the nav and the footer. The hero '
-           'film, the service grid and the client dashboards land in the next steps.',
-           crumb=False, cls='h-two')}
-{cta()}''')
+    body=home_page())
 
 pages['/404'] = dict(
     title=f'Page not found | {SITE_NAME}',
