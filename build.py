@@ -63,10 +63,14 @@ FONTS = ('https://fonts.googleapis.com/css2?'
 FAVICONS = ('favicon.ico', 'favicon-32.png', 'favicon.svg', 'apple-touch-icon.png')
 OG_DEFAULT = 'og.png'
 
-# The wordmark. The media pipeline writes out/img/logo.webp — Drew's mark and
-# name on black. The transparent PNG and the vector arrive from him in a day or
-# two; when they do, the same slug is rebuilt and nothing here changes.
+# The wordmark. process.sh writes out/img/logo.webp from Drew's transparent PNG
+# — the stacked lockup (mark, MENDOZA, MARKETING, CONTENT | WEBSITES | DRONES)
+# the footer and the service marks use. tools/make-lockup.py cuts the same file
+# into the horizontal lockup the nav uses: his mark, then MENDOZA over
+# MARKETING, the way he asked for the header (2026-09-23). The vector is still
+# owed; when it lands both slugs are rebuilt and nothing here changes.
 LOGO = 'logo'
+LOCKUP = 'lockup'
 
 
 # ------------------------------------------------------------------ warnings
@@ -260,22 +264,22 @@ def img_dims(slug):
     return f'width="{w}" height="{h}"'
 
 
-def wordmark(cls='brand', aria=None):
-    """Drew's logo, on black, as the name of the site.
+def wordmark(cls='brand', aria=None, stacked=False):
+    """Drew's logo as the name of the site.
 
-    An image rather than set type: the mark and the wordmark are one file he
+    An image rather than set type: the mark and the lettering are one file he
     designed, and the per-service marks later on are that same file with the
     text changed. The alt text is the business name — this is what a screen
     reader hears at the top of every page, not decoration.
 
-    The lockup he sent is square and stacked (mark over MENDOZA MARKETING over
-    CONTENT | WEBSITES | DRONES), so the stylesheet gives it most of the height
-    of the bar rather than the 44px a horizontal lockup would take. CLAUDE.md
-    asks him for a horizontal version with the transparent PNG.
+    The nav gets the horizontal lockup (mark, then MENDOZA over MARKETING,
+    sized to the mark — his ask, modelled on the Decision Frameworks header he
+    sent). The footer gets the stacked lockup he designed, `stacked=True`.
     """
     a = f' aria-label="{html.escape(aria)}"' if aria else ''
+    slug = LOGO if stacked else LOCKUP
     return (f'<a class="{cls}" href="{u("/")}"{a}>'
-            f'{img(LOGO, SITE_NAME, extra=img_dims(LOGO), lazy=False)}</a>')
+            f'{img(slug, SITE_NAME, extra=img_dims(slug), lazy=False)}</a>')
 
 
 def nav_html():
@@ -345,7 +349,7 @@ def footer_html():
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        {wordmark(cls='brand')}
+        {wordmark(cls='brand', stacked=True)}
         <div class="foot-tag">{SITE['tagline']}</div>
         <p>Data-driven marketing out of Grand Island, New York: websites, Meta ad campaigns, social content and aerial film.</p>
         {socials_html()}

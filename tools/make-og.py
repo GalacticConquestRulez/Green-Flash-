@@ -47,7 +47,9 @@ SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, SRC)
 from content import SITE, SERVICES                                # noqa: E402
 
-LOGO_SRC = os.path.join(SRC, 'assets', 'logo.jpg')
+# Drew's transparent PNG (2026-09-23). Before it arrived this read logo.jpg and
+# cut the black away by luminance; the alpha channel is now the real edge.
+LOGO_SRC = os.path.join(SRC, 'assets', 'logo.png')
 FONT_DIR = os.path.join(SRC, 'assets', 'fonts')
 OUT = os.path.join(SRC, 'out', 'img')
 
@@ -120,18 +122,18 @@ def mark(size):
     is measured rather than hard-coded, so a re-export that sits differently on
     the canvas still crops correctly.
     """
-    im = Image.open(LOGO_SRC).convert('RGB')
+    im = Image.open(LOGO_SRC).convert('RGBA')
     w, h = im.size
-    lit = im.convert('L').point(lambda v: 255 if v > 40 else 0)
+    lit = im.split()[-1].point(lambda v: 255 if v > 40 else 0)
     box = lit.crop((0, 0, w, int(h * 0.66))).getbbox()
-    assert box, f'{LOGO_SRC}: nothing bright in the top two thirds'
+    assert box, f'{LOGO_SRC}: nothing in the top two thirds'
     x0, y0, x1, y1 = box
     # Square it about its own centre, with a hair of air so the circle never
     # touches the edge of the icon.
     side = int(max(x1 - x0, y1 - y0) * 1.04)
     cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
     im = im.crop((cx - side // 2, cy - side // 2, cx + side // 2, cy + side // 2))
-    return _alpha_from_luma(im).resize((size, size), Image.LANCZOS)
+    return im.resize((size, size), Image.LANCZOS)
 
 
 def on_bg(rgba, pad=0.0):

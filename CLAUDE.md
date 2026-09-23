@@ -124,8 +124,10 @@ site/js/site.js          the base layer only: nav, active link, reveal
                          observer, lightbox shell
 process.sh               logos, client logos, photos → webp sets  (media builder)
 make-clips.sh            the hero film, the drone rail, Kelly's reels (media builder)
-tools/make-og.py         the mark cut out of assets/logo.jpg → the favicon set
+tools/make-og.py         the mark cut out of assets/logo.png → the favicon set
                          and the 1200x630 share cards, into out/img/
+tools/make-lockup.py     the nav lockup (mark, MENDOZA over MARKETING) cut
+                         out of assets/logo.png → out/img/lockup.webp
 assets/                  the originals Drew sent            (gitignored)
 out/img, out/video       the renditions the pipeline makes  (gitignored)
 site/assets/             symlinks into out/ so `python3 -m http.server -d site`
@@ -187,8 +189,8 @@ The rest are written where their page is defined. Prices in the graph come from
 `PRICING` like everything else (rule 6); lead conversion is an `Offer` with his
 sentence and **no price**, because commission-or-hourly is not a number.
 
-`tools/make-og.py` makes the icons and the cards out of `assets/logo.jpg` —
-the mark measured out of the top two thirds, his black cut away by luminance.
+`tools/make-og.py` makes the icons and the cards out of `assets/logo.png` —
+the mark measured out of the top two thirds by its alpha channel.
 Run it once after a fresh clone, or the build warns (rule 10) and the tabs have
 no icon. It fetches Space Grotesk and Inter from google/fonts into
 `assets/fonts/` with their SIL OFL text.
@@ -219,9 +221,9 @@ redirects every other name (www, .net, drew.greenflashusa.com) to the apex.
    to his business in the graph and lights up the footer icons at the same
    time. Nothing else needs touching.
 
-Also still open: the business `image`/`logo` in the graph is `og.png`, the card
-we cut from his JPEG. When the transparent PNG or the vector lands, re-run
-`tools/make-og.py` and both improve without a code change. There is no street
+The business `image`/`logo` in the graph is `og.png`, the card cut from his
+transparent PNG. When the vector lands, re-run `tools/make-og.py` and
+`tools/make-lockup.py` and everything improves without a code change. There is no street
 address, no opening hours and no rating in the graph, because the site
 publishes none of them.
 
@@ -229,17 +231,16 @@ publishes none of them.
 
 ## Still owed by Drew
 
-- **The transparent logo (PNG) and the vector file.** He said a day or two. The
-  build uses the JPG on black (`out/img/logo.webp`), so the swap is by filename
-  and nothing in the markup changes.
-- **A horizontal lockup, or permission to crop the mark out of the square
-  one.** What he sent is a square stacked lockup — mark, MENDOZA MARKETING,
-  CONTENT | WEBSITES | DRONES. In a 72px nav bar at 58px tall the two lines of
-  small caps are not readable. It works; a wide lockup would work better.
-  **The crop is now load-bearing:** `tools/make-og.py` cuts the mark out of
-  that square to make the favicon, the apple-touch icon and every share card,
-  so the permission is worth asking for explicitly — and a transparent PNG or
-  the vector would replace the luminance cut-out with the real edges.
+- **The vector file.** The transparent PNG arrived 2026-09-23 and is
+  `assets/logo.png`; the nav, footer, icons and share cards are all cut from
+  it (`tools/make-lockup.py`, `tools/make-og.py`). The vector is still owed
+  and is what the per-service marks need (below).
+- **The header lockup is settled.** Drew asked for "the words Mendoza with
+  Marketing underneath next to the logo", sized like the Decision Frameworks
+  header he sent (mark left, two stacked lines as tall as the mark).
+  `out/img/lockup.webp` is exactly that, cut from his own artwork — his
+  lettering, tracking and colours, rearranged, nothing set in a font. The
+  footer keeps his stacked lockup. Do not rebuild either in Space Grotesk.
 - **The social-media tier contents.** Emerald $500 / Sapphire $1,000 / Diamond
   $2,000 are priced, but what is *in* each tier is not written down anywhere we
   hold. `/social` and `/pricing` cannot be finished without it.
