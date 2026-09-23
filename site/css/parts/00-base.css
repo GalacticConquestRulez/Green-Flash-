@@ -15,6 +15,8 @@
                        his logo lettering only
    --green   #2de8b5   THE accent: links, rules, icons, the primary button
    --green-2 #7FF2D1   hover and glow only — never a second accent
+   --green-line        --green at 35% alpha: hairlines where a block is
+                       green-led (the service cards); a border, never type
    --muted   #93A3A3   computed here, not given: the one grey allowed to carry
                        words. Chosen as the lightest grey that still reads as
                        secondary while clearing AAA on both the canvas and a
@@ -68,6 +70,7 @@
 :root{
   --bg:#050A0A; --panel:#1A1F1F; --line:#2E3535; --ink:#DDE4E1;
   --green:#2de8b5; --green-2:#7FF2D1;
+  --green-line:rgba(45,232,181,.35); /* hairlines on green-led blocks (the services) */
   --muted:#93A3A3;                 /* 7.60:1 on --bg, 6.36:1 on --panel */
   --radius:14px; --radius-s:10px;
   --font-display:"Space Grotesk","Inter",system-ui,-apple-system,sans-serif;

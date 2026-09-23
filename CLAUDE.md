@@ -77,7 +77,11 @@ plus the client's daily ad budget. If the current site is right, change
 1. **One accent.** `#2de8b5` is the only colour on the page that is not black,
    grey or white — links, rules, icons, eyebrows, the primary button. `#7FF2D1`
    is *hover and glow only*, never a second accent. A page with two loud
-   colours on it is wrong.
+   colours on it is wrong. The service cards on Home are *green-led* (the
+   owner, 2026-09-23: "make services text/elements green, keep visual
+   hierarchy strong"): name, price, icon and hairlines in the accent
+   (`--green-line`, the green at 35%, for the borders), the description in
+   `--muted`. Name > price > description is the order; do not green the body.
 2. **Two-tone headlines.** Line one `--ink`, line two `--green` — the Ellesmere
    move Drew picked out. `.h-two` on the heading, a `<span>` around the second
    line. `page_hero()` passes its title through as markup so it can do this.
