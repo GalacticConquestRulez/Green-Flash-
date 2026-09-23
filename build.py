@@ -541,7 +541,13 @@ pages['/index'] = dict(
     title=seo_title(f"{SITE['tagline']}, Buffalo NY"),
     desc='Mendoza Marketing builds websites, runs Meta ad campaigns, films content '
          'and flies drones for businesses in Grand Island and Buffalo, New York.',
-    body=home_page())
+    body=home_page(),
+    # The Flight Path — the quad that flies the page. Home is the only page
+    # with a route (the pad, the sections, the figures, the reels, the mark),
+    # so it is the only page that downloads the script: extra_scripts is the
+    # hook, the same one /contact's form.js uses.
+    extra_scripts=f'<script src="{u("/js/flight.js")}?v='
+                  f'{asset_v("js/flight.js")}" defer></script>')
 
 pages['/404'] = dict(
     title=seo_title('Page not found'),

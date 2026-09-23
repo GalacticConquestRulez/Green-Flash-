@@ -461,7 +461,32 @@ def twin():
 </section>'''
 
 
+def flight_layer():
+    """The Flight Path's aircraft, parked at the end of the page.
+
+    One div and one drawing, and they are here rather than in flight.js for
+    the same reason the Drones card's quad is: a machine that only exists once
+    a script has run is a machine that is missing from exactly the renders
+    CLAUDE.md rule 4 says have to be complete. So the layer is server HTML and
+    16-flight.css's one rule outside `html.motion` — `.flight{display:none}` —
+    is what makes it decoration: with no script, or with reduced motion asked
+    for, it is not in the render at all and this page is the page it was
+    before the flight existed.
+
+    It is last in <main> on purpose. It is absolutely positioned over the
+    whole document (the layer, the route and the flying are all in
+    site/js/flight.js), so it is in no section, it is `aria-hidden` because it
+    says nothing the page does not already say, and nothing in flow can move
+    because of it.
+
+    The Drones card keeps its own quad. That one is the demo of the service;
+    this one is the survey of the page.
+    """
+    return (f'<div class="flight" data-flight aria-hidden="true">'
+            f'{art.quad("flight-quad")}</div>')
+
+
 def home_page():
     """The whole page, in the mockup's order."""
     return '\n'.join([hero(), logo_strip(), services(), results_band(),
-                      reels(), beats(), about(), twin()])
+                      reels(), beats(), about(), twin(), flight_layer()])

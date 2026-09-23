@@ -1,0 +1,116 @@
+/* Mendoza Marketing — THE FLIGHT PATH.
+
+   His little quad lifts off the Drones card and flies the page: it rides the
+   scroll down a spline that is drawn through the page's own furniture (the
+   demo well it was parked in, the gaps between the sections, the four figures
+   on the Results band, the three reels, the mark in the footer), it casts a
+   shadow on the panels it crosses, and it lands on the Mendoza mark. An
+   aerial survey of the page, which is the business.
+
+   This file is the states; site/js/flight.js is the flying. Nothing here
+   lays out a page and nothing here is a second copy of 10-home.css: the quad,
+   the shadow and the layer they live on are absolutely positioned over the
+   document and cannot move a pixel that is in flow.
+
+   =====================================================================
+   THE CONTRACT (CLAUDE.md rule 4)
+
+   One selector in this file is NOT under html.motion, and it is the rule
+   that makes the whole thing decoration:
+
+       .flight{display:none}
+
+   The layer is server HTML (home.py puts it at the end of Home's <main>) so
+   that flight.js never has to build the aircraft it is flying — but with no
+   script, or with prefers-reduced-motion asked for, `html.motion` is not on
+   the document, that one rule is all that matches, and the layer is not in
+   the render at all. The document a crawler, a reader and a reduced-motion
+   visitor get is the document they got before this file existed. Everything
+   below the line turns it back on.
+
+   =====================================================================
+   CONTRAST (CLAUDE.md rule 9)
+
+   No new pair. Nothing in this file sets type: the quad is `currentColor`
+   over --green (the same stroke the drone card's own quad is drawn in), the
+   shadow is a --green gradient at a fraction of its alpha, and .overflown is
+   a rim and a lift on a tile whose text has not changed.
+*/
+
+/* The rule the contract above is about. It is deliberately not under
+   html.motion: without that class this layer must not be in the render. */
+.flight{display:none}
+
+/* --------------------------------------------------------------- the layer
+   Absolutely positioned against the initial containing block — nothing
+   between it and <html> is positioned — so its origin is the document's
+   origin and flight.js can think in document coordinates and write one
+   translate. Its height is set by the script to the height of the body's own
+   in-flow content, so the layer's bottom edge is exactly the document's and
+   it cannot add a pixel of scroll. `contain: layout paint` keeps its two
+   moving children off everybody else's layout and clipped to the page.
+
+   --fq is how much of the 64px hit box the drawing fills: 56px at desktop,
+   40px on a phone. The BOX does not change with it, so the aircraft is the
+   same size to a finger at every width, and the script only has to read one
+   number to know how big to draw. */
+html.motion .flight{display:block;position:absolute;top:0;left:0;width:100%;
+  height:0;pointer-events:none;contain:layout paint;z-index:4;
+  perspective:640px;--fq:.875}
+@media (max-width:559.98px){html.motion .flight{--fq:.625}}
+
+/* --------------------------------------------------------------- the quad
+   art.quad('flight-quad'), the same drawing as the Drones card's. The box is
+   64x64 whatever the drawing is scaled to, so the hit area is the 64px the
+   plan asks for and `margin` puts the element's CENTRE on the translate the
+   script writes. pointer-events:all so the empty part of the box takes the
+   pointer too — a 1.6px stroke is not something you can grab.
+
+   touch-action:none is on THIS element and nothing else: a finger on the
+   quad flies it, and a finger anywhere else on the page scrolls the page. */
+html.motion .flight-quad{position:absolute;top:0;left:0;
+  width:64px;height:64px;margin:-32px 0 0 -32px;
+  color:var(--green);pointer-events:all;touch-action:none;cursor:grab;
+  will-change:transform;transform:translate3d(-999px,-999px,0);}
+html.motion .flight.held .flight-quad{cursor:grabbing}
+
+/* The props. quad() has no animation of its own, so the four rotor discs are
+   spun here: a disc seen from above does not turn, it thins and fills, which
+   is what a prop at speed actually looks like. transform-box:fill-box is
+   what makes each ellipse turn about its own centre rather than the SVG's. */
+html.motion .flight-quad ellipse{transform-box:fill-box;transform-origin:50% 50%;
+  animation:flightProp .19s linear infinite}
+@keyframes flightProp{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.5)}}
+/* Down: the props wind down rather than stop dead, and the aircraft settles
+   the last two percent onto the mark. The scale is written by the script
+   (it composes with the translate); this is the rest of the landing. */
+html.motion .flight.landed .flight-quad ellipse{animation-duration:1.1s}
+html.motion .flight.landed .flight-quad{cursor:default}
+
+/* ------------------------------------------------------------- the shadow
+   The ground the quad is over, not a blur of the quad: a radial gradient
+   ellipse whose SCALE is the altitude. There is no filter on it — a
+   `filter: blur()` on an element that moves every frame is a full-page
+   raster on every one of those frames, and the plan says transform only. */
+html.motion .flight-shade{position:absolute;top:0;left:0;width:56px;height:15px;
+  margin:-7.5px 0 0 -28px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(45,232,181,.5),rgba(45,232,181,0) 100%);
+  will-change:transform,opacity;transform:translate3d(-999px,-999px,0)}
+
+/* ------------------------------------------------------- flown over
+   A tile the quad has just crossed: a rim of the accent and four percent of
+   lift, for 900 ms. transform and box-shadow only, so nothing in flow moves.
+
+   The lift is written as `translate` rather than as `transform` on purpose.
+   .stat and .phone are both .rv, and .rv's reveal owns `transform`; using the
+   independent translate property means the light can never fight the reveal,
+   and .fl-lit — which flight.js puts on the tiles it has taken over — can
+   add the two new transitions to .rv's two without replacing them.
+
+   The rolling figures are not touched: this is a class on the tile, and the
+   wheels inside it are the results module's business. */
+html.motion .fl-lit.fl-lit{
+  transition:opacity .8s var(--ease),transform .8s var(--ease),
+             translate .34s var(--ease),box-shadow .34s var(--ease)}
+html.motion .fl-lit.overflown{translate:0 -4%;
+  box-shadow:0 0 0 1px var(--green),0 16px 38px -18px rgba(45,232,181,.55)}
