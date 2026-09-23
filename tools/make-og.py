@@ -58,7 +58,7 @@ OUT = os.path.join(SRC, 'out', 'img')
 # block at the top of site/css/site.css.
 BG = (5, 10, 10)            # #050A0A
 GREEN = (45, 232, 181)      # #2de8b5
-INK = (240, 255, 255)       # #f0ffff
+INK = (221, 228, 225)       # #DDE4E1 — the type grey, as site.css --ink
 MUTE = (154, 170, 170)      # #9AAAAA — 8.6:1 on the black
 
 # name → (path under google/fonts, local filename)

@@ -44,7 +44,7 @@ SITE_NAME = SITE['name']
 # where the arithmetic lives.
 BG = '#050A0A'
 GREEN = '#2de8b5'
-INK = '#f0ffff'
+INK = '#DDE4E1'    # the type grey (site.css --ink), not the README's white
 
 # One request, three faces, the weights the stylesheet actually declares:
 # Space Grotesk 500/700 for display, Inter 400/600 for body, JetBrains Mono

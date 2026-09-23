@@ -67,6 +67,13 @@ plus the client's daily ad budget. If the current site is right, change
 
 ## The rules
 
+0. **Type is a refined grey, not white.** `--ink` is `#DDE4E1`, a cool grey a
+   shade off his green, and every word on the site is set in it or in
+   `--muted`/`--green`. The README's `#f0ffff` is *not* used for type — the
+   owner (2026-09-23): "Use a refined grey instead of pure white for the text
+   on the site, boutique premium readability." The only white left is the
+   MENDOZA lettering inside his own logo files. 15.4:1 on the canvas, 12.9:1
+   on a panel — still AAA, so nothing else had to change.
 1. **One accent.** `#2de8b5` is the only colour on the page that is not black,
    grey or white — links, rules, icons, eyebrows, the primary button. `#7FF2D1`
    is *hover and glow only*, never a second accent. A page with two loud

@@ -15,11 +15,11 @@
    than assumed, because this file is where a reviewer looks for the form.
 
      foreground        background      ratio     verdict
-     --ink    #f0ffff  --panel#1A1F1F  16.24:1   AAA   the form card's words
+     --ink    #DDE4E1  --panel#1A1F1F  12.91:1   AAA   the form card's words
      --green  #2de8b5  --panel#1A1F1F  10.58:1   AAA   eyebrows, the card icons
      --muted  #93A3A3  --panel#1A1F1F   6.36:1   AA    field labels, hints,
                                                        the note under the button
-     --ink    #f0ffff  --well #0b1413  18.20:1   AAA   what the visitor types
+     --ink    #DDE4E1  --well #0b1413  14.47:1   AAA   what the visitor types
      --muted  #93A3A3  --well #0b1413   7.13:1   AAA   placeholders, the caret
      --green  #2de8b5  --well #0b1413  11.86:1   AAA   the focus ring's edge
      --bg     #050A0A  --green#2de8b5  12.64:1   AAA   "Send the brief"

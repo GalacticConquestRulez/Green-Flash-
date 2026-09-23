@@ -21,11 +21,11 @@
    demo well and of an icon chip — a hole in a panel rather than a surface.
 
      foreground        background      ratio     verdict
-     --ink    #f0ffff  --band #070d0d  19.07:1   AAA   headings, figures
+     --ink    #DDE4E1  --band #070d0d  15.16:1   AAA   headings, figures
      --green  #2de8b5  --band #070d0d  12.42:1   AAA   eyebrows, deltas
      --green-2#7FF2D1  --band #070d0d  14.48:1   AAA   hover
      --muted  #93A3A3  --band #070d0d   7.47:1   AAA   labels, leads
-     --ink    #f0ffff  --well #0b1413  18.20:1   AAA   (no type today)
+     --ink    #DDE4E1  --well #0b1413  14.47:1   AAA   (no type today)
      --green  #2de8b5  --well #0b1413  11.86:1   AAA   the card icons
      --muted  #93A3A3  --well #0b1413   7.13:1   AAA   (no type today)
 

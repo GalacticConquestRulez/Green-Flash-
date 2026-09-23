@@ -9,7 +9,10 @@
    --bg      #050A0A   the canvas
    --panel   #1A1F1F   every raised surface
    --line    #2E3535   hairlines, never type
-   --ink     #f0ffff   body and display type
+   --ink     #DDE4E1   body and display type — a refined cool grey,
+                       not the README's #f0ffff (the owner, 2026-09-23:
+                       "boutique premium readability"); the white stays in
+                       his logo lettering only
    --green   #2de8b5   THE accent: links, rules, icons, the primary button
    --green-2 #7FF2D1   hover and glow only — never a second accent
    --muted   #93A3A3   computed here, not given: the one grey allowed to carry
@@ -23,8 +26,8 @@
    AA large text needs 3.0, AA body 4.5, AAA body 7.0.
 
      foreground        background      ratio     verdict
-     --ink    #f0ffff  --bg   #050A0A  19.40:1   AAA   body, display
-     --ink    #f0ffff  --panel#1A1F1F  16.24:1   AAA   card body
+     --ink    #DDE4E1  --bg   #050A0A  15.42:1   AAA   body, display
+     --ink    #DDE4E1  --panel#1A1F1F  12.91:1   AAA   card body
      --green  #2de8b5  --bg   #050A0A  12.64:1   AAA   links, eyebrows, figures
      --green  #2de8b5  --panel#1A1F1F  10.58:1   AAA   ghost button label
      --green-2#7FF2D1  --bg   #050A0A  14.73:1   AAA   hover state
@@ -63,7 +66,7 @@
 */
 
 :root{
-  --bg:#050A0A; --panel:#1A1F1F; --line:#2E3535; --ink:#f0ffff;
+  --bg:#050A0A; --panel:#1A1F1F; --line:#2E3535; --ink:#DDE4E1;
   --green:#2de8b5; --green-2:#7FF2D1;
   --muted:#93A3A3;                 /* 7.60:1 on --bg, 6.36:1 on --panel */
   --radius:14px; --radius-s:10px;
