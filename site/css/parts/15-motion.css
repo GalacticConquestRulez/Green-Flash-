@@ -234,3 +234,12 @@ html.motion .mm-snd{position:absolute;left:12px;bottom:14px;
    the markup already asks for.
    ===================================================================== */
 html.motion .rv{transform:translateY(12px)}
+
+/* The mark turns like a coin, slowly, on the spot, turning to the left — its
+   right edge recedes, its left edge comes forward (positive rotateY). One
+   turn every nine seconds, linear so it never seems to catch. Only the mark
+   moves; the words beside it hold still. Static under reduced motion and
+   with no script, like everything else in this file. */
+@keyframes brand-coin{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
+html.motion .brand-mark{animation:brand-coin 9s linear infinite;transform-style:preserve-3d;
+  backface-visibility:visible;will-change:transform}

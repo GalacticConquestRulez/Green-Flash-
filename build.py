@@ -70,7 +70,7 @@ OG_DEFAULT = 'og.png'
 # MARKETING, the way he asked for the header (2026-09-23). The vector is still
 # owed; when it lands both slugs are rebuilt and nothing here changes.
 LOGO = 'logo'
-LOCKUP = 'lockup'
+MARK, WORDS = 'mark', 'words'   # the nav: the mark (it spins) and the words
 
 
 # ------------------------------------------------------------------ warnings
@@ -277,9 +277,16 @@ def wordmark(cls='brand', aria=None, stacked=False):
     sent). The footer gets the stacked lockup he designed, `stacked=True`.
     """
     a = f' aria-label="{html.escape(aria)}"' if aria else ''
-    slug = LOGO if stacked else LOCKUP
+    if stacked:
+        return (f'<a class="{cls}" href="{u("/")}"{a}>'
+                f'{img(LOGO, SITE_NAME, extra=img_dims(LOGO), lazy=False)}</a>')
+    # Two images, not one: the mark turns like a coin under html.motion (the
+    # owner's ask) and the words hold still beside it. One alt between them —
+    # a screen reader hears the business name once, not "Mendoza Marketing"
+    # twice; the words image is decorative to it.
     return (f'<a class="{cls}" href="{u("/")}"{a}>'
-            f'{img(slug, SITE_NAME, extra=img_dims(slug), lazy=False)}</a>')
+            f'{img(MARK, SITE_NAME, cls="brand-mark", extra=img_dims(MARK), lazy=False)}'
+            f'{img(WORDS, "", cls="brand-words", extra=img_dims(WORDS), lazy=False)}</a>')
 
 
 def nav_html():

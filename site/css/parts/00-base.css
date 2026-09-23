@@ -154,12 +154,16 @@ section{padding:clamp(3.5rem,9vw,7rem) 0;position:relative}
 /* The lockup Drew sent is square and stacked — mark over the name over the
    three words — so it is given most of the height of the bar instead of the
    44px a horizontal lockup would take, and it is the only image in the nav. */
-/* The horizontal lockup: mark then MENDOZA/MARKETING, on transparency, so it
-   sits straight on the glass — no box, no radius. 40px tall on a phone leaves
-   room for the hamburger beside its 250px width; 46px on a desktop. */
-.brand{display:flex;align-items:center;flex:0 0 auto}
-.brand img{height:40px;width:auto}
-@media (min-width:960px){.brand img{height:46px}}
+/* The header lockup: his mark, then MENDOZA over MARKETING, both cut from his
+   transparent PNG so they sit straight on the glass — no box, no radius. The
+   mark is 15% taller than the words block (the owner, 2026-09-23), and the
+   words 15% smaller than the first cut. On a phone: 46/34px, leaving room for
+   the hamburger; on a desktop 53/39px inside the 72px bar. */
+.brand{display:flex;align-items:center;gap:.4em;flex:0 0 auto;font-size:14px;perspective:320px}
+.brand img{width:auto}
+.brand-mark{height:46px}
+.brand-words{height:34px}
+@media (min-width:960px){.brand-mark{height:53px}.brand-words{height:39px}}
 
 .nav-links{display:none;list-style:none;align-items:center;gap:.15rem}
 .nav-links>li{position:relative}

@@ -9,8 +9,17 @@ words are cut out of his own transparent PNG (assets/logo.png), so the nav
 shows his lettering, his tracking and his colours, only rearranged.
 
 Reads  assets/logo.png   the stacked lockup on transparency, from Drew
-Writes out/img/lockup.webp   the horizontal lockup, RGBA, 2x the nav height
-       out/img/lockup.png    the same as PNG, for anyone who needs the file
+Writes out/img/mark.webp     the mark alone, square, RGBA — the nav spins it
+       out/img/words.webp    MENDOZA over MARKETING, RGBA — sits beside it
+       out/img/lockup.webp   the two composed as one image, for anyone who
+       out/img/lockup.png    needs the flat lockup (a bio, a document)
+
+The nav places mark.webp and words.webp as two images (build.wordmark) so the
+mark can turn like a coin while the words hold still — the owner's ask,
+2026-09-23: "make the logo spin as a coin slowly, spinning left, in place".
+The mark is 15% bigger than the words block and the words 15% smaller than
+they were, the same day, so the two heights are set in the stylesheet, not
+here: both files are rendered at the same H and scaled by CSS.
 
 The three pieces are found by scanning the alpha channel for horizontal bands
 of ink: the first band is the mark, the second MENDOZA, the third MARKETING
@@ -94,6 +103,16 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     canvas.save(os.path.join(OUT, 'lockup.png'), optimize=True)
     canvas.save(os.path.join(OUT, 'lockup.webp'), quality=92, method=6, lossless=True)
+    # The pieces the nav actually uses. The mark is padded to a square about
+    # its centre so a rotateY about the image's middle is a rotation about
+    # the circle's middle.
+    sq = Image.new('RGBA', (H, H), (0, 0, 0, 0))
+    sq.alpha_composite(mark, ((H - mark.width) // 2, 0))
+    sq.save(os.path.join(OUT, 'mark.webp'), method=6, lossless=True)
+    words = Image.new('RGBA', (mendoza.width, mendoza.height + gap_px + marketing.height), (0, 0, 0, 0))
+    words.alpha_composite(mendoza, (0, 0))
+    words.alpha_composite(marketing, (0, mendoza.height + gap_px))
+    words.save(os.path.join(OUT, 'words.webp'), method=6, lossless=True)
     print(f'lockup {canvas.width}x{canvas.height}: mark {mark.width}w, '
           f'words {mendoza.width}w ({mendoza.height}+{gap_px}+{marketing.height})')
 
