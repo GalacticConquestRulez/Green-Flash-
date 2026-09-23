@@ -81,10 +81,7 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 1rem); }
 /* -------------------------------------------------------- the Included trio */
 .inc-card h3 { color: var(--ink); }
 .inc-card p { margin: .6rem 0 0; color: var(--muted); font-size: .95rem; }
-.inc-card::before {
-  content: ""; display: block; width: 28px; height: 2px;
-  background: var(--green); margin-bottom: 1.1rem;
-}
+/* The green bar the card used to open with is now the icon well (.f-ico). */
 
 /* ---------------------------------------------------------------- prices */
 .grid-4 { grid-template-columns: 1fr; }
@@ -254,7 +251,8 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 1rem); }
 .ph-drew-suit picture { display: block; overflow: hidden; }
 .ph-drew-suit img { transform: scale(1.35); transform-origin: 61% 42%; }
 
-.beat { border-top: 2px solid var(--green); padding-top: 1.1rem; }
+.beat { border-top: 2px solid var(--green); padding-top: 1.2rem; }
+.beat .f-ico { margin-bottom: .8rem; }
 .beat .mono { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase;
   color: var(--muted); }
 .beat h3 { margin-top: .6rem; }

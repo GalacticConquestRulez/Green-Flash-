@@ -103,6 +103,60 @@ def icon(slug):
     return _svg(ICONS[slug])
 
 
+# ---------------------------------------------------------- feature icons
+# The small icons on the feature boxes: the Included trio on every service
+# page and the Design · Launch · Grow beats (the owner, 2026-09-23: "add
+# premium icons to feature/service boxes, keep them minimal and consistent").
+# Their own grid — 24×24, drawn at 24px, a 1.6px stroke, round caps and
+# joins, no fill — so they are the same weight to the eye as the 44px service
+# icons without being scaled copies of them. One object per icon, nothing
+# decorated, and keyed by the heading they sit under so a heading that
+# changes in content.py fails the build here rather than losing its icon.
+_F = ('xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" '
+      'stroke="currentColor" stroke-width="1.6" stroke-linecap="round" '
+      'stroke-linejoin="round" aria-hidden="true"')
+
+FEATURES = {
+    # websites
+    'SEO Setup':            '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.9-4.9"/>',
+    'Optimized Speed':      '<path d="M4 15.5a8 8 0 1 1 16 0"/><path d="m12 15.5 4-5"/><circle cx="12" cy="15.5" r="1"/>',
+    'Mobile Friendly':      '<rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M10.5 18h3"/>',
+    # meta-ads
+    'Campaign Management':  '<path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="1.8" fill="var(--panel)"/><circle cx="15" cy="12" r="1.8" fill="var(--panel)"/><circle cx="8" cy="17" r="1.8" fill="var(--panel)"/>',
+    'On-Going Optimization': '<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4.5h-4.5"/>',
+    'Real Leads':           '<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>',
+    # social
+    'Content Creation':     '<rect x="3.5" y="8.5" width="17" height="12" rx="2.5"/><path d="M3.5 8.5 6 3.5l14.5 3.4-1.4 1.6"/><path d="m9.5 4.3-1.6 3.4M13.5 5.2l-1.6 3.3"/>',
+    'User Interaction':     '<path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-5 4v-4A2.5 2.5 0 0 1 4 13.5z"/>',
+    'Page Growth':          '<path d="M5 19.5V13M12 19.5V8M19 19.5V4"/>',
+    # logo
+    'Logo Copyright':       '<circle cx="12" cy="12" r="8.5"/><path d="M14.6 9.8a3.4 3.4 0 1 0 0 4.4"/>',
+    'Social Media Kit':     '<rect x="3.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"/>',
+    'Scalable Images':      '<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>',
+    # drones
+    '4K Aerial Film':       '<rect x="3.5" y="7" width="12.5" height="10" rx="2.5"/><path d="m16 11 4.5-2.5v7L16 13"/>',
+    'Stills Included':      '<path d="M4 8.5A2 2 0 0 1 6 6.5h2.2l1.4-2h4.8l1.4 2H18a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.4"/>',
+    'Planned Around You':   '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.1" fill="currentColor" stroke="none"/>',
+    # lead-conversion
+    'Fast Follow-Up':       '<path d="M13 3 5 13.5h6.5L11 21l8-10.5h-6.5z"/>',
+    'Qualified, Not Counted': '<circle cx="12" cy="12" r="8.5"/><path d="m8.2 12.2 2.6 2.6 5-5.2"/>',
+    'Tracked To The Close': '<path d="M5.5 21V4"/><path d="M5.5 4.5h12l-3 4 3 4h-12"/>',
+    # the beats — Home and About
+    'Design':               '<path d="m12 3 8.5 4.9L12 12.8 3.5 7.9z"/><path d="m3.5 12.2 8.5 4.9 8.5-4.9"/><path d="m3.5 16.4 8.5 4.9 8.5-4.9"/>',
+    'Launch':               '<path d="M12 3c3.2 2 4.5 5.8 4.5 9.5l-1.8 3H9.3l-1.8-3C7.5 8.8 8.8 5 12 3z"/><path d="M9.3 15.5 8 20l4-2 4 2-1.3-4.5"/><circle cx="12" cy="9.5" r="1.4"/>',
+    'Grow':                 '<path d="m3.5 17 5.5-5.5 4 4L20 8.5"/><path d="M15 8.5h5v5"/>',
+}
+
+
+def feature(name):
+    """The icon for one feature box, by the heading it sits under.
+
+    KeyError is deliberate, as with icon(): a heading with no drawing stops
+    the build rather than leaving one box on a row of three without one.
+    """
+    return f'<svg class="f-art" {_F}>{FEATURES[name]}</svg>'
+
+
 # ----------------------------------------------------------- the little quad
 def quad(cls='quad'):
     """The quad on its own, wide and small — the mark that flies across the

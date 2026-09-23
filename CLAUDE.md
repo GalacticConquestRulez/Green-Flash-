@@ -82,6 +82,12 @@ plus the client's daily ad budget. If the current site is right, change
    hierarchy strong"): name, price, icon and hairlines in the accent
    (`--green-line`, the green at 35%, for the borders), the description in
    `--muted`. Name > price > description is the order; do not green the body.
+   Feature boxes — the Included trio on every service page, the Design ·
+   Launch · Grow beats on Home and About — each carry one small icon
+   (`art.feature(heading)`, a 24px drawing in a 40px well, `.f-ico`): the
+   owner, 2026-09-23, "premium icons, minimal and consistent". Keyed by the
+   heading, so a renamed heading needs its drawing renamed in `art.FEATURES`
+   or the build stops. One object per icon, no decoration, no second style.
 2. **Two-tone headlines.** Line one `--ink`, line two `--green` — the Ellesmere
    move Drew picked out. `.h-two` on the heading, a `<span>` around the second
    line. `page_hero()` passes its title through as markup so it can do this.

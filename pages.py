@@ -17,6 +17,8 @@ which is the temporary local copy of what results.py will own.
     /pricing /work /results /about
 """
 import html
+
+import art
 import re
 
 from content import (SITE, SERVICES, SEO, PRICING, BY_SLUG, CLIENTS, CASE,
@@ -101,7 +103,8 @@ def bd_panel(title, bullets, price_line=None, price_key=None):
 
 def inc_cards(trio):
     return '<div class="grid grid-3 inc">' + ''.join(
-        f'<div class="inc-card panel rv rv-d{i + 1}"><h3>{h}</h3><p>{t}</p></div>'
+        f'<div class="inc-card panel rv rv-d{i + 1}">'
+        f'<span class="f-ico">{art.feature(h)}</span><h3>{h}</h3><p>{t}</p></div>'
         for i, (h, t) in enumerate(trio)) + '</div>'
 
 
@@ -454,7 +457,8 @@ def about_page():
         for i, (slug, alt) in enumerate(ABOUT['photos']))
     spec = ''.join(f'<li>{x}</li>' for x in ABOUT['specialize'])
     beats = ''.join(
-        f'<div class="beat rv rv-d{i + 1}"><div class="mono">{n} · {t}</div>'
+        f'<div class="beat rv rv-d{i + 1}"><span class="f-ico">{art.feature(t)}</span>'
+        f'<div class="mono">{n} · {t}</div>'
         f'<h3>{line}</h3></div>' for i, (n, t, line) in enumerate(BEATS))
 
     return dict(

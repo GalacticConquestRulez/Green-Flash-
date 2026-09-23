@@ -369,3 +369,12 @@ html.motion .rv.rv.in{opacity:1;transform:none;animation:none}
   .rv{opacity:1;transform:none;transition:none;animation:none}
   .btn:hover,.price:hover{transform:none}
 }
+
+/* ------------------------------------------------------- feature icons */
+/* The small icon on a feature box (the Included trio, the beats): art.py's
+   24px drawing in a 40px round well, green on the well, the hairline in the
+   green at 35% like the service cards. One size everywhere it appears. */
+.f-ico{display:inline-grid;place-items:center;width:40px;height:40px;
+  border-radius:12px;background:var(--well);border:1px solid var(--green-line);
+  color:var(--green);margin-bottom:1rem}
+.f-ico svg{width:24px;height:24px}

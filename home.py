@@ -408,7 +408,8 @@ def reels():
 def beats():
     """Design · Launch · Grow — his three, in his words."""
     items = ''.join(
-        f'<li class="beat rv"><div class="beat-k mono">'
+        f'<li class="beat rv"><span class="f-ico">{art.feature(name)}</span>'
+        f'<div class="beat-k mono">'
         f'{str(i + 1).zfill(2)} &middot; {name}</div><h3>{line}</h3></li>'
         for i, (name, line) in enumerate(BEATS))
     return (f'<section class="beats-sec band"><div class="wrap">'
