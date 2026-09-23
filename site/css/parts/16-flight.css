@@ -71,7 +71,13 @@ html.motion .flight{display:block;position:absolute;top:0;left:0;width:100%;
 html.motion .flight-quad{position:absolute;top:0;left:0;
   width:64px;height:64px;margin:-32px 0 0 -32px;
   color:var(--green);pointer-events:all;touch-action:none;cursor:grab;
-  will-change:transform;transform:translate3d(-999px,-999px,0);}
+  will-change:transform;transform:translate3d(-999px,-999px,0);
+  /* A 1.6px stroke crossing a photograph of a shop full of fairy lights is
+     a 1.6px stroke nobody can see. One pixel of --bg under it separates the
+     aircraft from whatever it is over without putting a second colour on the
+     page. It is on the 64px aircraft and nowhere else — there is no filter
+     anywhere on the page itself. */
+  filter:drop-shadow(0 1px 2px rgba(5,10,10,.92))}
 html.motion .flight.held .flight-quad{cursor:grabbing}
 
 /* The props. quad() has no animation of its own, so the four rotor discs are
