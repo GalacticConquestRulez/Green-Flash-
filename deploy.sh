@@ -6,7 +6,7 @@
 # certificate are step 9 of the plan.
 set -e
 cd "$(dirname "$0")"
-BASE_URL="${BASE_URL:-https://drew.greenflashusa.com}" python3 build.py
+BASE_URL="${BASE_URL:-https://mendozamarketing.com}" python3 build.py
 
 # assets/ is synced separately: --delete over the images and films would leave
 # the live site empty while it re-copied them.
@@ -16,4 +16,4 @@ mkdir -p /var/www/drew/assets
 [ -d out/video ] && rsync -a out/video/ /var/www/drew/assets/video/
 chown -R www-data:www-data /var/www/drew
 nginx -t && systemctl reload nginx
-echo "Deployed (canonical ${BASE_URL:-https://drew.greenflashusa.com})"
+echo "Deployed (canonical ${BASE_URL:-https://mendozamarketing.com})"

@@ -1,4 +1,4 @@
-# Mendoza Marketing — drew.greenflashusa.com (Drew, Grand Island NY)
+# Mendoza Marketing — mendozamarketing.com (Drew, Grand Island NY)
 
 The house rules for this repo. Read this before designing or building anything
 here: the palette, the prices and the rules below are the reference, and the
@@ -36,7 +36,9 @@ quote form; a results section using the dashboards; "dynamic / professional
 enough to give clients the desire to want a site similar to mine"; pretty
 flexible.**
 
-**Owner decisions:** the site lives at **drew.greenflashusa.com**; scope is the
+**Owner decisions:** the site lives at **mendozamarketing.com** (Drew's own domain,
+live since 2026-09-23; `drew.greenflashusa.com`, `www.*` and `mendozamarketing.net`
+redirect to it); scope is the
 marketing site (Home, the services, Results, Work, About Drew, Contact/quote)
 **with the prices on it**.
 
@@ -130,8 +132,10 @@ site/assets/             symlinks into out/ so `python3 -m http.server -d site`
                          serves a complete site locally     (gitignored)
 publish-preview.sh       build under /p/<slug> and swap it into
                          /srv/sitebuilder/p/ — noindex, fixed slug
-deploy.sh                build and rsync to /var/www/drew   (NOT run yet)
-deploy/nginx/drew-site.conf   the server body                (NOT installed yet)
+deploy.sh                build and rsync to /var/www/drew   (live)
+deploy/nginx/drew-site.conf   the server body, installed as
+                         /etc/nginx/snippets/drew-site.conf and included by
+                         /etc/nginx/sites-available/mendozamarketing.com
 incoming/                everything he sent, as it arrived  (gitignored)
 ```
 
@@ -145,8 +149,8 @@ node /root/shot/shot-drew.mjs http://127.0.0.1:8079/index.html /tmp/x --nav
 ```
 
 Preview slug (fixed, in `publish-preview.sh`): `FpneVVmTCTqRO_sI7peZHg` →
-`https://preview.greenflashusa.com/p/FpneVVmTCTqRO_sI7peZHg/`. Not published
-yet.
+`https://preview.greenflashusa.com/p/FpneVVmTCTqRO_sI7peZHg/`. Published; it
+stays the place to show Drew a change before `deploy.sh` puts it live.
 
 Git: branch `main`, remote `gf`
 (`git@github.com:GalacticConquestRulez/Green-Flash-.git`), pushed to
@@ -195,10 +199,14 @@ no icon. It fetches Space Grotesk and Inter from google/fonts into
 already overwrites robots and deletes the sitemap in its staging copy *after*
 the rsync.
 
-**On go-live, three things change and nothing else.**
+**Live since 2026-09-23 at `https://mendozamarketing.com`.** DNS is in Drew's own
+GoDaddy account (token at `/root/.config/godaddy-drew.env`, root-only, never
+copied here — see the memory `drew-godaddy-account.md`): apex A/AAAA on
+mendozamarketing.com and .net, www as CNAME. Certificate: one Let's Encrypt
+cert covering the five names, renewed by certbot's timer. The server block
+redirects every other name (www, .net, drew.greenflashusa.com) to the apex.
 
-1. `BASE_URL` — `deploy.sh` already exports `https://drew.greenflashusa.com`
-   (the build's default), and every canonical, `og:url`, `@id` and sitemap
+1. `BASE_URL` — `deploy.sh` exports `https://mendozamarketing.com`, and every canonical, `og:url`, `@id` and sitemap
    entry follows it. It also rsyncs `out/img/` to `/var/www/drew/assets/img/`,
    which is how the icons and the share cards get to the server; nothing extra
    to do, but if a card 404s in a link preview, that rsync is where to look.
