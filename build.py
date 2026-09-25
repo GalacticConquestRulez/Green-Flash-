@@ -517,6 +517,16 @@ def _uid(text):
 # <source>. See clip_sources() for why it can be nowhere else.
 PICK = '<script>oagPick()</script>'
 
+# The same one line for a film behind a play button, and a separate call for
+# one reason: it must not touch preload. A hero clip is going to play the
+# moment it is on screen, so oagPick() moves it to preload="metadata"; a film
+# is preload="none" because nothing at all may be fetched until a visitor
+# presses the button, and that has to stay true on a 4K screen as much as on a
+# phone. Everything else is the same - the master is named on data-hi, the
+# server HTML names the 1080 companion, the swap happens while the parser is
+# still standing there, and a metered connection stands it down.
+PICK_FILM = '<script>oagPickFilm()</script>'
+
 
 def clip_sources(name, hi=True):
     """(poster, the source the HTML names, the source a big screen swaps in).
@@ -645,6 +655,99 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, cls='', media_a
 # the form does not offer.
 SERVICE_OPTIONS = ('Murals', 'Banners and signs', 'Graffiti removal',
                    'Pressure washing', 'Commercial painting', 'Something else')
+
+
+DEFAULT_FILM_TITLE = 'Watch the <em class="pop">film</em>'
+
+
+def film_shape(name):
+    """The shape of a film, read off its own poster.
+
+    The poster is a frame of the film, scaled but never cropped, so its
+    proportions are the film's proportions. That is the only thing the page
+    needs: the frame is given the film's own aspect ratio, so a wall Ephraim
+    filmed portrait is shown portrait, and object-fit then has nothing to crop
+    and nothing to stretch. Reading it beats carrying it in projects.py, where
+    it would be one more number somebody has to keep true.
+    """
+    return webp_size(os.path.join(SRC, 'out', 'video', name + '.webp'))
+
+
+def film_sources(name):
+    """(poster, the source the HTML names, the master a big screen swaps in).
+
+    The same contract clip_sources() has for a hero clip, and for the same
+    reason: the server HTML names the 1080 companion, because that is the file
+    a phone should be given, and the master is named on data-hi for PICK_FILM
+    to swap in above 900px before anything has been asked for.
+
+    A film with no companion beside it on disk — the two out of the drop of
+    2026-09-20, built before this existed — names its master and gets no
+    data-hi, so PICK_FILM is not written into the page at all and the element
+    behaves exactly as it did before.
+    """
+    for suffix in ('.mp4', '.webp'):
+        assert os.path.exists(f'out/video/{name}{suffix}'), (
+            f'film {name}: out/video/{name}{suffix} is missing — run the '
+            f'make-*.sh that builds it')
+    poster = u(f'/assets/video/{name}.webp')
+    master = u(f'/assets/video/{name}.mp4')
+    if os.path.exists(f'out/video/{name}-1080.mp4'):
+        return poster, u(f'/assets/video/{name}-1080.mp4'), master
+    return poster, master, None
+
+
+def film_band(name, eyebrow, line, title=None, credit='', loop=False, cls=''):
+    """A film, whole, with its sound, behind a button.
+
+    It is the film itself and not a cut of it, which is the whole rule of the
+    drop of 2026-09-25: a film here is played whole or not at all. The element
+    is preload="none", so nothing is fetched until somebody clicks, and nginx
+    serves /assets/video/ with ranges, so what is fetched is the part being
+    watched.
+
+    The <video> is in the server HTML with its controls and its poster, so
+    with no script — and under reduced motion — this is already a film a
+    visitor can play, with the browser's own control. What site.js adds under
+    html.motion is the one thing the native control cannot be: a button the
+    size of the picture, in the site's own type. It is built there and nowhere
+    else, because a button that cannot do anything is worse than no button.
+    Splat never sees it either: the click mechanic acts on a[href] and on a
+    form's submit, and this is neither.
+
+    **loop=True is a band that plays its film to itself.** The film runs muted
+    and looped while it is on screen — one more element on the Live observer,
+    the same one the progress reel rides — and the button over it unmutes that
+    same element, stops it looping and starts it again from the front. One
+    file does both, so pressing play fetches nothing that is not already
+    there. It is muted in the server HTML rather than by the script, so a page
+    whose script never arrived is a film with a control on it and not a page
+    that suddenly makes noise.
+
+    **Nothing here can move a box.** The frame takes the film's own aspect
+    ratio from --film-ar, so the poster, the paused film and the playing film
+    are the same shape in every state — and a film shot portrait is shown
+    portrait, in a column of readable width, rather than stretched across a
+    landscape well or cropped to fit one.
+    """
+    btn = 'Play it with sound' if loop else 'Watch the film'
+    poster, src, hi = film_sources(name)
+    w, h = film_shape(name)
+    hi_attr = f' data-hi="{hi}"' if hi else ''
+    pick = PICK_FILM if hi else ''
+    live = ' data-inview muted loop' if loop else ''
+    cred = f'<p class="credit">{credit}</p>' if credit else ''
+    return f'''<section class="film{" " + cls if cls else ""}"><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow"><span class="marker">{eyebrow}</span></div>
+  <h2 class="tall">{title or DEFAULT_FILM_TITLE}</h2>
+  <p class="lead serif">{line}</p></div>
+  <figure class="film-frame rv{" film-portrait" if h > w else ""}" data-film="{btn}"
+          style="--film-ar:{w}/{h}">
+    <video class="film-video" controls playsinline preload="none" width="{w}" height="{h}"{hi_attr}{live}
+           poster="{poster}">{pick}<source src="{src}" type="video/mp4"></video>
+  </figure>
+  {cred}
+</div></section>'''
 
 
 def consult_path(service=None):
@@ -954,7 +1057,7 @@ def layout(path, title, desc, body, ld=None, noindex=False, wash=False, og=None)
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>(function(d){{var c=d.documentElement.classList;c.add('js');try{{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)c.add('motion')}}catch(e){{}}var wide=false;try{{wide=matchMedia('(min-width: 900px)').matches}}catch(e){{}}var save=false;try{{var n=navigator.connection;save=!!(n&&n.saveData)}}catch(e){{}}window.oagPick=function(){{var s=d.currentScript,v=s&&s.parentElement;if(!v||v.tagName!=='VIDEO'||!v.dataset.hi||!c.contains('motion')||save)return;if(wide)v.src=v.dataset.hi;v.preload='metadata';if(v.hasAttribute('data-autoplay'))v.setAttribute('autoplay','')}}}})(document)</script>
+<script>(function(d){{var c=d.documentElement.classList;c.add('js');try{{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)c.add('motion')}}catch(e){{}}var wide=false;try{{wide=matchMedia('(min-width: 900px)').matches}}catch(e){{}}var save=false;try{{var n=navigator.connection;save=!!(n&&n.saveData)}}catch(e){{}}window.oagPick=function(){{var s=d.currentScript,v=s&&s.parentElement;if(!v||v.tagName!=='VIDEO'||!v.dataset.hi||!c.contains('motion')||save)return;if(wide)v.src=v.dataset.hi;v.preload='metadata';if(v.hasAttribute('data-autoplay'))v.setAttribute('autoplay','')}};window.oagPickFilm=function(){{var s=d.currentScript,v=s&&s.parentElement;if(!v||v.tagName!=='VIDEO'||!v.dataset.hi||save)return;if(wide)v.src=v.dataset.hi}}}})(document)</script>
 <title>{html.escape(title)}</title>
 <meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{canonical}">
@@ -1618,48 +1721,6 @@ def film_hero(p):
                      video=p.get('video'), crumb=False, cls='tall')
 
 
-def film_band(p):
-    """The whole film, with its sound, behind a button.
-
-    The hero clip is a cut with no sound, built to sit behind a headline. This
-    is the film itself, at the size and the bitrate it was delivered in, with
-    its audio, because a visitor who presses "watch the film" has asked for the
-    film and not for a version of it. It is a big file and that is what the
-    button is for: the element is preload="none", so nothing at all is fetched
-    until somebody clicks, and nginx serves /assets/video/ with ranges, so what
-    is fetched is the part being watched.
-
-    The <video> is in the server HTML with its controls and its poster, so with
-    no script — and under reduced motion — this is already a film a visitor can
-    play, with the browser's own control. What site.js adds under html.motion is
-    the one thing the native control cannot be: a button the size of the
-    picture, in the site's own type. It is built there and nowhere else,
-    because a button that cannot do anything is worse than no button (which is
-    what the paint tin taught us). Splat never sees it either: the click
-    mechanic acts on a[href] and on a form's submit, and this is neither.
-
-    Nothing here can move a box: the frame is aspect-ratio 16/9 in every state,
-    and the poster, the paused film and the playing film are the same shape.
-    """
-    film = p['film']
-    for suffix in ('.mp4', '.webp'):
-        assert os.path.exists(f'out/video/{film}{suffix}'), (
-            f'film {film}: out/video/{film}{suffix} is missing — run ./make-films.sh')
-    credit = f'<p class="credit">{p["credit"]}</p>' if p['credit'] else ''
-    return f'''<section class="film"><div class="wrap">
-  <div class="section-head rv"><div class="eyebrow"><span class="marker">{p['film_eyebrow']}</span></div>
-  <h2 class="tall">Watch the <em class="pop">film</em></h2>
-  <p class="lead serif">{p['film_line']}</p></div>
-  <figure class="film-frame rv" data-film>
-    <video class="film-video" controls playsinline preload="none" width="3840" height="2160"
-           poster="{u("/assets/video/" + film + ".webp")}">
-      <source src="{u("/assets/video/" + film + ".mp4")}" type="video/mp4">
-    </video>
-  </figure>
-  {credit}
-</div></section>'''
-
-
 def progress_band(p):
     """The wall going up: Ephraim's own portrait reel, in a phone-shaped frame.
 
@@ -1766,7 +1827,7 @@ def project_page(p):
   {credit}
 </div></section>
 {progress_band(p) if p.get('progress') else ''}
-{film_band(p) if p.get('film') else ''}
+{film_band(p['film'], p['film_eyebrow'], p['film_line'], credit=p['credit'] or '') if p.get('film') else ''}
 {gallery}
 <section class="pnav-wrap"><div class="wrap">
   <nav class="pnav" aria-label="More projects">{step(prv, 'prev', 'Previous', 'chevL')}{step(nxt, 'next', 'Next', 'chevR')}</nav>
