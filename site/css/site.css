@@ -1852,7 +1852,11 @@ h4{font-family:var(--font-tall);font-weight:400;font-size:1.15rem;letter-spacing
    from --film-ar, so object-fit:cover has nothing to crop and nothing to
    stretch; a tall one is held to a column of readable width and centred rather
    than running the width of the page, where it would be four screens deep. */
-.film-portrait{width:min(430px,78vw);margin-inline:auto;border-radius:26px}
+.film-portrait{width:min(520px,82vw);margin-inline:auto;border-radius:26px}
+/* Wider than the portrait hero's 420px on purpose: on a page where the
+   hero is already playing this film muted, the band under it is the one
+   a visitor came to watch, and two frames the same size read as the same
+   thing printed twice. */
 .film-video{display:block;width:100%;height:100%;object-fit:cover;background:var(--ink)}
 .film-play{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;
