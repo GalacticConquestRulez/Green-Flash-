@@ -483,3 +483,55 @@ Mexico, Brazil, teen empowerment and more, so don't limit."* The rows in `projec
 are the walls we have photographs of, not his body of work. No "twelve walls", no wall
 count on the stats band, no "six of them here" over the Home row — square feet stays only
 because it is phrased "and counting", and it now counts `measured()` alone.
+
+## Ephraim's drop, 2026-09-25 — the films
+The owner put fifteen video files loose in the repo root and asked for them on the site.
+The whole of it — what each file is, what it became, every rendition and its size, and the
+seven questions only Ephraim can answer — is **`docs/ephraim-drop-2026-09-25.md`**. Read
+that before touching any of these six films. The short version:
+
+- **Four New York walls arrived as films and nothing else**: **Moncler** (the wall at
+  Grand and Centre — the street sign is in the film), **A$AP Rocky × Ray-Ban**, **Fords
+  Gin** (no apostrophe; the wall spells it) and **Christian Louboutin × Shun Sudo**. Each
+  is a project page whose hero is the film and whose gallery is 4K frames pulled from it,
+  because no photographs of these four walls have ever reached us. **No feet and no year
+  on any of them** — all four carry the `feet to come` marker and no Year line, and the
+  optional-feet path exists for exactly this.
+- **Nothing is cut.** This is the rule the drop turns on and it replaces what the drop
+  before it did. A film on this site is played **whole or not at all**: the muted loop
+  behind a headline is the entire film, and the button beside it is that same film with
+  its sound. There is no `make-*-clip.sh` for anything here, and there must not be one.
+- **One encode per film, not two.** `film-<name>.mp4` at the camera's own size and rate
+  (crf 23, 12 Mbit), `film-<name>-1080.mp4` with its **short** side at 1080 (crf 26,
+  5 Mbit), `film-<name>.webp`. That single file is both the loop and the film the button
+  unmutes, so pressing play fetches nothing that is not already there. `make-films.sh`'s
+  two-file shape — a silent cut plus a remux of the delivered master — is why
+  `film-rains.mp4` is 317 MB; these sources are 50–77 Mbit camera masters and four of them
+  are HEVC, so that shape was not carried forward. The delivered masters stay in
+  `assets/source/drop-2026-09-25/`.
+- **`PICK_FILM`, beside `PICK`.** The server HTML names the 1080 companion and the master
+  hangs on `data-hi`, exactly as a hero clip does — but `oagPickFilm()` **never touches
+  `preload`**, because a film behind a button is `preload="none"` and nothing may be
+  fetched until somebody presses it. A film with no companion on disk (the two from
+  2026-09-20) names its master, gets no `data-hi`, and behaves exactly as it did before.
+- **A film shot standing up is shown standing up.** `.film-frame` takes `--film-ar`, so
+  the frame is always the film's own rectangle, and `portrait_hero()` opens a project on a
+  portrait film in a column beside the words rather than cropping nine tenths of it away
+  in a full-bleed band. Fords Gin and Louboutin are the two.
+- **The Home hero did not move.** The Johnnie Walker clip is the owner's own choice
+  (2026-09-19, above), so the **capabilities showreel** is the first thing under it —
+  whole, muted, looping, with a button that turns the sound on and starts it from the
+  front. The **studio film** (four minutes, his own edit, title card "OPEN AIR GALLERY
+  2024") is "The film" on Home and on About, behind a play button.
+- **"Straight off the phone"** on the Work page: two reels as he posted them, in phone
+  frames, muted until you tap. **The phone's own interface is left in the picture** — the
+  timer, the speaker glyph, the letterbox — because cropping it out would be a re-cut; the
+  frame is the clip's own aspect ratio, never 9/16 by decree, and one of the two is wider
+  than it is tall. One file each and no master beside it, the same rule the RAINS progress
+  reel follows.
+- **Two names in the brief were wrong and the films corrected them.** The first reel's
+  title card reads **UPENDO** then "BLOCK THERAPY", and the street sign reads Sunset Bl —
+  it is the **Upendo wall in Los Angeles, already on the roster**, not a new wall. The
+  second is Oscar Mayer's **"Keep it Oscar"**, which names three other artists and shows
+  walls in three cities, so the copy describes the campaign and claims none of them. Read
+  the frames before naming anything: that is what this cost.
