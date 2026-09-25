@@ -321,12 +321,26 @@
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'btn film-play';
-    b.innerHTML = PLAY + 'Watch the film';
+    b.innerHTML = PLAY + (fig.dataset.film || 'Watch the film');
     b.addEventListener('click', () => {
       // Pressed by a person, so the sound is allowed — which is the point of
       // this and not of the muted loop at the top of the page.
       v.controls = true;
       v.preload = 'auto';
+      /* A band that plays its own film muted on a loop is this same element.
+         Pressing the button on one of those means "with the sound on, from
+         the front": unmute it, stop it looping, and put it back to zero,
+         because the middle of a lap is not where a film starts. data-sound is
+         how the in-view observer below knows to let go of it — from here the
+         visitor is driving, and a film that paused itself because the page
+         scrolled would be the page taking it back off them. */
+      if (v.muted || v.loop) {
+        v.muted = false;
+        v.loop = false;
+        v.removeAttribute('loop');
+        v.dataset.sound = '1';
+        try { v.currentTime = 0; } catch (e) {}
+      }
       v.play().catch(() => { v.controls = true; });
       b.remove();
     });
@@ -1040,7 +1054,7 @@
       // like the rest of Live — a clip running behind the visitor's back is
       // battery spent on something nobody is watching. A reel left with its
       // controls (data-saver) is not in reelLive and is not touched.
-      if (!reelLive.has(el)) return;
+      if (!reelLive.has(el) || el.dataset.sound) return;
       if (e.intersectionRatio >= LIVE) el.play().catch(() => {});
       else el.pause();
       return;
