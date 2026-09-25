@@ -1140,6 +1140,12 @@ pages['/index'] = dict(
            video='hero-johnnie-walker',
            crumb=False, cls='tall')}
 
+{film_band('film-capabilities', 'the showreel',
+           'His capabilities reel, playing itself through with no sound: the lift, the '
+           'block, the crew and the walls going up, at the size the camera shot it. The '
+           'button turns the sound on and starts it again from the front.',
+           title='How high will <em>you go?</em>', loop=True)}
+
 {spray_band()}
 
 <section class="alt stats-band">{glow()}<div class="wrap">
