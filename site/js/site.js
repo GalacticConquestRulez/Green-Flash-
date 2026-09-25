@@ -224,10 +224,15 @@
       cur.setAttribute('aria-hidden','true');
       well.appendChild(cur);
       let tx=0,ty=0;
-      wires.forEach(w=>{w.style.transformOrigin='left center'});
       return {
         arm(){
-          wires.forEach(w=>{w.style.transform='scaleX(0)'});
+          // The origin goes on with the zero, not once at build time: rest()
+          // strips it with everything else, so a cycle that follows a pause
+          // has to put it back or the wires grow from their middles.
+          wires.forEach(w=>{
+            w.style.transformOrigin='left center';
+            w.style.transform='scaleX(0)';
+          });
           if(btn)btn.style.opacity='0';
           cur.style.opacity='0';
           // The button's centre, in the well's own pixels. Read once a cycle
@@ -322,22 +327,49 @@
       };
     },
 
-    // Take off, cross the well, land. This is the one demo flown frame by
-    // frame, because a bank that is not proportional to the speed reads as a
-    // spin rather than as a turn; the shadow on the horizon is what says the
-    // machine left the ground. Each cycle crosses the other way, so the quad
-    // patrols the well instead of snapping back to the left between runs.
+    // The ground goes past, and the quad crosses it. Flown frame by frame,
+    // because a bank that is not proportional to the speed reads as a spin
+    // rather than as a turn; the shadow on the horizon is what says the
+    // machine left it. Each cycle crosses the other way, so the quad patrols
+    // the well instead of snapping back to the left between runs.
+    //
+    // One complication, and it is the page's, not this module's: flight.js
+    // takes this well as the pad its own, larger, grabbable quad rests on
+    // until the visitor scrolls past it (16-flight.css, "his little quad
+    // lifts off the Drones card"). While that one is sitting here there is
+    // already an aircraft in the well, so the well's own is stood down for
+    // the cycle and the ground alone says the machine is moving. Measured
+    // every cycle, because the visitor can pick that quad up and throw it
+    // somewhere else, and then this well needs its own again.
     drones(well){
-      const q=mm.$('.quad',well), sh=mm.$('.mm-shadow',well);
+      const q=mm.$('.quad',well), sh=mm.$('.mm-shadow',well),
+            ground=mm.$('.ground',well);
       if(!q)return null;
-      let run=0, dir=1;
+      let run=0, dir=-1, own=true, span=0;
       q.style.willChange='transform';
+      const taken=()=>{
+        const other=document.querySelector('.flight-quad');
+        if(!other)return false;
+        const a=other.getBoundingClientRect(), w=well.getBoundingClientRect();
+        if(!a.width||!w.width)return false;
+        const cx=(a.left+a.right)/2, cy=(a.top+a.bottom)/2;
+        return cx>w.left&&cx<w.right&&cy>w.top&&cy<w.bottom;
+      };
       return {
         arm(){
+          span=(well.clientWidth||300)*0.2;        // one gap between marks
           run=Math.max(24,(well.clientWidth||300)-(q.offsetWidth||46)-28);
+          own=!taken();
           dir=-dir;
+          q.style.opacity=own?'':'0';
+          if(sh)sh.style.opacity=own?'':'0';
         },
         frame(t){
+          // The ground slides two whole gaps in a run, so it is back on a seam
+          // when the run ends and the hold does not show a jump.
+          if(ground)ground.style.transform=
+            'translateX('+(-span*((t/1500)%1)).toFixed(2)+'px)';
+          if(!own)return;
           const up=seg(t,0,420), down=seg(t,2380,2820);
           const k=ease(seg(t,420,2380));
           const alt=up-down;                         // 0 → 1 → 0
@@ -351,7 +383,11 @@
             sh.style.opacity=(0.34-0.2*alt).toFixed(3);
           }
         },
-        rest(){wipe(q,'transform','will-change');wipe(sh,'transform','opacity')},
+        rest(){
+          wipe(q,'transform','will-change','opacity');
+          wipe(sh,'transform','opacity');
+          wipe(ground,'transform');
+        },
       };
     },
 

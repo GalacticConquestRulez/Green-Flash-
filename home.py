@@ -320,9 +320,18 @@ def _well(slug, b):
                 f'{html.escape(SERVICES[-1]["name"])}</b>')
 
     if slug == 'drones':
-        # A horizon, a shadow on it and the quad above it. The demo flies the
-        # quad the full width of the well and lands it again.
-        return f'<i class="horizon"></i><i class="mm-shadow"></i>{art.quad()}'
+        # A horizon with ground marks on it, a shadow and the quad above them.
+        # The demo slides the ground past — the machine is moving — and flies
+        # the quad the full width when the quad is its own to fly. It is not
+        # always: the flight layer parks a second, larger, grabbable quad on
+        # this very well (flight.js takes the well as its pad), and two
+        # aircraft in one 120px box read as a bug rather than as a squadron.
+        # Seven marks at 20% intervals, one past the end, so the slide can
+        # wrap on itself without a seam.
+        ticks = ''.join(f'<i class="tick" style="left:{i * 20}%"></i>'
+                        for i in range(7))
+        return (f'<i class="horizon"></i><i class="ground">{ticks}</i>'
+                f'<i class="mm-shadow"></i>{art.quad()}')
 
     if slug == 'lead-conversion':
         # The daily-leads line, edge to edge, and the Leads Center figure.
