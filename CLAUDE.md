@@ -102,8 +102,35 @@ plus the client's daily ad budget. If the current site is right, change
    reels play muted, and a visitor can turn one reel's sound on with a tap (a "Sound on"
    chip shows it, one reel at a time, off again when it leaves view). Nothing else makes a
    sound.
-   On a phone the first tap on a service card plays that card's demo and stays put; the
-   second tap opens the page (a phone has no hover). Enter on a focused card always navigates.
+
+   **The six service cards run off scroll, and they keep going.** The owner,
+   2026-09-25: *"they should trigger off scroll and keep going after they are
+   triggered, tapping should be reserved for learn more."* A card's demo starts
+   when the card is 35% on screen, runs three seconds, holds the state it ended
+   on for 1.2s and runs again, for as long as the card is in view; it pauses
+   when the card leaves and starts a fresh cycle on the way back. **No hover,
+   tap or focus handler goes anywhere near a card** — the card is a plain link
+   and one tap is Learn more, always. The first-tap-plays behaviour that used
+   to stand in for hover on a phone is gone: whether a tap opened the page
+   depended on invisible state, which is what the owner hit as *"sometimes you
+   click and it doesn't pop up it just goes to the page."*
+
+   **The well already holds what the demo ends on.** `home.py`'s `_well(slug)`
+   draws each card's finished state into the server HTML — the drawn
+   wireframe, the landed Views figure, a full-bleed reel poster, the caption,
+   the quad on its horizon, the drawn leads line and its figure — so no-JS and
+   reduced motion get a finished box, not an empty one. `site.js` never builds
+   or removes that content: `arm()` sets the state a run starts from,
+   `frame(t)` is the run written as arithmetic (inline styles, no committed
+   transitions, so a cycle can begin on any frame), `rest()` strips those
+   inline styles and lands the well back on exactly what the server sent.
+   **Nothing an end state leaves on screen may be removed or faded out at the
+   end of a run** — the owner, of the old sweep: *"Meta business suite number
+   disappears after popping up."* The counter counts up, holds its figure, and
+   restarts from zero on the next cycle; it is a number at every moment.
+   One well style for all six: 120px (106 on a phone), one radius, one
+   `--green-line` hairline, never dashed. Verified by
+   `/root/shot/drew-demos.mjs`.
 5. **PREFIX.** Every root-absolute link goes through `u()`, every image through
    `img()`/`pic()`. `PREFIX=/p/test python3 build.py` must be as correct as a
    plain build — that is what makes the preview work.

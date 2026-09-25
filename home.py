@@ -16,7 +16,12 @@ everything: the hooks it needs are already on the elements —
 
     data-demo   a section or card that has a demo to run   (the six cards,
                 the logo strip, the stats, the bars, the chart, the reels)
-    data-live   the well inside a card where its demo plays
+    data-live   the well inside a card where its demo plays — and which
+                already holds the state that demo ends on, so the page is
+                finished with no script at all (see the wells, below)
+    data-fig    a figure in a well for its demo to count up to, with
+                data-fig-prefix / -suffix / -decimals. NOT data-count: that
+                one is the results band's, collected across the document
     data-count  a figure to count up to, with data-prefix / data-suffix /
                 data-decimals saying how to format it on the way
     data-bar    a bar's target width, as a percentage
