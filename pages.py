@@ -462,7 +462,7 @@ def about_page():
         f'<h3>{line}</h3></div>' for i, (n, t, line) in enumerate(BEATS))
 
     return dict(
-        title=B.seo_title('About Drew Mendoza, Grand Island NY'),
+        title=B.seo_title('About Drew Pitts, Grand Island NY'),
         desc='At Mendoza Marketing, our mission is to help small and mid-sized '
              'businesses grow and compete online with data-driven marketing and '
              'measurable results.',

@@ -310,3 +310,9 @@ publishes none of them.
   about one lead a day, with his real peaks and his real floor. A table, a CSV
   or a fresh export from the Leads Center would replace it exactly; nothing
   else on the page would change.
+
+## His name is Drew Pitts
+
+The business is Mendoza Marketing; the man is **Drew Pitts**, not Drew Mendoza. The first
+build assumed the surname from the brand and the owner corrected it on 2026-09-25. Every
+`Person` record, alt text, heading and page title uses "Drew Pitts".

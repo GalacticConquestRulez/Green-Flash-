@@ -422,10 +422,10 @@ def about():
     sizes = '(min-width:960px) 420px, 100vw'
     return f'''<section class="about-sec">
   <div class="wrap about">
-    <div class="about-pic rv">{b.pic('drew-headshot', 'Drew Mendoza', sizes)}</div>
+    <div class="about-pic rv">{b.pic('drew-headshot', 'Drew Pitts', sizes)}</div>
     <div class="about-txt rv">
       <div class="eyebrow">About</div>
-      <h2 class="h-two">Drew Mendoza.<span>Content, websites, drones.</span></h2>
+      <h2 class="h-two">Drew Pitts.<span>Content, websites, drones.</span></h2>
       <p class="lead">{ABOUT_LEAD}</p>
       <a class="btn btn-ghost" href="{b.u('/about')}">Meet Drew {b.ICONS['arrow']}</a>
     </div>

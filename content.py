@@ -19,7 +19,7 @@ forgotten.
 SITE = dict(
     name='Mendoza Marketing',
     tagline='Content · Websites · Drones',          # his README, verbatim
-    owner='Drew Mendoza',                           # TODO confirm the spelling of his full name
+    owner='Drew Pitts',                             # confirmed by the owner, 2026-09-25
     email='drew@netoriouslabs.com',                 # TODO confirm for the new brand
     phone='716-860-5991',                           # TODO confirm
     phone_href='+17168605991',
@@ -583,11 +583,11 @@ ABOUT = dict(
              'building online strategies designed for measurable growth.',
     # The four photographs he sent. The alt text describes the picture and
     # claims nothing about him that he has not told us.
-    photo_lead=('drew-headshot', 'Drew Mendoza'),
+    photo_lead=('drew-headshot', 'Drew Pitts'),
     photos=[
-        ('drew-suit', 'Drew Mendoza outdoors in autumn'),
-        ('drew-detailing', 'Drew Mendoza filming at a detailing shop'),
-        ('drew-mt-bank', 'Drew Mendoza downtown, in black and white'),
+        ('drew-suit', 'Drew Pitts outdoors in autumn'),
+        ('drew-detailing', 'Drew Pitts filming at a detailing shop'),
+        ('drew-mt-bank', 'Drew Pitts downtown, in black and white'),
     ],
 )
 
