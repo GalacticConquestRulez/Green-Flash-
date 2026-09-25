@@ -312,9 +312,14 @@ def _well(slug, b):
         cells = ''
         for i, (reel, _alt) in enumerate(REELS):
             poster, _src = b.clip(reel)
-            cells += (f'<img class="mm-reel{" is-on" if i == 0 else ""}" '
-                      f'src="{poster}" alt="" aria-hidden="true" '
-                      f'loading="lazy" decoding="async">')
+            # Each cell is the poster twice: blurred edge to edge as the well's
+            # ground, and whole, portrait, in a 9:16 frame in the middle — a
+            # reel shown as a reel, not a landscape crop (the owner, 2026-09-25:
+            # "it's not the right size to show a reel").
+            cells += (f'<span class="mm-reel{" is-on" if i == 0 else ""}" aria-hidden="true">'
+                      f'<img class="mm-reel-bg" src="{poster}" alt="" loading="lazy" decoding="async">'
+                      f'<img class="mm-reel-img" src="{poster}" alt="" loading="lazy" decoding="async">'
+                      f'</span>')
         return cells
 
     if slug == 'logo':

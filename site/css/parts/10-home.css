@@ -188,9 +188,18 @@
    posters cropped to the well rather than a phone-shaped strip in the middle
    of it — the demo cross-fades between the three. object-position sits a
    little above centre, which is where the subject of a vertical reel is. */
-.mm-reel{position:absolute;inset:0;width:100%;height:100%;max-width:none;
-  object-fit:cover;object-position:center 38%;opacity:0}
+.mm-reel{position:absolute;inset:0;opacity:0}
 .mm-reel.is-on{opacity:1}
+/* The social well is the one tall well: a reel is portrait, so it gets the
+   height to be shown whole — the poster in a 9:16 frame over a blurred,
+   darkened copy of itself filling the well edge to edge. */
+.svc-demo[data-live="social"]{height:236px}
+@media (max-width:519px){.svc-demo[data-live="social"]{height:220px}}
+.mm-reel-bg{position:absolute;inset:0;width:100%;height:100%;max-width:none;
+  object-fit:cover;filter:blur(16px) brightness(.45) saturate(1.1);transform:scale(1.18)}
+.mm-reel-img{position:absolute;top:10px;bottom:10px;left:50%;height:calc(100% - 20px);
+  width:auto;aspect-ratio:9/16;max-width:none;transform:translateX(-50%);object-fit:cover;
+  border-radius:10px;border:1px solid var(--green-line);box-shadow:0 8px 24px rgba(0,0,0,.45)}
 
 /* The logo card: the mark's caption, set large. */
 .mm-type{position:absolute;left:14px;right:14px;top:50%;
