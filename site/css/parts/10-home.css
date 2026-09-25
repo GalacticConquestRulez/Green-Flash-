@@ -198,9 +198,14 @@
   font-weight:600;letter-spacing:.14em;text-transform:uppercase;
   color:var(--green);white-space:nowrap;overflow:hidden}
 
-/* The drone card: a horizon, the shadow on it, and the quad above it. */
+/* The drone card: a horizon with marks on it, the shadow, and the quad above
+   them. The marks are what makes a slide visible — a line sliding along itself
+   is a line standing still. */
 .horizon{position:absolute;left:0;right:0;top:74%;height:1px;
   background:var(--green-line)}
+.ground{position:absolute;left:0;right:0;top:74%;height:9px;display:block}
+.tick{position:absolute;top:0;width:1px;height:7px;background:var(--green);
+  opacity:.34}
 .mm-shadow{position:absolute;left:14px;top:74%;margin-top:-2px;width:46px;
   height:4px;border-radius:50%;background:var(--green);opacity:.3;
   filter:blur(1px)}
@@ -214,8 +219,12 @@
 .mm-area{fill:var(--green);opacity:.13}
 .mm-line{fill:none;stroke:var(--green);stroke-width:2;
   stroke-linejoin:round;stroke-linecap:round}
-.mm-fig{position:absolute;right:12px;top:10px;font-size:1.15rem;
-  font-weight:600;color:var(--green);font-variant-numeric:tabular-nums}
+/* The figure sits on its own patch of the well: the line's own peak runs
+   under it at the right-hand end, and a green number crossed by a green
+   stroke is not a number anybody can read. */
+.mm-fig{position:absolute;right:10px;top:9px;font-size:1.15rem;
+  font-weight:600;color:var(--green);font-variant-numeric:tabular-nums;
+  background:var(--well);border-radius:5px;padding:1px 5px;line-height:1.15}
 
 /* ------------------------------------------------------------- the results */
 .stats{display:grid;gap:1rem}
