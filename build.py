@@ -695,6 +695,49 @@ def film_band(name, eyebrow, line, title=None, credit='', loop=False, cls=''):
 </div></section>'''
 
 
+# How wide the portrait hero's frame is drawn, so the browser can pick a
+# rendition for the photograph under the film instead of taking the widest.
+THERO_SIZES = '(min-width:860px) 420px, 80vw'
+
+
+def portrait_hero(p):
+    """A project that opens on a film its camera shot standing up.
+
+    film_hero() lays the clip over the photograph across the full width of the
+    window, which is right for a film shot landscape and wrong for one shot
+    portrait: a 2160x3840 film in a full-bleed band is nine tenths cropped
+    away to leave a letterbox of the middle of it. So a portrait film gets a
+    portrait frame beside the words instead — the film's own shape, held to a
+    column, never stretched and never cropped.
+
+    The photograph is under the film exactly as it is in page_hero(): it is
+    the LCP element, the crawler's image and the still a no-script,
+    reduced-motion or data-saver visitor is left with, and the clip over it is
+    the motion. It is the same .hero-video element, so all three of those
+    renders behave the way they do everywhere else on the site without one new
+    rule being written for them.
+
+    The crumbs stay in the words below, where every project page keeps them.
+    """
+    poster, src, hi = clip_sources(p['video'])
+    w, h = film_shape(p['video'])
+    alt = f"{p['title']} mural by Open Air Gallery in {p['city']}, {p['state']}"
+    # No glow(): CLAUDE.md fixes the ambient mint at four places and no more,
+    # and on a project page that one place is the head of the words under the
+    # wall (.pintro), which is directly below this.
+    return f'''<section class="thero"><div class="wrap">
+  <div class="thero-grid">
+    <div class="thero-words rv">
+      <div class="eyebrow">{p['city']}, {p['state']}</div>
+      <h1>{p['title']}</h1>
+    </div>
+    <figure class="thero-film rv rv-d1" style="--film-ar:{w}/{h}">
+      <div class="thero-media">{pic(p['hero'], alt, THERO_SIZES, extra='fetchpriority="high"', lazy=False)}<video class="hero-video" data-autoplay data-hi="{hi}" muted loop playsinline preload="none" poster="{poster}" aria-hidden="true" tabindex="-1">{PICK}<source src="{src}" type="video/mp4"></video></div>
+    </figure>
+  </div>
+</div></section>'''
+
+
 def consult_path(service=None):
     """The contact-form path, with the service already chosen — unprefixed.
 
@@ -1331,6 +1374,10 @@ def project_page(p):
     # wall with neither feet nor a film gets the note where the figure goes.
     ft = p['dim_w'] is not None
     film = bool(p.get('video'))
+    # A film the camera shot standing up opens the page standing up
+    # (portrait_hero). The title is in that hero either way, so the words
+    # below still pick up at the figure and the heading is never said twice.
+    tallfilm = film and film_shape(p['video'])[1] > film_shape(p['video'])[0]
     if film:
         head = dims(p['dim_w'], p['dim_h']) or feet_note()
     elif ft:
@@ -1341,7 +1388,7 @@ def project_page(p):
         head = feet_note()
 
     return f'''
-{scale_hero(p) if ft and not film else film_hero(p)}
+{scale_hero(p) if ft and not film else (portrait_hero(p) if tallfilm else film_hero(p))}
 <section class="pintro">{glow()}<div class="wrap">
   <div class="crumbs"><a href="{u('/')}">Home</a><span>/</span><a href="{u('/work')}">Work</a><span>/</span><span>{p['title']}</span></div>
   {head}
