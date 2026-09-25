@@ -1647,6 +1647,12 @@ pages['/index'] = dict(
   {beats(PROCESS, rule=True)}
 </div></section>
 
+{film_band('film-open-air-gallery', 'the studio film',
+           'Four minutes on Open Air Gallery, his own edit: the walls, the paint being '
+           'mixed, a base coat being tagged over, the crew on the lifts, and Ephraim at '
+           'the wall in his own words. Whole, with its sound.',
+           title='The <em class="pop">film</em>')}
+
 {gr_band()}
 
 {cta()}''')
@@ -2000,6 +2006,12 @@ pages['/about'] = dict(
   <ul class="cities">{''.join(city_tile(place, walls) for place, walls in CITY_ROWS)}</ul>
   <div class="row-end rv"><a class="btn btn-ghost" href="{u('/work')}">See the work {ICONS['arrow']}</a></div>
 </div></section>
+
+{film_band('film-open-air-gallery', 'the studio film',
+           'Four minutes on Open Air Gallery, his own edit: the walls, the paint being '
+           'mixed, a base coat being tagged over, the crew on the lifts, and Ephraim at '
+           'the wall in his own words. Whole, with its sound.',
+           title='The <em class="pop">film</em>')}
 
 {gr_strip()}
 
