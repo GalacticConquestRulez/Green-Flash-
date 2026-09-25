@@ -196,6 +196,91 @@ PROJECTS = [
              'ballpark in Rochester — a block of storefronts and portraits, painted '
              'from lifts along the concrete, 25 feet wide by 50 feet tall.',
        credit='Film by Max — @omgmaxgod', featured=False),
+  # Ephraim's drop, 2026-09-25 (docs/ephraim-drop-2026-09-25.md): four New
+  # York walls that arrived as films and nothing else. Every one of them is a
+  # wall his Wix Work page never carried, so they join at the end of the order
+  # that page set, the way Rains and Flower City did.
+  #
+  # NO YEAR AND NO FEET on any of the four. Nobody has given us either, and
+  # neither is guessed: dim_w/dim_h are None, so the card and the page carry
+  # feet_note() where the figure goes, and year is None, so the Year row is
+  # simply not written. The one date-shaped thing in the whole drop is the
+  # copyright line on the end card of the Fords Gin film (2025 Brown-Forman),
+  # which is a notice on a video and not a statement about when a wall was
+  # painted — so it is in the drop doc as a question for Ephraim and nowhere
+  # near this file.
+  #
+  # video= and film= name THE SAME FILE on all four, which is the point: there
+  # is one encode of each (make-drop-films.sh), it plays whole and muted in a
+  # loop behind the words at the top of the page, and the play button under it
+  # unmutes that same element and starts it again from the front, with its
+  # sound. Nothing is cut and nothing is fetched twice.
+  # The photographs are frames pulled from the films at the camera's own size
+  # (make-drop-stills.sh), because no photographs of these four walls exist
+  # here.
+
+  dict(slug='moncler-new-york', title='Moncler', client='Moncler',
+       city='New York', state='NY', dim_w=None, dim_h=None, year=None,
+       category='brand', hero='moncler-new-york-hero',
+       video='film-moncler', film='film-moncler',
+       film_eyebrow='with the sound on',
+       film_line='The wall from the first bucket of paint to the drone pulling away '
+                 'from the finished block \u2014 whole, at full size, with its sound.',
+       gallery=['moncler-new-york-1', 'moncler-new-york-2', 'moncler-new-york-3',
+                'moncler-new-york-4'],
+       story='A woman in a green mask, painted for Moncler on a brick wall at Grand '
+             'and Centre in lower Manhattan, with \u201cWhere Dreams Are Made Of\u201d '
+             'lettered under her. MONCLER GENIUS is tagged in yellow on the brick '
+             'beside it. It went up by hand from a boom lift.',
+       credit=None, featured=False),
+
+  dict(slug='asap-rocky-ray-ban-new-york', title='A$AP Rocky \u00d7 Ray-Ban',
+       client='Ray-Ban \u00d7 A$AP Rocky',
+       city='New York', state='NY', dim_w=None, dim_h=None, year=None,
+       category='brand', hero='asap-rocky-ray-ban-new-york-hero',
+       video='film-asap-rocky-ray-ban', film='film-asap-rocky-ray-ban',
+       film_eyebrow='with the sound on',
+       film_line='Ephraim\u2019s film of the job \u2014 the lift, the street and the '
+                 'block from the air, whole and with its sound.',
+       gallery=['asap-rocky-ray-ban-new-york-1', 'asap-rocky-ray-ban-new-york-2',
+                'asap-rocky-ray-ban-new-york-3', 'asap-rocky-ray-ban-new-york-4'],
+       story='A$AP Rocky in Ray-Bans, painted over a New York street on a pale blue '
+             'ground, with a second portrait beside him and the Ray-Ban roundel that '
+             'names the campaign \u2014 AWGE set around its rim. Painted by hand from '
+             'a boom lift, in the middle of the traffic.',
+       credit=None, featured=False),
+
+  dict(slug='fords-gin-new-york', title='Fords Gin', client='Fords Gin',
+       city='New York', state='NY', dim_w=None, dim_h=None, year=None,
+       category='brand', hero='fords-gin-new-york-hero',
+       video='film-fords-gin', film='film-fords-gin',
+       film_eyebrow='with the sound on',
+       film_line='Shot vertically, so it plays the shape he shot it \u2014 the whole '
+                 'film, at full size, with its sound.',
+       gallery=['fords-gin-new-york-1', 'fords-gin-new-york-2',
+                'fords-gin-new-york-3', 'fords-gin-new-york-4'],
+       story='\u201cNew York, thank you for the Martini. Sincerely, Fords Gin\u201d '
+             '\u2014 a painted advertisement on a lower Manhattan wall, glass, olives '
+             'and every letter of it laid on by hand from a lift. Ephraim filmed this '
+             'one portrait, and the page plays it the shape he shot it.',
+       credit=None, featured=False),
+
+  dict(slug='louboutin-shun-sudo-new-york',
+       title='Christian Louboutin \u00d7 Shun Sudo',
+       client='Christian Louboutin \u00d7 Shun Sudo',
+       city='New York', state='NY', dim_w=None, dim_h=None, year=None,
+       category='brand', hero='louboutin-shun-sudo-new-york-hero',
+       video='film-louboutin-shun-sudo', film='film-louboutin-shun-sudo',
+       film_eyebrow='with the sound on',
+       film_line='A short one, shot portrait: the wall from the street and from the '
+                 'air, whole and with its sound.',
+       gallery=['louboutin-shun-sudo-new-york-1', 'louboutin-shun-sudo-new-york-2',
+                'louboutin-shun-sudo-new-york-3', 'louboutin-shun-sudo-new-york-4'],
+       story='Christian Louboutin with the painter Shun Sudo \u2014 crossed legs and '
+             'red soles over his blossoms, four storeys up a Manhattan wall, with '
+             'christianlouboutin.com along the foot of it. Shun Sudo is in the film, '
+             'watching it from the street.',
+       credit=None, featured=False),
 ]
 
 # The Home row and the footer column, in the order PLAN.md §3 names them —
