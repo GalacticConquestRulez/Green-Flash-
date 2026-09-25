@@ -738,6 +738,63 @@ def portrait_hero(p):
 </div></section>'''
 
 
+# --- from the feed -------------------------------------------------------
+# Two reels off Ephraim's phone, as he posted them. The phone's own interface
+# — the timer at the top, the speaker glyph in the corner, the letterbox down
+# the sides — is baked into the recording and it stays there: taking it out
+# would be a re-cut, and the strip frames each one as a phone so the interface
+# reads as what it is rather than as a mistake.
+#
+# One file each and no master beside it: the frame is a few hundred pixels
+# wide at every width, so a 2244-pixel rendition would be bytes no screen can
+# show (CLAUDE.md, 2026-09-21, the progress reel). The width and height on each
+# element are the clip's own proportions, read off its poster, so the box is
+# the right shape before a byte of film has arrived.
+FEED = [
+  dict(name='reel-block-therapy', title='Block Therapy',
+       line='The Upendo wall in Los Angeles going up in black and white, cut to the '
+            'painter’s own words about what a wall is for.'),
+  dict(name='reel-keep-it-oscar', title='Keep it Oscar',
+       line='Oscar Mayer asked painters in New York, Chicago and Los Angeles to top a '
+            'hot-dog wall their own city’s way. This is the reel that came of it.'),
+]
+
+
+def feed_band(cls='alt'):
+    """The reels, in phone frames, muted until you ask them not to be.
+
+    Each clip plays muted and looped while it is on screen — the same
+    data-inview contract the progress reel rides — and the button over it
+    unmutes that one element and starts it again from the front. Nothing is
+    cropped and nothing is cut: a reel is on this page whole or not at all.
+
+    With no script, or under reduced motion, each frame is a poster with the
+    browser's own control on it, which is a reel a visitor can still watch.
+    The frame carries the clip's own aspect ratio, so the box is the same
+    shape in all three renders and nothing moves when the film arrives.
+    """
+    items = ''
+    for f in FEED:
+        poster, src, _ = clip_sources(f['name'], hi=False)
+        w, h = film_shape(f['name'])
+        items += f'''<li class="feed-item rv">
+      <figure class="feed-phone" data-film="Tap for sound" style="--film-ar:{w}/{h}">
+        <video class="feed-video" data-inview width="{w}" height="{h}" controls muted loop
+               playsinline preload="none" poster="{poster}">
+          <source src="{src}" type="video/mp4"></video>
+      </figure>
+      <div class="feed-words"><h3>{f['title']}</h3><p>{f['line']}</p></div>
+    </li>'''
+    return f'''<section class="feed{" " + cls if cls else ""}"><div class="wrap">
+  <div class="section-head rv"><div class="eyebrow">from the feed</div>
+  <h2>Straight off the <em>phone</em></h2>
+  <p class="lead">Reels as he posted them, interface and all &mdash; nothing re-cut and
+  nothing cropped out. They play without sound; the button turns it on.</p></div>
+  <ul class="feed-strip">{items}
+  </ul>
+</div></section>'''
+
+
 def consult_path(service=None):
     """The contact-form path, with the service already chosen — unprefixed.
 
@@ -1229,6 +1286,7 @@ pages['/work'] = dict(
            f'portraits, and the two Rochester commissions.',
            crumb='Work')}
 {work_index()}
+{feed_band()}
 {gr_strip('Graffiti removal, pressure washing and commercial painting in NYC. The '
           'crew that painted these walls cleans them too.')}
 {cta()}''')

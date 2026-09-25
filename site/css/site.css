@@ -2113,3 +2113,28 @@ html.motion .tiprule.curing::after{
   .thero-grid{grid-template-columns:minmax(0,1fr) auto;gap:clamp(2.4rem,5vw,4.4rem);justify-items:start}
   .thero-words{text-align:left}
 }
+
+/* --- from the feed ------------------------------------------------------ */
+/* His reels, in phone frames. The frame is the clip's own aspect ratio and
+   never 9/16 by decree: these are screen recordings and one of them is wider
+   than it is tall, so forcing them into a phone rectangle would crop away the
+   interface that is the whole reason for showing them as reels. */
+.feed{padding:clamp(3rem,7vw,5rem) 0}
+.feed-strip{
+  list-style:none;margin:clamp(1.6rem,4vw,2.4rem) 0 0;padding:0;
+  display:grid;gap:clamp(2rem,5vw,3rem);justify-items:center;
+}
+.feed-item{display:grid;gap:1.1rem;justify-items:center;text-align:center;max-width:34rem}
+.feed-phone{
+  margin:0;position:relative;width:min(300px,74vw);
+  aspect-ratio:var(--film-ar,9/16);border-radius:26px;overflow:hidden;
+  background:var(--ink);border:1px solid var(--line);
+  box-shadow:0 22px 56px rgba(10,10,11,.20);
+}
+.feed-video{display:block;width:100%;height:100%;object-fit:cover;background:var(--ink)}
+.feed-phone .film-play{font-size:.82rem;padding:.55rem .9rem;gap:.4em}
+.feed-words h3{margin:0;font-size:1.2rem}
+.feed-words p{margin:.55rem auto 0;color:var(--muted);max-width:32ch}
+@media (min-width:760px){
+  .feed-strip{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+}
