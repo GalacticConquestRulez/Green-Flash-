@@ -141,33 +141,39 @@
 
 
 /* =====================================================================
-   THE SIX LIVE TILES
+   THE SIX LIVE TILES — off scroll, and they keep going
 
-   The plan: "on hover/tap the card runs a three-second demo of the service
-   — the website card wire-frames itself, the Meta card's counter climbs, the
-   drone card flies the little quad across, the social card cycles three reel
-   frames, the logo card swaps the Mendoza mark's text, the leads card's
-   chart draws — the kinesthetic beat the owner wants, one verb per card,
-   nothing scored."
+   The owner, 2026-09-25: "they should trigger off scroll and keep going after
+   they are triggered, tapping should be reserved for learn more."
 
-   So: one verb each, three seconds, then rest. Nothing is counted, nothing
-   is announced, nothing is left on the card afterwards. A second hover runs
-   it again; a hover while it is running is ignored rather than restarting it
-   half-way.
+   So: a card's demo starts when the card is 35% on screen, runs its three
+   seconds, HOLDS the state it ended on for a beat and runs again, for as long
+   as the card is in view. It pauses when the card leaves and starts a fresh
+   cycle when it comes back. Nothing here listens for a hover, a tap or a
+   focus: the card is a plain link to its service page and one tap is Learn
+   more, always (CLAUDE.md rule 4).
 
-   Every demo is built out of what the page already has — the wires and the
-   quad that are in the wells, the reels' own posters, the six service names
-   off the cards themselves, the results band's figures off their data-count
-   attributes and the leads chart's own points. Nothing here invents a
-   number: the Meta counter can only climb to the figure printed lower down
-   the page, and the leads card can only land on the one in the Leads Center
-   tile.
+   Every well is already the picture the demo ends on — home.py draws the
+   wireframe, the landed figure, the reel, the caption, the quad on its horizon
+   and the drawn leads line into the server HTML. This module therefore never
+   builds the content and never takes it away:
 
-   On a phone there is no hover, so the FIRST tap on a card plays its demo
-   instead of following the link and any tap after that goes to the page —
-   the standard touch stand-in for a hover, and the only way a tile that
-   exists to be felt can be felt with a finger. On a desktop the link is
-   never intercepted at all.
+     arm()    puts the well into the state the run STARTS from
+     frame(t) is the run, arithmetic rather than a stack of transitions, so a
+              cycle can begin on any frame with nothing left committed
+     rest()   strips every inline style the run set, which lands the well back
+              on exactly what the server sent
+
+   Two consequences, both of them the bugs the owner reported. Nothing is
+   removed at the end of a run, so the Meta counter's figure is on the card at
+   every moment of the visit — it counts up, holds, and restarts from zero on
+   the next cycle rather than blanking. And because there is no tap handler,
+   a tap can no longer either play a demo or fail to.
+
+   The one node this file makes is the website card's cursor: a pointer drawn
+   into a static wireframe would be a picture of nothing, so it exists only
+   while there is a script to move it. It is built once per card and reused by
+   every cycle.
    ===================================================================== */
 (function(){
   const mm=window.mm;
@@ -175,285 +181,268 @@
   const cards=mm.$$('.svc[data-demo]');
   if(!cards.length) return;
 
-  const SVG='http://www.w3.org/2000/svg';
+  const DUR=3000;                 // one run
+  const HOLD=1200;                // the end state, held, before the next one
+  const LIVE=0.35;                // the share of a card that has to show
   const clamp=(v,a,b)=>v<a?a:v>b?b:v;
-  const ease=k=>k*k*(3-2*k);              // smoothstep
-  const vel=k=>4*k*(1-k);                 // its speed, normalised to 1
+  const ease=k=>k*k*(3-2*k);      // smoothstep
+  const vel=k=>4*k*(1-k);         // its speed, normalised to 1
+  const seg=(t,a,b)=>clamp((t-a)/(b-a),0,1);
 
-  // A node the demo owns. .mm-fx is the mark that says "the script built
-  // this": rest() sweeps every one of them out of the well, so the well the
-  // visitor is left with is the well the server sent.
-  const mk=(tag,cls,parent)=>{
-    const e=document.createElement(tag);
-    e.className=cls+' mm-fx';
-    parent.appendChild(e);
-    return e;
-  };
-  const mkNS=(tag,cls,parent)=>{
-    const e=document.createElementNS(SVG,tag);
-    e.setAttribute('class',cls+(parent?' mm-fx':''));
-    if(parent)parent.appendChild(e);
-    return e;
-  };
+  /* A figure the server printed, as arithmetic.
 
-  /* A figure off the results band, as data rather than as text.
-
-     results.py prints the figure and hands the count-up the arithmetic to
-     get back to it (data-count, -prefix, -suffix, -decimals). Reading those
-     rather than the rendered string means the demo is reading the same
-     source the tile is, it is unaffected by the rolling wheels the results
-     module lays over that tile, and at k=1 it formats to exactly the string
-     the server printed. */
-  const statBy=rx=>{
-    const st=mm.$$('.stat').find(s=>{
-      const k=mm.$('.stat-k',s);
-      return k&&rx.test(k.textContent.trim());
-    });
-    const v=st&&mm.$('[data-count]',st);
-    if(!v)return null;
-    const d=v.dataset;
-    return {n:parseFloat(d.count)||0,dp:+(d.decimals||0),
-            pre:d.prefix||'',suf:d.suffix||''};
+     home.py puts data-fig (and -prefix/-suffix/-decimals) on the well's own
+     figure, straight out of results.py, so a counter can only ever climb to a
+     number this page already says. NOT data-count: that attribute belongs to
+     the results band's module, which collects it across the whole document
+     and would roll this one's digits as well. */
+  const figOf=el=>{
+    if(!el||!el.dataset||el.dataset.fig===undefined)return null;
+    return {n:parseFloat(el.dataset.fig)||0,dp:+(el.dataset.figDecimals||0),
+            pre:el.dataset.figPrefix||'',suf:el.dataset.figSuffix||''};
   };
   const figText=(f,k)=>f.pre+(f.n*k).toLocaleString('en-US',
     {minimumFractionDigits:f.dp,maximumFractionDigits:f.dp})+f.suf;
 
+  // Inline styles the run sets and rest() takes off again. Nothing else in
+  // this file touches .style, so "back to the server's HTML" is one call.
+  const wipe=(el,...props)=>{if(el)props.forEach(p=>el.style.removeProperty(p))};
+
   /* --- the six demos ---------------------------------------------------
-     Each returns {dur, steps:[[ms,fn]…], frame(t), rest()} or null if the
-     page does not hold what it needs. `steps` are fired once, in order, by
-     the loop; `frame` is for the two demos that are really interpolating
-     something rather than handing a transition a destination. */
+     Each returns {arm, frame, steps, rest} over the nodes the server already
+     put in the well, or null if this page does not hold them. */
   const DEMOS={
 
-    // The site draws itself, then somebody clicks the button on it. The
-    // three wires are the server's own (home.py puts them in the well so the
-    // no-script page shows what the demo is about); they are scaled to
-    // nothing, let go left to right, and given their widths back at rest.
+    // The site draws itself and somebody presses the button on it. The three
+    // rules are let go left to right, the button lands, the cursor crosses
+    // the well and presses.
     websites(well){
-      const wires=mm.$$('.wire',well);
+      const wires=mm.$$('.wire',well), btn=mm.$('.wf-btn',well);
       if(!wires.length)return null;
-      wires.forEach((w,i)=>{
-        w.style.transformOrigin='left center';
-        w.style.transform='scaleX(0)';
-        w.style.transition='transform .55s var(--ease) '+(i*0.14).toFixed(2)+'s';
-      });
-      void well.offsetWidth;            // the 0 has to be a rendered state
-      const btn=mk('i','mm-btn',well), dot=mk('i','mm-dot',well);
+      const cur=document.createElement('i');
+      cur.className='mm-cursor';
+      cur.setAttribute('aria-hidden','true');
+      well.appendChild(cur);
+      let tx=0,ty=0;
+      wires.forEach(w=>{w.style.transformOrigin='left center'});
       return {
-        dur:3000,
-        steps:[
-          [0,   ()=>wires.forEach(w=>{w.style.transform='scaleX(1)'})],
-          [1100,()=>btn.classList.add('on')],
-          [1400,()=>dot.classList.add('go')],
-          [2320,()=>{dot.classList.add('tap');btn.classList.add('hit')}],
-          [2620,()=>{dot.classList.remove('tap');btn.classList.remove('hit')}],
-        ],
-        rest(){wires.forEach(w=>{
-          w.style.removeProperty('transform');
-          w.style.removeProperty('transition');
-          w.style.removeProperty('transform-origin');
-        })},
-      };
-    },
-
-    // The campaign runs: views climb from nothing to the figure the results
-    // band prints, and the rise mark lifts off the end of them.
-    'meta-ads'(well){
-      const f=statBy(/^views/i);
-      if(!f)return null;
-      const n=mk('b','mm-num mono',well), up=mk('i','mm-up mono',well);
-      up.textContent='↑';
-      n.textContent=figText(f,0);
-      return {
-        dur:3000,
-        steps:[[2260,()=>{n.textContent=figText(f,1);up.classList.add('on')}]],
+        arm(){
+          wires.forEach(w=>{w.style.transform='scaleX(0)'});
+          if(btn)btn.style.opacity='0';
+          cur.style.opacity='0';
+          // The button's centre, in the well's own pixels. Read once a cycle
+          // rather than once a frame, and re-read every cycle so a resized
+          // window is flown correctly.
+          if(btn){tx=btn.offsetLeft+btn.offsetWidth/2;ty=btn.offsetTop+btn.offsetHeight/2}
+          else{tx=(well.clientWidth||300)-45;ty=(well.clientHeight||120)*0.82}
+        },
         frame(t){
-          if(t>=2260)return;             // the step above lands it exactly
-          n.textContent=figText(f,1-Math.pow(1-clamp(t/2200,0,1),3));
+          wires.forEach((w,i)=>{
+            w.style.transform='scaleX('+ease(seg(t,i*150,i*150+560)).toFixed(4)+')';
+          });
+          if(btn){
+            const k=ease(seg(t,1050,1360));
+            btn.style.opacity=(0.9*k).toFixed(3);
+            const press=seg(t,2320,2420)-seg(t,2520,2640);
+            btn.style.transform='scale('+(0.82+0.18*k-0.08*press).toFixed(4)+')';
+          }
+          const walk=ease(seg(t,1380,2300)), press=seg(t,2300,2400)-seg(t,2500,2620);
+          const x0=14, y0=(well.clientHeight||120)*0.58;
+          cur.style.opacity=(seg(t,1300,1500)-seg(t,2760,2960)).toFixed(3);
+          cur.style.transform='translate('+(x0+(tx-x0)*walk).toFixed(1)+'px,'
+            +(y0+(ty-y0)*walk).toFixed(1)+'px) scale('+(1-0.42*press).toFixed(3)+')';
+        },
+        rest(){
+          wires.forEach(w=>wipe(w,'transform','transform-origin'));
+          wipe(btn,'opacity','transform');
+          cur.style.opacity='0';
+          wipe(cur,'transform');
         },
       };
     },
 
-    // The feed goes past: the three reels' own posters, one window at a
-    // time. The posters are the ones the reels lower down the page carry, so
-    // the card is showing the work rather than a drawing of it.
-    social(well){
-      const posters=mm.$$('video[data-reel]')
-        .map(v=>v.getAttribute('poster')).filter(Boolean);
-      if(!posters.length)return null;
-      const win=mk('i','mm-feed',well);
-      const col=document.createElement('i');
-      col.className='mm-feed-col';
-      col.style.height=(posters.length*100)+'%';
-      posters.forEach(p=>{
-        const c=document.createElement('i');
-        c.style.flex='0 0 '+(100/posters.length)+'%';
-        c.style.backgroundImage='url("'+p.replace(/"/g,'%22')+'")';
-        col.appendChild(c);
-      });
-      win.appendChild(col);
-      const slot=2600/posters.length;
+    // The campaign runs. The figure climbs to the one the Results band prints
+    // and the rise mark lifts off the end of it — and then it STAYS there for
+    // the hold and restarts from zero, so the card is never showing an empty
+    // box where a number was (the owner, 2026-09-25: "Meta business suite
+    // number disappears after popping up").
+    'meta-ads'(well){
+      const n=mm.$('.mm-num',well), up=mm.$('.mm-up',well), f=figOf(n);
+      if(!n||!f)return null;
+      const printed=n.textContent;
       return {
-        dur:3000,
-        steps:posters.map((_,i)=>[Math.round(i*slot),()=>{
-          col.style.transform='translateY('+(-i*100/posters.length).toFixed(4)+'%)';
-        }]),
+        arm(){n.textContent=figText(f,0)},
+        frame(t){
+          const k=t>=2200?1:1-Math.pow(1-clamp(t/2200,0,1),3);
+          const s=k>=1?printed:figText(f,k);
+          if(s!==n.textContent)n.textContent=s;
+          if(up){
+            const p=ease(seg(t,2240,2560));
+            up.style.opacity=p.toFixed(3);
+            up.style.transform='translateY('+(-8*p).toFixed(2)+'px)';
+          }
+        },
+        rest(){n.textContent=printed;wipe(up,'opacity','transform')},
+      };
+    },
+
+    // The feed goes past — Kelly's three reel posters, each one filling the
+    // well, cross-fading one to the next. The frames are the server's own
+    // <img>s (home.py), at the well's full width and height.
+    social(well){
+      const cells=mm.$$('.mm-reel',well);
+      if(cells.length<2)return null;
+      const slot=DUR/cells.length;
+      const show=i=>cells.forEach((c,j)=>c.classList.toggle('is-on',j===i));
+      return {
+        arm(){show(0)},
+        steps:cells.map((_,i)=>[Math.round(i*slot),()=>show(i)]),
+        rest(){show(0)},
       };
     },
 
     // The mark's caption, set six times — his README's "per-service marks =
     // the Mendoza logo with the text changed", as a verb. The six names are
     // read off the six cards, so this card cannot name a service the grid
-    // does not have.
+    // does not have, and the last of them is the one the server printed.
     logo(well){
+      const cap=mm.$('.mm-type',well);
       const names=mm.$$('.svc[data-demo] h3').map(h=>h.textContent.trim()).filter(Boolean);
-      if(!names.length)return null;
-      const cap=mk('b','mm-type mono',well);
-      cap.setAttribute('aria-hidden','true');
-      const slot=3000/names.length;
+      if(!cap||!names.length)return null;
+      const printed=cap.textContent, slot=DUR/names.length;
       return {
-        dur:3000,
         frame(t){
           const i=clamp(Math.floor(t/slot),0,names.length-1);
           const s=names[i], k=(t-i*slot)/slot;
-          // typed over the first two-thirds of its slot, held for the rest
+          // typed over the first two thirds of its slot, held for the rest
           const out=s.slice(0,Math.ceil(s.length*clamp(k/0.66,0,1)));
           if(out!==cap.textContent)cap.textContent=out;
         },
+        rest(){cap.textContent=printed},
       };
     },
 
-    // Take off, cross, land. The quad is the server's own (art.quad(), parked
-    // at the left of the well); this is the only demo that is really flown
-    // frame by frame, because a bank that is not proportional to the speed
-    // reads as a spin rather than as a turn. The shadow is what says it left
-    // the ground.
+    // Take off, cross the well, land. This is the one demo flown frame by
+    // frame, because a bank that is not proportional to the speed reads as a
+    // spin rather than as a turn; the shadow on the horizon is what says the
+    // machine left the ground. Each cycle crosses the other way, so the quad
+    // patrols the well instead of snapping back to the left between runs.
     drones(well){
-      const q=mm.$('.quad',well);
+      const q=mm.$('.quad',well), sh=mm.$('.mm-shadow',well);
       if(!q)return null;
-      const sh=mk('i','mm-shadow',well);
-      const run=Math.max(30,(well.clientWidth||300)-46-28);
+      let run=0, dir=1;
       q.style.willChange='transform';
       return {
-        dur:3000,
+        arm(){
+          run=Math.max(24,(well.clientWidth||300)-(q.offsetWidth||46)-28);
+          dir=-dir;
+        },
         frame(t){
-          const up=clamp(t/420,0,1), down=clamp((t-2380)/440,0,1);
-          const k=clamp((t-420)/1960,0,1);
-          const alt=up-down;                       // 0 → 1 → 0
-          const x=ease(k)*run, y=-15*alt, rot=vel(k)*7*(1-down);
+          const up=seg(t,0,420), down=seg(t,2380,2820);
+          const k=ease(seg(t,420,2380));
+          const alt=up-down;                         // 0 → 1 → 0
+          const d=dir>0?1:-1;
+          const x=d>0?k*run:run-k*run, y=-16*alt, rot=vel(seg(t,420,2380))*7*(1-down)*d;
           q.style.transform='translateY(-50%) translate('+x.toFixed(1)+'px,'
             +y.toFixed(1)+'px) rotate('+rot.toFixed(2)+'deg)';
-          sh.style.transform='translateX('+x.toFixed(1)+'px) scaleX('
-            +(1-0.28*alt).toFixed(3)+')';
-          sh.style.opacity=(0.34-0.2*alt).toFixed(3);
+          if(sh){
+            sh.style.transform='translateX('+x.toFixed(1)+'px) scaleX('
+              +(1-0.28*alt).toFixed(3)+')';
+            sh.style.opacity=(0.34-0.2*alt).toFixed(3);
+          }
         },
-        rest(){
-          q.style.removeProperty('transform');
-          q.style.removeProperty('will-change');
-        },
+        rest(){wipe(q,'transform','will-change');wipe(sh,'transform','opacity')},
       };
     },
 
-    // The leads line draws itself and the Leads Center figure lands on the
-    // end of it. Both come off the results band below: the polyline's own
-    // ninety points, thinned to thirty for a 56px well, and that tile's
-    // data-count. Drew's shape, Drew's number, at card size.
+    // The daily-leads line draws itself and the Leads Center figure lands on
+    // the end of it. Both are the server's: the well's own polyline (Drew's
+    // ninety days, thinned) and that tile's figure.
     'lead-conversion'(well){
-      const src=mm.$('.chart-line'), f=statBy(/lead/i);
-      if(!src||!f)return null;
-      const raw=(src.getAttribute('points')||'').trim().split(/\s+/);
-      if(raw.length<4)return null;
-      const pts=raw.filter((_,i)=>i%3===0||i===raw.length-1).join(' ');
-      const svg=mkNS('svg','mm-chart',well);
-      svg.setAttribute('viewBox','0 0 300 100');
-      svg.setAttribute('preserveAspectRatio','none');
-      svg.setAttribute('aria-hidden','true');
-      const line=mkNS('polyline','mm-line',svg);
-      line.setAttribute('points',pts);
-      line.setAttribute('vector-effect','non-scaling-stroke');
-      // The undrawn state has to be put on WITHOUT the transition and then
-      // committed, or the browser spends the 2.2s transitioning INTO the full
-      // dash — the line draws itself backwards and then snaps. Suppress,
-      // set, read the computed value back (which commits it), restore.
-      const len=(line.getTotalLength&&line.getTotalLength())||600;
-      line.style.transition='none';
-      line.style.strokeDasharray=len;
-      line.style.strokeDashoffset=len;
-      getComputedStyle(line).strokeDashoffset;
-      line.style.transition='';
-      const fig=mk('b','mm-fig mono',well);
-      fig.textContent=figText(f,1);
-      fig.setAttribute('aria-hidden','true');
+      const line=mm.$('.mm-line',well), area=mm.$('.mm-area',well),
+            fig=mm.$('.mm-fig',well);
+      if(!line||!line.getTotalLength)return null;
+      const len=Math.ceil(line.getTotalLength())||0;
+      if(!len)return null;
       return {
-        dur:3000,
-        steps:[[0,()=>{line.style.strokeDashoffset='0'}],
-               [2280,()=>fig.classList.add('on')]],
+        arm(){line.style.strokeDasharray=len},
+        frame(t){
+          line.style.strokeDashoffset=(len*(1-ease(seg(t,0,2200)))).toFixed(1);
+          if(area)area.style.opacity=(0.13*seg(t,700,1900)).toFixed(4);
+          if(fig){
+            const p=ease(seg(t,2260,2580));
+            fig.style.opacity=p.toFixed(3);
+            fig.style.transform='translateY('+(-10*(1-p)).toFixed(2)
+              +'px) scale('+(0.86+0.14*p).toFixed(3)+')';
+          }
+        },
+        rest(){
+          wipe(line,'stroke-dasharray','stroke-dashoffset');
+          wipe(area,'opacity');
+          wipe(fig,'opacity','transform');
+        },
       };
     },
   };
 
   /* --- the runner ------------------------------------------------------
-     One demo per card at a time, driven off the page's one rAF loop, which
-     is held open with pump(1) only while something is actually running. A
-     finished demo takes its callback back out of the loop, sweeps its own
-     nodes and puts back anything it borrowed. */
-  const running=new WeakSet();
-  const start=card=>{
-    const well=mm.$('[data-live]',card);
-    if(!well||running.has(card))return;
-    const make=DEMOS[card.dataset.demo];
-    if(!make)return;
+     One cycle is arm(), DUR of frames, then HOLD with the last frame left
+     standing, then arm() again. The page's one rAF loop drives it and is held
+     open with pump(1) only for the cards that are actually on screen, so a
+     visitor at the top of the page is paying for nothing below it.
+
+     A demo is built once per card, on the first time it is needed, and its
+     nodes live for the rest of the visit — that is what makes the end state
+     persist. play()/pause() only add and remove a frame callback. */
+  const built=new WeakMap();
+  const of=card=>{
+    if(built.has(card))return built.get(card);
+    const well=mm.$('[data-live]',card), make=DEMOS[card.dataset.demo];
     let d=null;
-    try{d=make(well)}catch(e){d=null}
+    if(well&&make){try{d=make(well)}catch(e){d=null}}
+    built.set(card,d);
+    return d;
+  };
+  const step=(d,t,from)=>{
+    const steps=d.steps||[];
+    let i=from;
+    while(i<steps.length&&t>=steps[i][0]){try{steps[i][1]()}catch(e){}i++}
+    return i;
+  };
+  const play=card=>{
+    if(card.__mmOff)return;
+    const d=of(card);
     if(!d)return;
-    running.add(card);
-    card.classList.add('mm-on');
-    let t0=0,i=0,off=null;
-    const stop=()=>{
-      if(off)off();
-      mm.pump(-1);
-      running.delete(card);
-      card.classList.remove('mm-on');
-      try{d.rest&&d.rest()}catch(e){}
-      mm.$$('.mm-fx',well).forEach(n=>n.remove());
-    };
-    off=mm.add(now=>{
+    let t0=0,i=0;
+    const arm=()=>{i=0;try{d.arm&&d.arm()}catch(e){}};
+    arm();
+    card.classList.add('mm-run');
+    card.__mmOff=mm.add(now=>{
       if(!t0)t0=now;
-      const t=now-t0;
-      const steps=d.steps||[];
-      while(i<steps.length&&t>=steps[i][0]){
-        try{steps[i][1]()}catch(e){}
-        i++;
-      }
-      if(d.frame){try{d.frame(Math.min(t,d.dur))}catch(e){}}
-      if(t>=d.dur)stop();
+      let t=now-t0;
+      if(t>DUR+HOLD){t0=now;t=0;arm()}       // the next cycle
+      i=step(d,Math.min(t,DUR),i);
+      if(d.frame){try{d.frame(Math.min(t,DUR))}catch(e){}}
     });
     mm.pump(1);
   };
+  const pause=card=>{
+    if(!card.__mmOff)return;
+    card.__mmOff();
+    card.__mmOff=null;
+    mm.pump(-1);
+    card.classList.remove('mm-run');
+    const d=built.get(card);
+    if(d){try{d.rest&&d.rest()}catch(e){}}   // back to the server's own well
+  };
 
-  cards.forEach(card=>{
-    if(mm.fine){
-      card.addEventListener('pointerenter',e=>{
-        if(e.pointerType==='touch')return;      // a tap is not a hover
-        start(card);
-      });
-    }else{
-      // The card is a link to the service's page. On a coarse pointer the
-      // first tap is the hover this device does not have — it plays the demo
-      // and stays put; every tap after that opens the page. Nothing is
-      // intercepted on a desktop, and Enter on a focused card always follows
-      // the link.
-      card.addEventListener('click',e=>{
-        if(card.__mmSeen)return;
-        card.__mmSeen=true;
-        e.preventDefault();
-        start(card);
-      });
-    }
-    // A keyboard visitor gets the demo too: the card is a link, so tabbing
-    // onto it is the closest thing they have to pointing at it.
-    card.addEventListener('focus',()=>start(card));
-  });
+  const io=mm.io(es=>es.forEach(e=>{
+    if(e.intersectionRatio>=LIVE)play(e.target); else pause(e.target);
+  }),{threshold:[0,LIVE]});
+  // No IntersectionObserver, no way to know what is on screen — so every card
+  // runs. The alternative is six wells that never move on a browser that can
+  // still animate them perfectly well.
+  if(io)cards.forEach(c=>io.observe(c)); else cards.forEach(play);
 })();
 
 
