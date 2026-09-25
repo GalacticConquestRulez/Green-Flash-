@@ -25,9 +25,11 @@
      --green  #2de8b5  --band #070d0d  12.42:1   AAA   eyebrows, deltas
      --green-2#7FF2D1  --band #070d0d  14.48:1   AAA   hover
      --muted  #93A3A3  --band #070d0d   7.47:1   AAA   labels, leads
-     --ink    #DDE4E1  --well #0b1413  14.47:1   AAA   (no type today)
-     --green  #2de8b5  --well #0b1413  11.86:1   AAA   the card icons
-     --muted  #93A3A3  --well #0b1413   7.13:1   AAA   (no type today)
+     --ink    #DDE4E1  --well #0b1413  14.47:1   AAA   the Meta counter
+     --green  #2de8b5  --well #0b1413  11.86:1   AAA   the card icons, the
+                                                       typed caption, the
+                                                       leads figure
+     --muted  #93A3A3  --well #0b1413   7.13:1   AAA   a well's own label
 
    Two pairs carry no type and are exempt by definition:
      --band   #070d0d  on --bg    #050A0A  1.02:1  surface only
@@ -140,23 +142,80 @@
 .svc-price{font-size:.78rem;letter-spacing:.04em;color:var(--green);
   text-align:right;padding-top:.35rem}
 .svc p{color:var(--muted);font-size:.95rem;margin:.6rem 0 1.4rem}
-/* The stage the card's three-second demo runs on. Dashed while it is empty,
-   solid once there is something in it — the well says, without a word,
-   which cards have something to show already. */
-.svc-demo{position:relative;margin-top:auto;height:56px;border-radius:10px;
-  background:var(--well);border:1px dashed var(--green-line);overflow:hidden}
-.svc-demo:not(:empty){border-style:solid}
+/* ------------------------------------------------- the demo wells (the six)
+   The stage each card's demo runs on, and — because home.py draws the demo's
+   FINISHED state into it — a small picture of the service with no script at
+   all. One height for all six, one radius, one green hairline, never dashed:
+   six wells that do not match read as six unfinished boxes.
+
+   120px so a reel poster fills it and reads, a counter can be set large, and
+   the leads line has room for a shape. Everything inside is absolutely
+   positioned, so a demo can move what is in a well and can never reflow the
+   card. Positions are percentages of the well, so the phone's shorter well
+   needs no second set of numbers. */
+.svc-demo{position:relative;margin-top:auto;height:120px;border-radius:12px;
+  background:var(--well);border:1px solid var(--green-line);overflow:hidden}
+@media (max-width:519px){.svc-demo{height:106px}}
 .svc:hover .svc-demo{border-color:var(--green)}
-/* The website card's wireframe, drawn rather than animated: three rules at
-   the widths the demo settles on. */
-.wire{position:absolute;left:12px;right:12px;height:6px;border-radius:3px;
+
+/* The website card: the page that has drawn itself. A header rule, two lines
+   of copy that span the well, and the button the cursor presses. */
+.wire{position:absolute;left:14px;height:6px;border-radius:3px;
   background:var(--green);display:block}
-.wire.w1{top:11px;width:58%}
-.wire.w2{top:25px;width:82%;opacity:.5}
-.wire.w3{top:39px;width:38%;opacity:.32}
-/* The quad, parked at the left of its strip of sky until something flies it. */
-.quad{position:absolute;left:14px;top:50%;width:46px;height:26px;
+.wire.w1{top:15%;height:11px;border-radius:5px;width:64%}
+.wire.w2{top:40%;width:calc(100% - 28px);opacity:.5}
+.wire.w3{top:56%;width:52%;opacity:.32}
+.wf-btn{position:absolute;right:14px;bottom:13%;width:62px;height:19px;
+  border-radius:5px;background:var(--green);opacity:.9}
+
+/* The Meta card: the campaign's reach, set large and centred over its label.
+   The figure is the first Results tile's, printed here by the server, and the
+   demo only ever replaces it with another formatting of the same number — it
+   is never emptied, blanked or faded out. */
+.mm-num{position:absolute;left:8px;right:8px;top:50%;transform:translateY(-50%);
+  text-align:center;font-size:clamp(1.55rem,4.2vw,2rem);line-height:1;
+  font-weight:600;letter-spacing:.01em;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.mm-cap{position:absolute;left:10px;right:10px;bottom:11px;text-align:center;
+  font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--muted);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.mm-cap-b{text-align:left;right:auto;max-width:60%}
+.mm-up{position:absolute;right:14px;top:50%;margin-top:-1.2em;font-style:normal;
+  font-size:1rem;color:var(--green)}
+
+/* The social card: the reel at the well's full width and height. Portrait
+   posters cropped to the well rather than a phone-shaped strip in the middle
+   of it — the demo cross-fades between the three. object-position sits a
+   little above centre, which is where the subject of a vertical reel is. */
+.mm-reel{position:absolute;inset:0;width:100%;height:100%;max-width:none;
+  object-fit:cover;object-position:center 38%;opacity:0}
+.mm-reel.is-on{opacity:1}
+
+/* The logo card: the mark's caption, set large. */
+.mm-type{position:absolute;left:14px;right:14px;top:50%;
+  transform:translateY(-50%);text-align:center;font-size:.95rem;
+  font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--green);white-space:nowrap;overflow:hidden}
+
+/* The drone card: a horizon, the shadow on it, and the quad above it. */
+.horizon{position:absolute;left:0;right:0;top:74%;height:1px;
+  background:var(--green-line)}
+.mm-shadow{position:absolute;left:14px;top:74%;margin-top:-2px;width:46px;
+  height:4px;border-radius:50%;background:var(--green);opacity:.3;
+  filter:blur(1px)}
+.quad{position:absolute;left:14px;top:44%;width:46px;height:26px;
   transform:translateY(-50%);color:var(--green)}
+
+/* The lead-conversion card: the daily-leads line, edge to edge, and the Leads
+   Center figure at the end of it. The points are results.leads_points(),
+   thinned; the stroke does not stretch with the box. */
+.mm-chart{position:absolute;inset:0;width:100%;height:100%}
+.mm-area{fill:var(--green);opacity:.13}
+.mm-line{fill:none;stroke:var(--green);stroke-width:2;
+  stroke-linejoin:round;stroke-linecap:round}
+.mm-fig{position:absolute;right:12px;top:10px;font-size:1.15rem;
+  font-weight:600;color:var(--green);font-variant-numeric:tabular-nums}
 
 /* ------------------------------------------------------------- the results */
 .stats{display:grid;gap:1rem}

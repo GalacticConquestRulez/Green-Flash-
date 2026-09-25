@@ -249,35 +249,122 @@ def _head(eyebrow, title, aside='', cls=''):
             f'<h2 class="h-two">{title}</h2></div>{aside}</div>')
 
 
+# ------------------------------------------------------------- the wells
+# Every card's well holds a small picture of the service, drawn here, in the
+# server HTML, at the state the demo FINISHES on: the wireframe drawn and its
+# button placed, the Meta figure landed, a reel filling the frame, the caption
+# set, the quad on its horizon, the leads line drawn and its figure printed.
+#
+# site.js then arms that picture (the wires at zero, the counter low, the line
+# undrawn), plays it, holds the end for a beat and plays it again for as long
+# as the card is on screen — and puts the well back to exactly what is below
+# when the card leaves. With no script, or with prefers-reduced-motion asked
+# for, what is below is the whole of it: complete, and never an empty box
+# (CLAUDE.md rule 4).
+#
+# Nothing here is a figure of its own. The Meta counter's target and the leads
+# card's line and figure are results.py's rows — the same ones the Results
+# band prints lower down the page — and the logo card's caption is a service
+# name off SERVICES. The hooks are `data-fig*` rather than `data-count` /
+# data-chart on purpose: those two belong to the results band's own module,
+# which collects them across the whole document.
+
+
+def _fig_hooks(f):
+    """How to get back to `f['value']` by arithmetic, for the demo's counter."""
+    h = f' data-fig="{f["count"]}"'
+    if f['prefix']:
+        h += f' data-fig-prefix="{f["prefix"]}"'
+    if f['suffix']:
+        h += f' data-fig-suffix="{f["suffix"]}"'
+    if f['decimals']:
+        h += f' data-fig-decimals="{f["decimals"]}"'
+    return h
+
+
+def _well(slug, b):
+    """The finished state of one card's demo."""
+    if slug == 'websites':
+        # A page that has drawn itself: a header rule, two lines of copy and
+        # the button somebody is about to press.
+        return ('<i class="wire w1"></i><i class="wire w2"></i>'
+                '<i class="wire w3"></i><i class="wf-btn"></i>')
+
+    if slug == 'meta-ads':
+        # The campaign's reach, landed. The figure and its label are the first
+        # Results tile's, so the card can only ever count to a number the page
+        # already prints — and the number is on the card at every moment,
+        # before, during and after the run.
+        f = results.HOME_STATS[0]
+        return (f'<b class="mm-num mono"{_fig_hooks(f)}>{f["value"]}</b>'
+                f'<span class="mm-cap mono">{html.escape(f["label"])}</span>'
+                f'<i class="mm-up mono" aria-hidden="true">&uarr;</i>')
+
+    if slug == 'social':
+        # The reel, full-bleed: Kelly's own posters at the well's full width
+        # and height, the first of them showing. The demo cross-fades between
+        # them. Decorative here — the reels section below names all three.
+        cells = ''
+        for i, (reel, _alt) in enumerate(REELS):
+            poster, _src = b.clip(reel)
+            cells += (f'<img class="mm-reel{" is-on" if i == 0 else ""}" '
+                      f'src="{poster}" alt="" aria-hidden="true" '
+                      f'loading="lazy" decoding="async">')
+        return cells
+
+    if slug == 'logo':
+        # The mark's caption, set — his README's "per-service marks = the
+        # Mendoza logo with the text changed". The demo types the six service
+        # names it reads off the six cards, so this is the last of them.
+        return (f'<b class="mm-type mono" aria-hidden="true">'
+                f'{html.escape(SERVICES[-1]["name"])}</b>')
+
+    if slug == 'drones':
+        # A horizon, a shadow on it and the quad above it. The demo flies the
+        # quad the full width of the well and lands it again.
+        return f'<i class="horizon"></i><i class="mm-shadow"></i>{art.quad()}'
+
+    if slug == 'lead-conversion':
+        # The daily-leads line, edge to edge, and the Leads Center figure.
+        # results.leads_points() is the chart in the Results band; thinned to
+        # every third day, because a 120px well cannot show ninety of them.
+        pts = results.leads_points()
+        thin = [p for i, p in enumerate(pts) if i % 3 == 0]
+        if thin[-1] != pts[-1]:
+            thin.append(pts[-1])
+        line = ' '.join(f'{x},{y}' for x, y in thin)
+        area = f'{line} {thin[-1][0]},100 {thin[0][0]},100'
+        f = results.DASH5[0]
+        return (f'<svg class="mm-chart" viewBox="0 0 300 100" '
+                f'preserveAspectRatio="none" aria-hidden="true">'
+                f'<polygon class="mm-area" points="{area}"/>'
+                f'<polyline class="mm-line" points="{line}" '
+                f'vector-effect="non-scaling-stroke"/></svg>'
+                f'<b class="mm-fig mono"{_fig_hooks(f)}>{f["value"]}</b>'
+                f'<span class="mm-cap mm-cap-b mono">'
+                f'{html.escape(f["label"])}</span>')
+
+    return ''
+
+
 def services():
     """The module grid: six cards, each one service, each with a well.
 
-    The card is a link to the service's page — the mockup's card is inert
-    because a mockup has nowhere to go, and a card that describes a page you
-    can read is a card that should open it.
-
-    Every well carries data-live so step 5 can run its three-second demo in
-    it. Two of them are not empty today: the website card draws the three
-    wireframe lines it will later animate, so the no-JS page shows what the
-    demo is about, and the drone card parks the quad that will fly across it.
+    The card is a link to the service's page and nothing on it intercepts
+    that: one tap is Learn more, always (CLAUDE.md rule 4). The demo in the
+    well runs itself, off scroll.
     """
     b = _b()
     cards = []
     for s in SERVICES:
         slug = s['slug']
-        well = ''
-        if slug == 'websites':
-            well = ('<i class="wire w1"></i><i class="wire w2"></i>'
-                    '<i class="wire w3"></i>')
-        elif slug == 'drones':
-            well = art.quad()
         cards.append(
             f'<a class="svc rv" href="{b.u("/" + slug)}" data-demo="{slug}">'
             f'<div class="svc-top"><span class="ico">{art.icon(slug)}</span>'
             f'<span class="svc-price mono">{html.escape(_card_price(s))}</span></div>'
             f'<h3>{html.escape(s["name"])}</h3>'
             f'<p>{_line(s)}</p>'
-            f'<div class="svc-demo" data-live="{slug}">{well}</div></a>')
+            f'<div class="svc-demo" data-live="{slug}">{_well(slug, b)}</div></a>')
     aside = (f'<a class="btn btn-ghost" href="{b.u("/pricing")}">'
              f'Every package {b.ICONS["arrow"]}</a>')
     return f'''<section class="services">
