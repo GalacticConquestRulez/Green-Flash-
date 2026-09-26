@@ -137,6 +137,39 @@ it. `fast` measured 4.2 fps on the same clip and came out 0.9% larger than `medi
 is what fixes the picture and it is unchanged; the trade is a few per cent of file for a
 job that finishes in an hour instead of four.
 
+## Verified, both checkouts (2026-09-26)
+
+`/root/shot/oag-drop2-verify.mjs` against a local copy of each build: Home, Work, About and
+the four new project pages, at 1440 and at 390, then the same seven with JavaScript off and
+with `prefers-reduced-motion: reduce`. **Zero failures on both.** What it asserts:
+
+- console, `pageerror`, `requestfailed` and 4xx all empty; no horizontal overflow; no
+  hidden sections in any render.
+- The rendition the browser actually fetched: **the 4K master at 1440 and the 1080
+  companion at 390**, on every hero clip and every film band.
+- Every `<video>` has a poster, and every film band is still `preload="none"` with nothing
+  fetched until the button is pressed.
+- **Every play button gives the whole film with its sound**: duration within 0.1 s of the
+  source on all eight, `muted` false, `loop` off, controls back, playing.
+- **The frame is the film's own shape** everywhere except the full-bleed hero band, which
+  is `object-fit: cover` by design and is cropped to the band, never stretched. The two
+  portrait films sit in portrait frames: 418×745 against a 2160×3840 film.
+- With no script and under reduced motion every section is present and every film still
+  carries the browser's own control.
+
+`oag-paint-verify.mjs` and `splat-verify.mjs` both still pass on the preview build.
+
+**One deliberate difference from the no-script render.** `oagPickFilm()` is not gated on
+`html.motion`, unlike `oagPick()`: a hero clip is `display:none` under reduced motion so
+downloading it would be waste, but a film behind a button is visible and playable in every
+render, and a visitor who asked for less animation has not asked for a smaller picture —
+the owner's rule is that footage is lightened for phones and for nothing else. So at
+≥ 900 px a reduced-motion render carries a `src` attribute the no-script render does not,
+and `shot-oag-build.mjs --reduced --compare` reports `bodyHtmlIdentical: false` there. The
+rendered page is identical (`viewportRenderIdentical: true`) and nothing is hidden or
+missing. (That comparison is not green site-wide on this branch today in any case: it
+fails on all three counts on `/services`, which this drop never touched.)
+
 ## The facts — and the ones to confirm with Ephraim
 
 Confirmed **off the films themselves**, frame by frame, and nowhere else:
