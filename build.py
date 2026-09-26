@@ -239,7 +239,7 @@ PRIME = '\u2032'          # the foot mark, kept out of f-strings that nest quote
 TIMES = '\u00d7'
 
 
-FEET_NOTE = 'feet to come'
+FEET_NOTE = '\u2014'   # a quiet dash where the feet are not known yet — never a to-do note a visitor reads
 
 
 def feet_note(size=''):
