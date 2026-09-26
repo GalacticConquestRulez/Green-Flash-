@@ -227,7 +227,7 @@ PRIME = '\u2032'          # the foot mark, kept out of f-strings that nest quote
 TIMES = '\u00d7'
 
 
-FEET_NOTE = 'feet to come'
+FEET_NOTE = '\u2014'   # a quiet dash where the feet are not known yet — never a to-do note a visitor reads
 
 
 def feet_note(size=''):
@@ -1281,9 +1281,9 @@ pages['/work'] = dict(
        f'John Lewis and Malcolm X in Rochester.',
   body=f'''
 {page_hero('The roster', 'The walls',
-           f'Every wall Open Air Gallery has painted, with what it measured. '
-           f'{SQ_FT:,} square feet in {spell(len(CITIES))} cities — brand walls, painted '
-           f'portraits, and the two Rochester commissions.',
+           f'Walls Open Air Gallery has painted — {SQ_FT:,} square feet and counting, '
+           f'across {spell(len(CITIES))} cities: brand walls, painted portraits, the '
+           f'Rochester commissions, and more on the way.',
            crumb='Work')}
 {work_index()}
 {feed_band()}
