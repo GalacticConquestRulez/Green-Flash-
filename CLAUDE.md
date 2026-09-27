@@ -624,6 +624,7 @@ The short version:
 - **The years are answered** (the owner, 2026-09-20): RAINS **2024**, Flower City
   **2023** — the years he posted the films, not dates read off the walls, so they sit in
   the Year row of the project meta and nowhere else in the copy.
+- **The RAINS film ends at 50.35 s on purpose** (the owner, 2026-09-27: "Rains is fine, we cut it for file size"). The note below is the history of how that was first read as damage; it is not a to-do. Never ask Ephraim to re-send it.
 - **`16_9 VFX.mp4` in the drop is damaged.** It has a corrupt packet at 50.35 s (frame
   3021 of 3507) and every reader stops dead there — `-err_detect ignore_err` does not get
   past it, because the NAL length written in the file is wrong and there is nothing after
