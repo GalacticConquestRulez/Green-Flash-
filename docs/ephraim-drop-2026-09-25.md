@@ -243,3 +243,6 @@ it.
 5. "The film" — the studio film on Home and on About.
 6. "Straight off the phone" — the two reels on the Work page.
 7. This file pointed at from CLAUDE.md.
+
+
+**Resolved 2026-09-27 (the owner):** the RAINS film was cut at 50.35 s on purpose, for file size — it is not damaged and there is nothing to re-send. `film-rains.mp4` as served is the intended cut. Do not ask Ephraim for the file again.

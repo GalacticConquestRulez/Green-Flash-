@@ -119,3 +119,6 @@ have feet — 24,769 square feet since 2026-09-21, up from 23,294 — and states
 `check_no_wall_count()` passes. Then
 `./publish-preview.sh` and a screenshot of both new pages for the owner. Live
 (`ephraim.greenflashusa.com`) is not deployed: the redesign promotes as one step later.
+
+
+**Resolved 2026-09-27 (the owner):** the RAINS film was cut at 50.35 s on purpose, for file size — it is not damaged and there is nothing to re-send. `film-rains.mp4` as served is the intended cut. Do not ask Ephraim for the file again.
