@@ -26,9 +26,10 @@ SITE = dict(
     place='Grand Island · Buffalo, NY',
     # (label, icon key in build.ICONS, url). An empty url renders as a drawn,
     # unlinked icon — the footer keeps its shape and nobody clicks a dead link.
+    # Both URLs from Drew, 2026-10-03.
     socials=[
-        ('Instagram', 'ig', ''),                    # TODO Drew's Instagram URL
-        ('Facebook',  'fb', ''),                    # TODO Drew's Facebook URL
+        ('Instagram', 'ig', 'https://www.instagram.com/mendozamarketinggroup/'),
+        ('Facebook',  'fb', 'https://www.facebook.com/mendozamarketinggroup'),
     ],
 )
 
@@ -49,7 +50,6 @@ FORM_ENDPOINT = ''                                  # TODO Drew's Formspree id
 TODO = [
     'SITE email — confirm the address for the Mendoza Marketing brand',
     'SITE phone — confirm 716-860-5991 is still the number to publish',
-    'SITE socials — Instagram and Facebook URLs',
     'FORM_ENDPOINT — the Formspree id for the quote form',
     'SERVICES /drones and /lead-conversion — every sentence on those two pages '
     'is NEW COPY written here (both are blank on his current site). Drew has to '
