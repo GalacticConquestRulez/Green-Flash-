@@ -65,8 +65,13 @@ def fig(key, source, label, value, delta=None, note=None,
 DASH1 = [
     fig('d1-views', 'dash-1', 'Views · 28 days', '344,880', '↑ 11×',
         'one client page', count=344880),
-    fig('d1-earnings', 'dash-1', 'Earnings · 28 days', '$42.15', '↑ 802%',
-        'approximate, same page', count=42.15, prefix='$', decimals=2),
+    # "Approximate earnings" on his dashboard is Meta paying the PAGE for its
+    # posts — not what the client took in. Drew, 2026-10-03: "$40 can make it
+    # look like Mendoza Marketing only generated $40 total for them". So the
+    # label says whose money it is and the note says what it is not.
+    fig('d1-earnings', 'dash-1', 'Content payouts · 28 days', '$42.15', '↑ 802%',
+        'paid by Meta for the posts alone, not client sales', count=42.15,
+        prefix='$', decimals=2),
     fig('d1-engagement', 'dash-1', 'Engagement · 28 days', '14,164', '↑ 646%',
         'same page', count=14164),
     fig('d1-followers', 'dash-1', 'Net followers · 28 days', '511', '↑ 30×',
