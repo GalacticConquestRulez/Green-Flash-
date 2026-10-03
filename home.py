@@ -113,8 +113,12 @@ HOME_LINES = {
 }
 
 # The clients whose logo files he sent, in the mockup's order. The strip is
-# introduced as "Trusted by" and closed with the client we have no logo for —
-# CLAUDE.md rule 8: this is what we hold, not the length of his client list.
+# introduced as "Trusted by" and closed with the NAME of whichever mark is lit
+# (Drew, 2026-10-03: "when the Britt Fitness logo is highlighted, the text to
+# the right should display 'Britt Fitness'"). That slot used to say "+ Kelly's
+# Country Store", the client we have no logo for; Kelly's is still the whole
+# of the reels section below. CLAUDE.md rule 8: this is what we hold, not the
+# length of his client list.
 #
 # Isle de Grande is the logo he *designed* rather than a client he manages,
 # and it is in the strip because the mockup put it there: it is the proof for
@@ -136,7 +140,7 @@ CLIENTS = [
 ]
 # The one chip that is left in colour while the rest are monochrome, so the
 # strip reads as a strip and not as a row of grey discs. The mockup lights the
-# second; step 5 walks the light along the row.
+# second; site.js walks the light along the row and the name follows it.
 LIT = 1
 
 # His three beats, from his own About page, verbatim but for the capitals and
@@ -226,22 +230,25 @@ def hero():
 
 
 def logo_strip():
-    """The clients' own marks, monochrome, with one left in colour.
+    """The clients' own marks, monochrome, with one left in colour and its
+    name on the right.
 
-    The filter is CSS and so is the colour on hover: with no script the strip
-    is complete and a mouse still lights a logo. data-demo hands step 5 the
-    row so the light can walk along it.
+    The filter is CSS: with no script the strip is complete, the lit chip and
+    the name printed beside it agree, and a mouse still lights a logo.
+    data-demo hands site.js the row so the light can walk along it, and each
+    chip's data-name is what the name slot changes to when it is lit.
     """
     b = _b()
     chips = ''.join(
-        f'<li class="chip{" is-lit" if i == LIT else ""}">'
+        f'<li class="chip{" is-lit" if i == LIT else ""}" '
+        f'data-name="{html.escape(name)}">'
         f'{b.pic(slug, name, "64px")}</li>'
         for i, (slug, name) in enumerate(CLIENTS))
     return f'''<section class="strip band" aria-label="Clients">
   <div class="wrap rv">
     <span class="strip-k mono">Trusted by</span>
     <ul class="strip-logos" data-demo="logos">{chips}</ul>
-    <span class="strip-k mono">+ Kelly&rsquo;s Country Store</span>
+    <span class="strip-k strip-name mono" data-strip-name>{html.escape(CLIENTS[LIT][1])}</span>
   </div>
 </section>'''
 
@@ -323,11 +330,38 @@ def _well(slug, b):
         return cells
 
     if slug == 'logo':
-        # The mark's caption, set — his README's "per-service marks = the
-        # Mendoza logo with the text changed". The demo types the six service
-        # names it reads off the six cards, so this is the last of them.
-        return (f'<b class="mm-type mono" aria-hidden="true">'
-                f'{html.escape(SERVICES[-1]["name"])}</b>')
+        # A mark on its construction grid, finished: the guides a designer
+        # draws first, an outer ring, the disc painted in and a monogram
+        # knocked out of it. The demo draws it — the pen traces the ring with
+        # its handle out, then the M anchor by anchor, then the paint fills
+        # the disc from the bottom (Drew, 2026-10-03: "show something that
+        # visually represents a logo actively being designed, drawn, or
+        # painted"). A generic mark on purpose: it is the service, not his
+        # logo and not a client's.
+        #
+        # Two M's, one path: the green one is the stroke the pen lays down,
+        # the dark one over it is the knock-out the paint reveals, so the
+        # finished mark is a dark M in a green disc and the stroke under it
+        # never has to be taken away. The clip rect is the paint's level, and
+        # it clips the knock-out too, so the M goes dark exactly where the
+        # paint has reached. data-anchors are the M's corners, for the pen.
+        pts = [(104, 66), (104, 36), (120, 53), (136, 36), (136, 66)]
+        m = 'M' + ' L'.join(f'{x} {y}' for x, y in pts)
+        anchors = ' '.join(f'{x},{y}' for x, y in pts)
+        return (
+            '<svg class="mm-logo" viewBox="0 0 240 100" aria-hidden="true">'
+            '<defs><clipPath id="mm-lg-clip">'
+            '<rect class="mm-lg-level" x="80" y="10" width="80" height="80"/>'
+            '</clipPath></defs>'
+            '<g class="mm-lg-guides">'
+            '<path d="M0 50H240M120 0V100"/>'
+            '<circle cx="120" cy="50" r="46"/>'
+            '<rect x="74" y="4" width="92" height="92"/></g>'
+            '<circle class="mm-lg-disc" cx="120" cy="50" r="33" '
+            'clip-path="url(#mm-lg-clip)"/>'
+            '<path class="mm-lg-ring" d="M120 10a40 40 0 1 1-.01 0"/>'
+            f'<path class="mm-lg-m" d="{m}" data-anchors="{anchors}"/>'
+            f'<path class="mm-lg-ko" d="{m}" clip-path="url(#mm-lg-clip)"/></svg>')
 
     if slug == 'drones':
         # A horizon with ground marks on it, a shadow and the quad above them.
@@ -418,7 +452,14 @@ def _bars():
     """Views by content type. The widths are computed from the numbers, so the
     shape of the row cannot drift from the figures printed beside it; they are
     inline styles rather than classes because they are data, and they are in
-    the server HTML so the row is drawn with no script."""
+    the server HTML so the row is drawn with no script.
+
+    Under motion the row moves through results.MIXES and back (Drew,
+    2026-10-03): the mix line names what the row is showing — his real,
+    Reels-led page with its figures, or an example mix with the figures
+    faded out. data-mixes is the examples as JSON; the real state is
+    whatever the server printed, and is where every cycle starts and ends."""
+    import json
     c = results.CONTENT_TYPES
     rows = ''
     for label, value, n in c['rows']:
@@ -428,9 +469,13 @@ def _bars():
                  f'<span class="bar-track"><b style="width:{pct}%"></b></span>'
                  f'<span class="bar-v mono">{value}</span></div>')
     t = c['total']
-    return (f'<div class="panel rv" data-demo="bars">'
+    mixes = html.escape(json.dumps([[n, w] for n, w in results.MIXES]))
+    return (f'<div class="panel rv" data-demo="bars" data-mixes="{mixes}">'
             f'<div class="panel-k mono">{html.escape(c["label"])} · '
-            f'{t["value"]} {t["label"].lower()}</div>{rows}</div>')
+            f'{t["value"]} {t["label"].lower()}</div>'
+            f'<div class="mix-k mono"><b data-mix-name>{results.MIX_LEAD}</b>'
+            f'<span data-mix-note> · one client page</span></div>'
+            f'{rows}</div>')
 
 
 def _chart():
@@ -500,13 +545,20 @@ def reels():
                    f'<source src="{src}" type="video/mp4"></video>'
                    f'<span class="play" aria-hidden="true">{b.ICONS["play"]}</span>'
                    f'</div>')
+    # The caption and a way on to the service sit in the heading row's right
+    # side, so the reels below can take the full width of the section (Drew,
+    # 2026-10-03: "rework the sizing/layout so the videos fill the section
+    # better"). The caption names Kelly's because these three are Kelly's;
+    # when his new, more varied reels arrive it names whoever they are for.
+    aside = (f'<div class="reels-aside"><p class="lead">Kelly&rsquo;s Country '
+             f'Store &middot; Fall Fest and holiday campaigns.</p>'
+             f'<a class="btn btn-ghost" href="{b.u("/social")}">Social media '
+             f'packages {b.ICONS["arrow"]}</a></div>')
     return f'''<section class="reels-sec">
   <div class="wrap">
     {_head('Content in action',
-           'Made for the feed.<span>Filmed for the client.</span>')}
+           'Made for the feed.<span>Filmed for the client.</span>', aside)}
     <div class="reels" data-demo="reels">{frames}</div>
-    <p class="reels-cap">Kelly&rsquo;s Country Store &middot; Fall Fest and
-      holiday campaigns</p>
   </div>
 </section>'''
 

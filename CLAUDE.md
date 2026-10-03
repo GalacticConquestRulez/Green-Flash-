@@ -73,7 +73,10 @@ plus the client's daily ad budget. If the current site is right, change
    owner (2026-09-23): "Use a refined grey instead of pure white for the text
    on the site, boutique premium readability." The only white left is the
    MENDOZA lettering inside his own logo files. 15.4:1 on the canvas, 12.9:1
-   on a panel — still AAA, so nothing else had to change.
+   on a panel — still AAA, so nothing else had to change. The main nav is
+   --ink at Inter 700 (Drew, 2026-10-03: "bold white … the white in the
+   submenu is closer to the color I want") — the submenu's colour, bolder,
+   still not #f0ffff.
 1. **One accent.** `#2de8b5` is the only colour on the page that is not black,
    grey or white — links, rules, icons, eyebrows, the primary button. `#7FF2D1`
    is *hover and glow only*, never a second accent. A page with two loud
@@ -117,8 +120,10 @@ plus the client's daily ad budget. If the current site is right, change
 
    **The well already holds what the demo ends on.** `home.py`'s `_well(slug)`
    draws each card's finished state into the server HTML — the drawn
-   wireframe, the landed Views figure, a full-bleed reel poster, the caption,
-   the quad on its horizon, the drawn leads line and its figure — so no-JS and
+   wireframe, the landed Views figure, a full-bleed reel poster, the finished
+   mark on its construction grid (Drew, 2026-10-03: a logo "actively being
+   designed, drawn, or painted" — the pen draws the ring and the M, the paint
+   fills the disc), the quad on its horizon, the drawn leads line and its figure — so no-JS and
    reduced motion get a finished box, not an empty one. `site.js` never builds
    or removes that content: `arm()` sets the state a run starts from,
    `frame(t)` is the run written as arithmetic (inline styles, no committed
@@ -294,11 +299,11 @@ publishes none of them.
 - **The Formspree endpoint id** for the quote form. Until it is set the form
   falls back to the visitor's own mail app, which works but is not what he
   wants.
-- **Email, phone and the two social accounts.** `content.py` carries the ones
-  published on netoriouslabs.com today (drew@netoriouslabs.com,
-  716-860-5991) — the email still names the old brand, so confirm whether a
-  mendozamarketing.* address replaces it. Instagram and Facebook URLs we do not
-  have at all; the footer draws their icons unlinked until we do.
+- **Email and phone.** `content.py` carries the ones published on
+  netoriouslabs.com today (drew@netoriouslabs.com, 716-860-5991) — the email
+  still names the old brand, so confirm whether a mendozamarketing.* address
+  replaces it. (Instagram and Facebook arrived 2026-10-03 and are live in
+  `content.SITE['socials']`, which also fills `sameAs`.)
 - **Kelly's Country Store and Gator Jon's BBQ logos.** Both are clients linked
   from his current site and neither sent a logo file, so neither can appear in
   the /work logo strip yet.
@@ -337,6 +342,13 @@ publishes none of them.
   about one lead a day, with his real peaks and his real floor. A table, a CSV
   or a fresh export from the Leads Center would replace it exactly; nothing
   else on the page would change.
+- **The Views-by-content-type mixes.** On Home the bar row moves from his
+  real, Reels-led dashboard through `results.MIXES` — example widths, no
+  figures, labelled "example mix" on screen. They are ours, not his data;
+  he can change the three mixes or their names there.
+- **Better, more varied reels** for Content in action (Drew, 2026-10-03).
+  The section is laid out for them: full-width on desktop, a swipe rail on a
+  phone; the caption in the heading row names Kelly's and changes with them.
 
 ## His name is Drew Pitts
 

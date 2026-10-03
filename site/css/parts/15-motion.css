@@ -25,8 +25,8 @@
 
      --bg     #050A0A  on --green #2de8b5  12.64:1  AAA  the "Sound on" chip
 
-   The wells' own type — the Meta counter in --ink, the typed caption and the
-   leads figure in --green, a well's label in --muted, all on --well — is set
+   The wells' own type — the Meta counter in --ink, the leads figure in
+   --green, a well's label in --muted, all on --well — is set
    in 10-home.css with the rest of the wells' geometry, and is in that file's
    table: the server prints those words and this file only moves them.
 
@@ -50,7 +50,7 @@
    hidden — a stronger reading of the motion contract than the file's own
    header promises. What is left below are the two things that only make sense
    while a script is running them: the cursor the website card's demo moves,
-   and the caret doing the typing on the logo card. .mm-run is the class site.js
+   and the pen drawing the mark on the logo card. .mm-run is the class site.js
    puts on a card whose demo is live.
    ===================================================================== */
 
@@ -64,11 +64,16 @@ html.motion .mm-cursor{position:absolute;left:0;top:0;width:12px;height:12px;
 /* The social card's reels cross-fade rather than cut. */
 html.motion .mm-reel{transition:opacity .62s var(--ease)}
 
-/* The logo card's caret — only while the card is actually typing. */
-html.motion .svc.mm-run .mm-type::after{content:"";display:inline-block;
-  width:.55em;height:1em;margin-left:.15em;vertical-align:-.15em;
-  background:var(--green);animation:mmCaret .7s steps(1) infinite}
-@keyframes mmCaret{0%,49%{opacity:1}50%,100%{opacity:.15}}
+/* The logo card's pen, its handle and its anchor points — built by site.js
+   inside the mark's own SVG, so they share its coordinates, and only there
+   while a run is drawing. The pen is --ink, the one thing in the well that is
+   not the mark; anchors are hollow squares, the way every vector tool draws
+   them. */
+html.motion .mm-lg-pen{fill:var(--ink);opacity:0;pointer-events:none}
+html.motion .mm-lg-pen .slit{fill:var(--well)}
+html.motion .mm-lg-handle{stroke:var(--ink);stroke-width:.8;opacity:0}
+html.motion .mm-lg-handle circle{fill:var(--well);stroke:var(--ink);stroke-width:.8}
+html.motion .mm-lg-anchor{fill:var(--well);stroke:var(--ink);stroke-width:.9;opacity:0}
 
 /* =====================================================================
    THE RESULTS BAND — his dashboards, arriving and leaving
@@ -120,8 +125,18 @@ html.motion .roll.in .roll-c{--d:var(--v)}
    row this module does not recognise all keep their bars drawn — there is no
    state to fall out of. */
 html.motion .bar.mm-live .bar-track b{transform-origin:left center;
-  transform:scaleX(0);transition:transform .9s var(--ease)}
+  transform:scaleX(0);transition:transform .9s var(--ease),width 1s var(--ease)}
 html.motion .bar.mm-live.in .bar-track b{transform:none}
+
+/* --- the mixes ------------------------------------------------------
+   Home's row moves between content mixes (site.js sets the widths inline and
+   puts them back). While an EXAMPLE mix is showing, the figures beside the
+   bars are his real ones and would be lying about the example, so they fade
+   out; the mix line says "example mix" for the same reason. The real state
+   is the server's, with every figure on it. */
+html.motion .bar-v{transition:opacity .35s linear}
+html.motion [data-mixes].is-example .bar-v{opacity:0}
+html.motion .mix-k b.is-swap{opacity:0}
 
 /* --- the daily-leads line --------------------------------------------
    The dash is set by the script off the path's own length — nothing here

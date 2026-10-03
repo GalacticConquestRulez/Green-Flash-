@@ -27,8 +27,8 @@
      --muted  #93A3A3  --band #070d0d   7.47:1   AAA   labels, leads
      --ink    #DDE4E1  --well #0b1413  14.47:1   AAA   the Meta counter
      --green  #2de8b5  --well #0b1413  11.86:1   AAA   the card icons, the
-                                                       typed caption, the
                                                        leads figure
+     --ink    #DDE4E1  --band #070d0d  15.16:1   AAA   the strip's client name
      --muted  #93A3A3  --well #0b1413   7.13:1   AAA   a well's own label
 
    Two pairs carry no type and are exempt by definition:
@@ -103,6 +103,13 @@
    Hover lights any of them, with no script involved. */
 .chip.is-lit,.chip:hover{filter:none;opacity:1}
 .chip.is-lit{box-shadow:0 0 0 2px var(--green)}
+/* The lit chip's name. --ink rather than --muted so it reads as the answer to
+   the ring, and a fixed slot on a wide screen so the row does not shuffle
+   when a long name ("Zen Zone Property Maintenance") follows a short one.
+   Below 960 the strip wraps and the name takes its own line. */
+.strip-name{color:var(--ink);transition:opacity .22s linear}
+@media (min-width:960px){.strip-name{flex:0 0 19rem;text-align:right}}
+html.motion .strip-name.is-swap{opacity:0}
 
 /* ------------------------------------------------------- a section heading */
 .sec-head{display:flex;align-items:flex-end;justify-content:space-between;
@@ -201,11 +208,18 @@
   width:auto;aspect-ratio:9/16;max-width:none;transform:translateX(-50%);object-fit:cover;
   border-radius:10px;border:1px solid var(--green-line);box-shadow:0 8px 24px rgba(0,0,0,.45)}
 
-/* The logo card: the mark's caption, set large. */
-.mm-type{position:absolute;left:14px;right:14px;top:50%;
-  transform:translateY(-50%);text-align:center;font-size:.95rem;
-  font-weight:600;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--green);white-space:nowrap;overflow:hidden}
+/* The logo card: a mark on its construction grid. The guides are hairlines
+   in the card's own --green-line, the ring and the disc are the accent, and
+   the monogram is knocked out of the disc in the well's own colour — one
+   accent, and the M is a hole in it rather than a second colour. */
+.mm-logo{position:absolute;inset:0;width:100%;height:100%}
+.mm-lg-guides{fill:none;stroke:var(--green-line);stroke-width:.8}
+.mm-lg-disc{fill:var(--green)}
+.mm-lg-ring{fill:none;stroke:var(--green);stroke-width:2.4;stroke-linecap:round}
+.mm-lg-m,.mm-lg-ko{fill:none;stroke-width:6;stroke-linecap:round;
+  stroke-linejoin:round}
+.mm-lg-m{stroke:var(--green)}
+.mm-lg-ko{stroke:var(--well)}
 
 /* The drone card: a horizon with marks on it, the shadow, and the quad above
    them. The marks are what makes a slide visible — a line sliding along itself
@@ -257,6 +271,12 @@
 .panel-k{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
   color:var(--muted);margin-bottom:1rem}
 
+/* What the row is showing: his real mix, or an example one (site.js). The
+   name is the accent, the rest --muted — both already in the table. */
+.mix-k{font-size:.74rem;letter-spacing:.06em;color:var(--muted);
+  margin:-.45rem 0 .9rem}
+.mix-k b{color:var(--green);font-weight:600;transition:opacity .25s linear}
+
 /* One bar: the label, the track, the figure. The track is the full row width
    at every viewport, so four bars read as one chart rather than four. */
 .bar{display:grid;grid-template-columns:4.6rem 1fr 3.2rem;align-items:center;
@@ -278,12 +298,29 @@
 .chart-fill{fill:rgba(45,232,181,.12);stroke:none}
 
 /* --------------------------------------------------------------- the reels */
-/* Capped at 900px: three 9:16 frames at full container width would be a
-   metre of phone, and the mockup holds them to the left of the band. */
-.reels{display:grid;gap:1.2rem;max-width:900px}
-@media (min-width:560px){.reels{grid-template-columns:repeat(3,1fr);gap:1.5rem}}
+/* The reels take the section's full width (Drew, 2026-10-03: "rework the
+   sizing/layout so the videos fill the section better … there is too much
+   unused space"). On a wide screen they are three across the whole
+   container, each as tall as the screen can show at once — a frame's width
+   is capped at 9/16 of 78svh, so a short laptop screen never has to scroll
+   to see the bottom of a reel. On a phone they become a rail you swipe,
+   each frame most of the screen wide with the next one showing at the edge,
+   which is also how the row grows when more reels arrive. */
+.reels-sec .reels{display:grid;grid-auto-flow:column;grid-auto-columns:74%;gap:.9rem;
+  overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
+  --bleed:1rem;margin-inline:calc(var(--bleed) * -1);padding-inline:var(--bleed);
+  scroll-padding-inline:var(--bleed);max-width:none}
+/* The rail runs to the screen's edges: the bleed is .wrap's own gutter. */
+@media (min-width:640px){.reels-sec .reels{--bleed:1.5rem}}
+.reels-sec .reels::-webkit-scrollbar{display:none}
+@media (min-width:760px){
+  .reels-sec .reels{grid-auto-flow:row;grid-template-columns:repeat(3,1fr);gap:1.5rem;
+    overflow:visible;margin-inline:0;padding-inline:0}
+}
+.reels-aside{display:grid;gap:1rem;justify-items:start}
 .phone{position:relative;aspect-ratio:9/16;border-radius:26px;overflow:hidden;
-  background:#000;border:1px solid var(--line)}
+  background:#000;border:1px solid var(--line);scroll-snap-align:start;
+  width:100%;max-width:calc(78svh * 9 / 16);justify-self:center}
 .phone video{width:100%;height:100%;object-fit:cover}
 /* The glyph is decoration on a poster, not a control: it is aria-hidden and
    it does not take the pointer, because until step 5 lands there is nothing
@@ -292,7 +329,6 @@
   border-radius:50%;display:grid;place-items:center;pointer-events:none;
   background:var(--green);color:var(--bg)}
 .play svg{width:18px;height:18px;margin-left:2px}
-.reels-cap{margin:1.1rem 0 0;color:var(--muted);font-size:.95rem}
 
 /* --------------------------------------------------------------- the beats */
 .beats{list-style:none;display:grid;gap:1.4rem;margin:0;padding:0}

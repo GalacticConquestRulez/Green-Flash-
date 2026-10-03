@@ -306,24 +306,90 @@
       };
     },
 
-    // The mark's caption, set six times — his README's "per-service marks =
-    // the Mendoza logo with the text changed", as a verb. The six names are
-    // read off the six cards, so this card cannot name a service the grid
-    // does not have, and the last of them is the one the server printed.
+    // A logo, designed (Drew, 2026-10-03: "a logo actively being designed,
+    // drawn, or painted"). On the construction grid the server drew, the pen
+    // traces the outer ring with its bezier handle out, sets the monogram
+    // down anchor by anchor, lifts off — and the paint rises through the
+    // disc, the M knocking out of it as the level passes. The finished mark is
+    // the server's; the pen, the handle and the anchors are the only nodes
+    // this makes, inside the mark's own SVG so they share its coordinates.
     logo(well){
-      const cap=mm.$('.mm-type',well);
-      const names=mm.$$('.svc[data-demo] h3').map(h=>h.textContent.trim()).filter(Boolean);
-      if(!cap||!names.length)return null;
-      const printed=cap.textContent, slot=DUR/names.length;
+      const svg=mm.$('.mm-logo',well), ring=mm.$('.mm-lg-ring',well),
+            m=mm.$('.mm-lg-m',well), level=mm.$('.mm-lg-level',well);
+      if(!svg||!ring||!m||!level||!m.getPointAtLength)return null;
+      const RL=ring.getTotalLength(), ML=m.getTotalLength();
+      if(!RL||!ML)return null;
+      const NS='http://www.w3.org/2000/svg';
+      const el=(tag,attrs,parent)=>{
+        const n=document.createElementNS(NS,tag);
+        for(const k in attrs)n.setAttribute(k,attrs[k]);
+        (parent||svg).appendChild(n);
+        return n;
+      };
+      // The M's corners, and how far along the stroke each one is, so an
+      // anchor appears the moment the pen reaches it.
+      const pts=(m.dataset.anchors||'').trim().split(/\s+/).map(p=>p.split(',').map(Number));
+      let run=0;
+      const at=pts.map((p,i)=>{
+        if(i)run+=Math.hypot(p[0]-pts[i-1][0],p[1]-pts[i-1][1]);
+        return run;
+      });
+      const r0=ring.getPointAtLength(0);
+      const anchors=[[r0.x,r0.y],...pts].map(([x,y])=>
+        el('rect',{class:'mm-lg-anchor',x:x-2.2,y:y-2.2,width:4.4,height:4.4}));
+      const handle=el('g',{class:'mm-lg-handle'});
+      const hl=el('line',{},handle), ha=el('circle',{r:1.7},handle), hb=el('circle',{r:1.7},handle);
+      const pen=el('g',{class:'mm-lg-pen'});
+      el('path',{d:'M0 0l-3.4-7.6 1.5-5.8h3.8l1.5 5.8z'},pen);
+      el('circle',{class:'slit',cx:0,cy:-6.4,r:1.15},pen);
+      const put=(p,tilt)=>pen.setAttribute('transform',
+        'translate('+p.x.toFixed(2)+' '+p.y.toFixed(2)+') rotate('+tilt+')');
       return {
-        frame(t){
-          const i=clamp(Math.floor(t/slot),0,names.length-1);
-          const s=names[i], k=(t-i*slot)/slot;
-          // typed over the first two thirds of its slot, held for the rest
-          const out=s.slice(0,Math.ceil(s.length*clamp(k/0.66,0,1)));
-          if(out!==cap.textContent)cap.textContent=out;
+        arm(){
+          // The gap is a unit longer than the dash: a zero-length dash with a
+          // round cap is still a dot, and an undrawn stroke must be nothing.
+          ring.style.strokeDasharray=RL+' '+(RL+1);ring.style.strokeDashoffset=RL+1;
+          m.style.strokeDasharray=ML+' '+(ML+1);m.style.strokeDashoffset=ML+1;
+          level.setAttribute('transform','translate(0 80)');
         },
-        rest(){cap.textContent=printed},
+        frame(t){
+          const kr=ease(seg(t,150,1050)), km=ease(seg(t,1150,1950));
+          ring.style.strokeDashoffset=((RL+1)*(1-kr)).toFixed(2);
+          m.style.strokeDashoffset=((ML+1)*(1-km)).toFixed(2);
+          // The pen is on the ring, then on the M, then gone.
+          const onM=t>=1100;
+          const p=onM?m.getPointAtLength(ML*km):ring.getPointAtLength(RL*kr);
+          put(p,28);
+          // It lifts between the two — a pen that slides from the top of the
+          // ring to the foot of the M is a pen dragging a line nobody drew.
+          const lift=seg(t,1020,1070)-seg(t,1110,1160);
+          pen.style.opacity=((seg(t,60,220)-seg(t,1950,2150))*(1-lift)).toFixed(3);
+          // The handle is the ring's tangent at the pen — out while the curve
+          // is being drawn, in again before the straight strokes start.
+          const a=-Math.PI/2+2*Math.PI*kr, tx=-Math.sin(a)*13, ty=Math.cos(a)*13;
+          hl.setAttribute('x1',(p.x-tx).toFixed(2));hl.setAttribute('y1',(p.y-ty).toFixed(2));
+          hl.setAttribute('x2',(p.x+tx).toFixed(2));hl.setAttribute('y2',(p.y+ty).toFixed(2));
+          ha.setAttribute('cx',(p.x-tx).toFixed(2));ha.setAttribute('cy',(p.y-ty).toFixed(2));
+          hb.setAttribute('cx',(p.x+tx).toFixed(2));hb.setAttribute('cy',(p.y+ty).toFixed(2));
+          handle.style.opacity=onM?'0':(seg(t,150,320)-seg(t,900,1080)).toFixed(3);
+          // Anchors: the ring's at the start, each corner of the M as the pen
+          // passes it, all of them cleared once the paint is in.
+          const out=seg(t,2350,2650);
+          anchors.forEach((n,i)=>{
+            const on=i===0?seg(t,150,260)
+              :t<1150?0:clamp((km*ML-at[i-1])/3+0.34,0,1);
+            n.style.opacity=Math.max(0,on-out).toFixed(3);
+          });
+          // The paint: the clip's level rises through the disc from below.
+          const kf=ease(seg(t,2050,2700));
+          level.setAttribute('transform','translate(0 '+(80*(1-kf)).toFixed(2)+')');
+        },
+        rest(){
+          wipe(ring,'stroke-dasharray','stroke-dashoffset');
+          wipe(m,'stroke-dasharray','stroke-dashoffset');
+          level.removeAttribute('transform');
+          [pen,handle,...anchors].forEach(n=>wipe(n,'opacity'));
+        },
       };
     },
 
@@ -616,6 +682,74 @@
 
 
 /* =====================================================================
+   THE CONTENT MIX — the bar row moves between mixes
+
+   Drew, 2026-10-03: "have the bars move/adjust between different content
+   types … we can adjust the type of content we create based on the client's
+   needs while still driving strong results."
+
+   The row the server drew is his real dashboard, Reels-led, with its
+   figures, and it is where every cycle starts and ends. While the panel is
+   on screen the row holds that for a few seconds, then moves through
+   results.MIXES — examples, widths only, read off data-mixes — and back. An
+   example fades the real figures out (they would be lying about it) and the
+   mix line says "example mix". Off screen it stops and the row is put back
+   on exactly the server's inline widths.
+   ===================================================================== */
+(function(){
+  const mm=window.mm;
+  if(!mm||!mm.motion) return;
+  const panel=mm.$('[data-mixes]');
+  if(!panel) return;
+  let mixes=[];
+  try{mixes=JSON.parse(panel.dataset.mixes)}catch(e){return}
+  const fills=mm.$$('.bar-track b',panel), name=mm.$('[data-mix-name]',panel),
+        note=mm.$('[data-mix-note]',panel);
+  if(!mixes.length||!fills.length||!name) return;
+  const real={name:name.textContent,note:note?note.textContent:'',
+              style:fills.map(b=>b.getAttribute('style')||'')};
+  const REAL=3800, EX=2800;               // how long each state is held
+  let i=-1, timer=null, swap=null;
+
+  const label=(n,s)=>{
+    clearTimeout(swap);
+    name.classList.add('is-swap');
+    swap=setTimeout(()=>{
+      name.textContent=n;
+      if(note)note.textContent=s;
+      name.classList.remove('is-swap');
+    },250);
+  };
+  const show=k=>{                          // -1 is the real row
+    i=k;
+    if(k<0){
+      fills.forEach((b,j)=>b.setAttribute('style',real.style[j]));
+      panel.classList.remove('is-example');
+      label(real.name,real.note);
+    }else{
+      const [n,w]=mixes[k];
+      fills.forEach((b,j)=>{b.style.width=(w[j]||0)+'%'});
+      panel.classList.add('is-example');
+      label(n,' · example mix');
+    }
+  };
+  const next=()=>{
+    show(i+1<mixes.length?i+1:-1);
+    timer=setTimeout(next,i<0?REAL:EX);
+  };
+  const io=mm.io(es=>es.forEach(e=>{
+    if(e.intersectionRatio>=0.35){
+      if(!timer)timer=setTimeout(next,REAL);
+    }else{
+      clearTimeout(timer);timer=null;
+      if(i>=0)show(-1);
+    }
+  }),{threshold:[0,0.35]});
+  if(io)io.observe(panel);
+})();
+
+
+/* =====================================================================
    THE REELS — armed on approach, playing in view, sound only if asked
 
    Kelly's three films are posters in the server HTML with preload="none",
@@ -716,7 +850,7 @@
 
 
 /* =====================================================================
-   THE CLIENT STRIP — the light walks
+   THE CLIENT STRIP — the light walks, and the name walks with it
 
    The strip is monochrome with one mark left in colour (home.py's LIT), and
    hovering any of them lights it — all of that is CSS and happens with no
@@ -724,6 +858,12 @@
    to the next mark every four seconds, so a visitor who looks at the strip
    for a moment sees each of Drew's clients in their own colours rather than
    whichever one the markup happened to light.
+
+   The slot on the right names the lit client (Drew, 2026-10-03). The server
+   prints the name of the chip it lit, so the two agree with no script; here
+   the name fades out, changes to the next chip's data-name and fades back in
+   on every step. A chip the pointer lands on becomes the lit one, so hovering
+   a logo names it too.
 
    It pauses while the pointer is on the strip (you are reading it; it should
    hold still) and while the strip is off screen (an interval firing at a
@@ -738,14 +878,25 @@
   const chips=mm.$$('.chip',strip);
   if(chips.length<2) return;
 
+  const label=mm.$('[data-strip-name]');
   let i=chips.findIndex(c=>c.classList.contains('is-lit'));
   if(i<0)i=0;
-  let timer=null, hover=false, seen=false;
-  const step=()=>{
-    chips[i].classList.remove('is-lit');
-    i=(i+1)%chips.length;
-    chips[i].classList.add('is-lit');
+  let timer=null, hover=false, seen=false, swap=null;
+  const name=()=>{
+    const n=chips[i].dataset.name;
+    if(!label||!n||label.textContent===n)return;
+    clearTimeout(swap);
+    label.classList.add('is-swap');
+    swap=setTimeout(()=>{label.textContent=chips[i].dataset.name;label.classList.remove('is-swap')},220);
   };
+  const light=j=>{
+    if(j===i)return;
+    chips[i].classList.remove('is-lit');
+    i=j;
+    chips[i].classList.add('is-lit');
+    name();
+  };
+  const step=()=>light((i+1)%chips.length);
   const halt=()=>{if(timer){clearInterval(timer);timer=null}};
   const run=()=>{if(timer||hover||!seen)return;timer=setInterval(step,4000)};
 
@@ -756,6 +907,7 @@
   if(!io) return;
 
   strip.addEventListener('pointerenter',()=>{hover=true;halt()});
+  chips.forEach((c,j)=>c.addEventListener('pointerenter',()=>light(j)));
   strip.addEventListener('pointerleave',()=>{hover=false;run()});
   io.observe(strip);
 })();

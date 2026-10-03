@@ -83,7 +83,7 @@ DASH1 = [
 DASH2 = [
     fig('d2-views', 'dash-2', 'Views · 28 days', '413,311', '↑ 211%',
         "Kelly's Country Store", count=413311),
-    fig('d2-earnings', 'dash-2', 'Earnings · 28 days', '$104.56', '↑ 621%',
+    fig('d2-earnings', 'dash-2', 'Content payouts · 28 days', '$104.56', '↑ 621%',
         "Kelly's Country Store", count=104.56, prefix='$', decimals=2),
     # NOTE the engagement rise here is 61%, not dash-1's 646%. Two different
     # pages; the numbers are not interchangeable.
@@ -135,6 +135,24 @@ CONTENT_TYPES = dict(
         ('Live',    '0',          0),
     ],
 )
+
+
+# The bar row on Home moves between content mixes (Drew, 2026-10-03: "we can
+# adjust the type of content we create based on the client's needs while
+# still driving strong results"). The first state is ALWAYS the real one,
+# above, named by `lead` and printed with its figures. The mixes below are
+# EXAMPLES — bar widths only, as a percentage of the row's longest bar, in the
+# order of CONTENT_TYPES['rows']. They carry no figures and are labelled
+# "example mix" on screen whenever they show, so no visitor can read them as
+# one of his dashboards. Not a number of Drew's; never print them as one.
+MIX_LEAD = 'Reels-led'
+MIXES = [
+    ('Stories-led', [48, 100, 22, 10]),
+    ('Posts-led',   [40, 30, 100, 6]),
+    ('Balanced',    [100, 84, 72, 46]),
+]
+for _name, _w in MIXES:
+    assert len(_w) == len(CONTENT_TYPES['rows']), f'{_name}: one width per row'
 
 
 def bar_pct(value, rows=None):
