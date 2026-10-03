@@ -175,9 +175,13 @@ section{padding:clamp(3.5rem,9vw,7rem) 0;position:relative}
 .nav-links>li{position:relative}
 .nav-links a,.nav-links button{display:flex;align-items:center;gap:.35rem;
   padding:.55rem .75rem;border-radius:var(--radius-s);font-family:inherit;
-  font-size:.92rem;font-weight:600;color:var(--muted);background:none;border:0;
+  font-size:.92rem;font-weight:700;color:var(--ink);background:none;border:0;
   cursor:pointer;transition:color .2s,background .2s}
-.nav-links a:hover,.nav-links button:hover{color:var(--ink);background:rgba(240,255,255,.06)}
+/* The top level is --ink, bold — the same near-white the submenu is set in
+   (Drew, 2026-10-03: "change the main menu items to bold white … the white
+   in the submenu is closer to the color I want"). Rule 0 still holds: --ink,
+   never #f0ffff. 15.42:1 on the canvas. */
+.nav-links a:hover,.nav-links button:hover{color:var(--ink);background:rgba(240,255,255,.08)}
 .nav-links a.active{color:var(--green)}
 .nav-links .has-menu>button svg{width:12px;height:12px;opacity:.75;transition:transform .2s}
 .nav-links .has-menu.open>button svg{transform:rotate(180deg)}
@@ -315,7 +319,7 @@ footer{border-top:1px solid var(--line);background:var(--panel);
 .foot-tag{font-family:var(--font-mono);font-size:.8rem;letter-spacing:.1em;
   color:var(--green);margin-top:.8rem}
 .foot-grid h4{font-family:var(--font-mono);font-size:.72rem;font-weight:600;
-  letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+  letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:1rem}
 .foot-grid ul{list-style:none;display:grid;gap:.55rem;min-width:0}
 .foot-grid ul a,.foot-grid ul span{font-size:.95rem;color:var(--muted);
   overflow-wrap:anywhere}

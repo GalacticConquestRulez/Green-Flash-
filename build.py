@@ -47,11 +47,11 @@ GREEN = '#2de8b5'
 INK = '#DDE4E1'    # the type grey (site.css --ink), not the README's white
 
 # One request, three faces, the weights the stylesheet actually declares:
-# Space Grotesk 500/700 for display, Inter 400/600 for body, JetBrains Mono
+# Space Grotesk 500/700 for display, Inter 400/600/700 for body (700 is the nav), JetBrains Mono
 # 400/600 for labels and figures. display=swap so the words are readable
 # while the faces are still in flight.
 FONTS = ('https://fonts.googleapis.com/css2?'
-         'family=Inter:wght@400;600'
+         'family=Inter:wght@400;600;700'
          '&family=JetBrains+Mono:wght@400;600'
          '&family=Space+Grotesk:wght@500;700'
          '&display=swap')
