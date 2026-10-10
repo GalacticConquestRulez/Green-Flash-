@@ -358,7 +358,7 @@ def footer_html():
       <div class="foot-brand">
         {wordmark(cls='brand', stacked=True)}
         <div class="foot-tag">{SITE['tagline']}</div>
-        <p>Data-driven marketing out of Grand Island, New York: websites, Meta ad campaigns, social content and aerial film.</p>
+        <p>Data-driven marketing out of Grand Island, New York: websites, performance marketing, social content and aerial film.</p>
         {socials_html()}
       </div>
       <div><h4>Services</h4><ul>{services}</ul></div>
@@ -375,7 +375,7 @@ def footer_html():
 
 # -------------------------------------------------------------- page pieces
 def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, video=None,
-              cls='', media_alt='', extra=''):
+              cls='', media_alt='', extra='', sky=False):
     """The top of a page: an optional photograph or film, a shade, the words.
 
     `title` is passed through as markup so a two-tone headline can be written
@@ -398,11 +398,30 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, video=None,
                  f'{pic(media_slug, media_alt, HERO_SIZES, extra="fetchpriority=\"high\"", lazy=False)}'
                  f'</div>')
     shade = '<div class="hero-shade"></div>' if media else ''
+    if sky and not media:
+        media = SKY
+        cls = (cls + ' has-sky').strip()
     crumbs = (f'<div class="crumbs"><a href="{u("/")}">Home</a><span>/</span>'
               f'<span>{crumb or eyebrow}</span></div>') if crumb is not False else ''
     lead_html = f'<p class="lead">{lead}</p>' if lead else ''
     return f'''<section class="page-hero{" " + cls if cls else ""}">{media}{shade}
   <div class="wrap"><div class="hero-inner rv">{crumbs}<div class="eyebrow">{eyebrow}</div><h1>{title}</h1>{lead_html}{extra}</div></div></section>'''
+
+
+# The slow sky behind a hero that has no photograph (Drew, 2026-10-10: "a
+# subtle moving background behind 'Professional Web Design' instead of the
+# solid black … slowly moving clouds, wind lines, or something drone-related.
+# Nothing too distracting"). His reference is the drifting cloud field on
+# netoriouslabs.com/contact, redrawn in his own colours on the dark canvas.
+#
+# Three layers, all decoration and all aria-hidden: a far bank of clouds, a
+# near bank, and a few wind lines. Each bank is one SVG tile repeated as a
+# background, so the drift is a background-position animation and costs no
+# layout. The drawing is in 00-base.css; the drift is under html.motion only,
+# so no-JS and reduced motion get the same still sky (CLAUDE.md rule 4).
+SKY = ('<div class="hero-sky" aria-hidden="true">'
+       '<i class="sky-far"></i><i class="sky-near"></i><i class="sky-wind"></i>'
+       '</div>')
 
 
 def cta(title='Ready to get started?',
@@ -445,14 +464,23 @@ def price_card(key, bullets=(), featured=False, badge=None, cta_label='Get a quo
     """
     p = price(key)
     qual = f'<span class="qual">{p["qualifier"]}</span>' if p['qualifier'] else ''
+    per = f'<span class="per">/{p["per"]}</span>' if p.get('per') else ''
     note = f'<small>{p["note"]}</small>' if p['note'] else ''
+    if not bullets and p.get('features'):
+        bullets = [f'<span><b>{t}</b> &ndash; {d}</span>' for t, d in p['features']]
     b = ''.join(f'<li>{x}</li>' for x in bullets)
+    # The package's graphic, only once the file is in out/img — until then
+    # have() lists it as missing and the card is drawn without it.
+    art = ''
+    if p.get('image') and have(f'img/{p["image"]}.webp'):
+        art = (f'<div class="price-art">'
+               f'{pic(p["image"], p["name"], "(min-width:960px) 420px, 100vw")}</div>')
     href = u(f'/contact?service={p["service"]}')
-    return f'''<div class="price{' featured' if featured else ''} rv">
-  {f'<span class="badge">{badge}</span>' if badge else ''}
+    return f'''<div class="price{' featured' if featured else ''}{' has-art' if art else ''} rv">
+  {art}{f'<span class="badge">{badge}</span>' if badge else ''}
   <span class="tier">{p['tier']}</span>
   <h3>{p['name']}</h3>
-  <div class="amount">{qual}{' ' if qual else ''}{p['amount']}{note}</div>
+  <div class="amount">{qual}{' ' if qual else ''}{p['amount']}{per}{note}</div>
   {f'<ul>{b}</ul>' if b else ''}
   <a class="btn" href="{href}">{cta_label}</a>
 </div>'''
@@ -550,7 +578,7 @@ pages = {}
 
 pages['/index'] = dict(
     title=seo_title(f"{SITE['tagline']}, Buffalo NY"),
-    desc='Mendoza Marketing builds websites, runs Meta ad campaigns, films content '
+    desc='Mendoza Marketing builds websites, runs ad campaigns, films content '
          'and flies drones for businesses in Grand Island and Buffalo, New York.',
     body=home_page(),
     # The Flight Path — the quad that flies the page. Home is the only page
@@ -658,6 +686,12 @@ def offer(key):
     o['price'] = amount
     o['priceCurrency'] = 'USD'
     o['availability'] = 'https://schema.org/InStock'
+    if row.get('per'):
+        # "$750/month" is a recurring price; the graph says so in UN/CEFACT
+        # (MON) rather than leaving a search engine to read it as one-off.
+        o['priceSpecification'] = {'@type': 'UnitPriceSpecification',
+                                   'price': amount, 'priceCurrency': 'USD',
+                                   'unitCode': 'MON', 'unitText': row['per']}
     if row['qualifier'] == 'from':
         # "from $1,250" is a floor, not a price. minPrice says exactly that.
         o['priceSpecification'] = {'@type': 'PriceSpecification',
@@ -667,8 +701,8 @@ def offer(key):
 
 def service_prices(s):
     """Every package the service page actually prints, in page order — its own
-    and any its `extra` block carries (/websites shows re-design under the
-    fold). The graph offers exactly what the page offers, no more."""
+    and any its `extra` block carries. The graph offers exactly what the page
+    offers, no more."""
     keys = list(s['prices'])
     keys += [k for k in (s.get('extra') or {}).get('prices', []) if k not in keys]
     return keys

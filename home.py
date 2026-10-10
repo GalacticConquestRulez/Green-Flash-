@@ -58,7 +58,7 @@ def _b():
 
 
 def _price(text):
-    """'Re-designs {web-redesign}.' → 'Re-designs $600.'
+    """'Sessions from {drone-session}.' → 'Sessions from $1,000.'
 
     A sentence on this page may name a price, and CLAUDE.md rule 6 says no
     page body may hold one. So a sentence names the PRICING *key* and this
@@ -87,9 +87,9 @@ def _price(text):
 # here, and this table becomes the fallback it was written as.
 HOME_LINES = {
     # his /website-design: "fully responsive across all devices", "5+ custom
-    # content pages", the re-design service beneath it.
+    # content pages". No re-design line: Drew dropped that package 2026-10-10.
     'websites': 'Sleek, responsive sites that elevate brands and turn ideas '
-                'into launches. Re-designs {web-redesign}.',
+                'into launches.',
     # his /ad-campaign-services: "plan, launch, and manage high-performing ad
     # campaigns through Meta Business Suite", plus the filming his README
     # prices with it.

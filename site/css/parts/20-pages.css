@@ -78,10 +78,64 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 1rem); }
 /* His own price sentence. Mono, because it carries the figure. */
 .bd-price { font-family: var(--font-mono); font-size: .88rem; color: var(--ink); }
 
+/* ------------------------------------------------- the sky behind a hero
+   Drew, 2026-10-10: "a subtle moving background behind 'Professional Web
+   Design' … slowly moving clouds, wind lines, or something drone-related.
+   Nothing too distracting." His reference is the drifting cloud field on
+   netoriouslabs.com/contact; this is that idea in his own colours. Three
+   tiled layers — far clouds in --ink, near clouds in --green, a few wind
+   lines in --green-2 (a glow, which is what that colour is for) — each
+   faint enough that the hero's type keeps its contrast: the brightest the
+   ground under a word can get is the canvas plus 6% of a cloud, #0f1514,
+   which leaves --ink at 14.6:1 and --muted at 7.2:1.
+
+   The drawing is here and shows with no script at all; the drift is under
+   html.motion only, so no-JS and reduced motion get the same still sky
+   (CLAUDE.md rule 4). It moves right to left, the far bank slowest. The mask
+   fades it out at the bottom so the hero meets the next section cleanly. */
+.hero-sky{position:absolute;inset:0;z-index:-2;pointer-events:none;
+  -webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);
+          mask-image:linear-gradient(180deg,#000 55%,transparent)}
+.hero-sky i{position:absolute;inset:0;display:block;background-repeat:repeat}
+.sky-far{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='340'%3E%3Cg fill='%23DDE4E1'%3E%3Ccircle cx='76' cy='88' r='20'/%3E%3Ccircle cx='106' cy='74' r='29'/%3E%3Ccircle cx='140' cy='86' r='21'/%3E%3Crect x='54' y='84' width='112' height='24' rx='12'/%3E%3Ccircle cx='393' cy='58' r='16'/%3E%3Ccircle cx='417' cy='47' r='23'/%3E%3Ccircle cx='444' cy='57' r='17'/%3E%3Crect x='375' y='55' width='90' height='19' rx='10'/%3E%3Ccircle cx='651' cy='148' r='23'/%3E%3Ccircle cx='685' cy='132' r='33'/%3E%3Ccircle cx='724' cy='145' r='24'/%3E%3Crect x='626' y='143' width='129' height='28' rx='14'/%3E%3Ccircle cx='229' cy='248' r='18'/%3E%3Ccircle cx='256' cy='236' r='26'/%3E%3Ccircle cx='287' cy='246' r='19'/%3E%3Crect x='210' y='245' width='101' height='22' rx='11'/%3E%3Ccircle cx='534' cy='288' r='15'/%3E%3Ccircle cx='557' cy='278' r='22'/%3E%3Ccircle cx='582' cy='287' r='16'/%3E%3Crect x='518' y='286' width='84' height='18' rx='9'/%3E%3Ccircle cx='813' cy='298' r='16'/%3E%3Ccircle cx='837' cy='287' r='23'/%3E%3Ccircle cx='864' cy='297' r='17'/%3E%3Crect x='795' y='295' width='90' height='19' rx='10'/%3E%3C/g%3E%3C/svg%3E");opacity:.035;background-size:900px 340px}
+.sky-near{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1300' height='420'%3E%3Cg fill='%232de8b5'%3E%3Ccircle cx='95' cy='206' r='38'/%3E%3Ccircle cx='152' cy='180' r='55'/%3E%3Ccircle cx='217' cy='202' r='40'/%3E%3Crect x='54' y='199' width='213' height='46' rx='23'/%3E%3Ccircle cx='649' cy='117' r='30'/%3E%3Ccircle cx='694' cy='96' r='44'/%3E%3Ccircle cx='745' cy='114' r='32'/%3E%3Crect x='616' y='111' width='168' height='36' rx='18'/%3E%3Ccircle cx='1040' cy='296' r='35'/%3E%3Ccircle cx='1093' cy='272' r='51'/%3E%3Ccircle cx='1152' cy='293' r='37'/%3E%3Crect x='1002' y='290' width='196' height='42' rx='21'/%3E%3C/g%3E%3C/svg%3E");opacity:.05;background-size:1300px 420px;
+  background-position:-200px 60px}
+.sky-wind{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1100' height='380'%3E%3Cdefs%3E%3ClinearGradient id='g'%3E%3Cstop offset='0' stop-color='%237FF2D1' stop-opacity='0'/%3E%3Cstop offset='.5' stop-color='%237FF2D1'/%3E%3Cstop offset='1' stop-color='%237FF2D1' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg stroke='url%28%23g%29' stroke-width='1.2' stroke-linecap='round' fill='none'%3E%3Cpath d='M60 70h260'/%3E%3Cpath d='M420 150c80 0 120-10 210-10'/%3E%3Cpath d='M780 60h200'/%3E%3Cpath d='M140 260c70 0 110 8 230 8'/%3E%3Cpath d='M640 320h240'/%3E%3C/g%3E%3C/svg%3E");opacity:.22;background-size:1100px 380px;
+  background-position:0 40px}
+html.motion .sky-far{animation:skyFar 160s linear infinite}
+html.motion .sky-near{animation:skyNear 95s linear infinite}
+html.motion .sky-wind{animation:skyWind 26s linear infinite}
+@keyframes skyFar{to{background-position:-900px 0}}
+@keyframes skyNear{from{background-position:-200px 60px}to{background-position:-1500px 60px}}
+@keyframes skyWind{to{background-position:-1100px 40px}}
+
 /* -------------------------------------------------------- the Included trio */
-.inc-card h3 { color: var(--ink); }
-.inc-card p { margin: .6rem 0 0; color: var(--muted); font-size: .95rem; }
-/* The green bar the card used to open with is now the icon well (.f-ico). */
+/* Max's feature boxes, in Drew's colours (Drew, 2026-10-10: "make the boxes
+   similar to Max's website, with a subtle hover/floating animation"): the
+   icon chip on a soft green tint, the heading, two or three lines of what
+   the visitor gets. On hover the box lifts and a soft light follows the
+   pointer (site.js sets --mx/--my); with no pointer it simply lifts. */
+.inc-card { position: relative; overflow: hidden; padding: 1.7rem;
+  transition: transform .35s var(--ease), border-color .3s, box-shadow .35s; }
+.inc-card::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 0%),
+    rgba(45,232,181,.09), transparent 62%); }
+.inc-card:hover { transform: translateY(-6px); border-color: var(--green-line);
+  box-shadow: 0 30px 60px -30px rgba(0,0,0,.9); }
+.inc-card:hover::after { opacity: 1; }
+.inc-card .f-ico { width: 48px; height: 48px; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(45,232,181,.16), rgba(45,232,181,.04));
+  transition: transform .35s var(--ease); }
+.inc-card:hover .f-ico { transform: translateY(-2px) rotate(-4deg); }
+.inc-card h3 { color: var(--ink); font-size: 1.15rem; }
+.inc-card p { margin: .55rem 0 0; color: var(--muted); font-size: .95rem; line-height: 1.6; }
+@media (prefers-reduced-motion: reduce) {
+  .inc-card:hover, .inc-card:hover .f-ico { transform: none; }
+}
+
+/* A button under a block of prose (/websites: "View our work"). */
+.split .btn-row { margin-top: 1.6rem; }
 
 /* ---------------------------------------------------------------- prices */
 .grid-4 { grid-template-columns: 1fr; }
@@ -89,6 +143,13 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 1rem); }
 @media (min-width: 1100px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
 /* One card should not stretch the width of the page. */
 .prices-1 { max-width: 420px; }
+/* A package's features: his title in --ink, the detail in --muted. */
+.price li b { color: var(--ink); font-weight: 600; }
+/* A package with its own graphic is laid out wider, the graphic on top. */
+.prices-1:has(.has-art) { max-width: 520px; }
+.price-art { margin: -1.6rem -1.6rem 1.4rem; aspect-ratio: 16 / 10; overflow: hidden;
+  border-bottom: 1px solid var(--line); background: var(--well, #0b1413); }
+.price-art img { width: 100%; height: 100%; object-fit: cover; }
 /* "Commission or hourly" is a sentence, not a figure, and does not want the
    2rem tabular size the amounts are set in. */
 .prices-words .amount { font-size: 1.3rem; line-height: 1.35; }
@@ -256,3 +317,115 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 1rem); }
 .beat .mono { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase;
   color: var(--muted); }
 .beat h3 { margin-top: .6rem; }
+
+/* ------------------------------------------------ /meta-ads: campaign results
+   Drew, 2026-10-11: "previous campaign results … 1,996 incoming leads over 90
+   days … visually engaging with subtle animated statistics or charts". The
+   headline is the largest number on the page and the accent; it rolls up on
+   the results module's wheels (data-count), the 90 days fill in under it, and
+   the daily chart beside it draws itself (data-chart). All of it is in the
+   server HTML at its finished state. */
+.cr { display: grid; gap: 1rem; }
+@media (min-width: 960px) { .cr { grid-template-columns: 1fr 1.25fr; } }
+.cr-big { padding: 1.8rem; display: flex; flex-direction: column; gap: .3rem; }
+.cr-num { font-family: var(--font-mono); font-weight: 600; color: var(--green);
+  font-size: clamp(3.4rem, 9vw, 5.2rem); line-height: 1; margin: .5rem 0 .2rem;
+  font-variant-numeric: tabular-nums; }
+.cr-when { color: var(--ink); font-size: .95rem; }
+.cr-span { height: 6px; border-radius: 3px; background: var(--well, #0b1413);
+  border: 1px solid var(--line); overflow: hidden; margin-top: 1.4rem; }
+.cr-span i { display: block; height: 100%; background: var(--green);
+  border-radius: 3px; transform-origin: left center; }
+.cr-months { display: flex; justify-content: space-between; margin-top: .45rem;
+  font-size: .7rem; letter-spacing: .08em; color: var(--muted); }
+.cr-sub { display: flex; align-items: baseline; gap: .7rem; margin-top: auto;
+  padding-top: 1.4rem; border-top: 1px solid var(--line); }
+.cr-big .cr-sub { margin-top: 1.6rem; }
+.cr-sub b { font-size: 1.8rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+.cr-sub span { color: var(--muted); font-size: .9rem; }
+/* The 90 days fill in as the panel arrives — under html.motion only, and with
+   the house 2.8s bail-out, so a page whose script never runs shows it full. */
+html.motion .cr-big .cr-span i { transform: scaleX(0);
+  transition: transform 1.8s cubic-bezier(.35,.1,.25,1) .3s;
+  animation: mmSelf 0s 2.8s forwards; }
+html.motion .cr-big.in .cr-span i { transform: none; }
+
+/* ------------------------------------------------ /meta-ads: campaign preview
+   The mock campaign (campaign.py). Four dials, the map, the answers. With no
+   script the dials are disabled and drawn at their defaults, and the answers
+   are those defaults' answers — dimmed controls, complete panel. */
+.cp { padding: 1.6rem; }
+@media (min-width: 960px) { .cp { padding: 2rem; } }
+.cp-dials { display: grid; gap: 1.1rem 1.6rem; }
+@media (min-width: 640px) { .cp-dials { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .cp-dials { grid-template-columns: repeat(4, 1fr); } }
+.cp-dial { display: grid; gap: .55rem; }
+.cp-dial-k { display: flex; justify-content: space-between; align-items: baseline;
+  gap: 1rem; font-family: var(--font-mono); font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted); }
+.cp-dial-k output { font-size: 1rem; letter-spacing: 0; text-transform: none;
+  color: var(--ink); font-weight: 600; }
+.cp-dial input[type=range] { width: 100%; accent-color: var(--green); height: 28px;
+  cursor: pointer; }
+.cp-dial select { width: 100%; padding: .55rem .7rem; border-radius: var(--radius-s);
+  background: var(--well, #0b1413); color: var(--ink); border: 1px solid var(--line);
+  font: inherit; font-size: .95rem; }
+.cp-dial :disabled { opacity: .55; cursor: default; }
+.cp-body { display: grid; gap: 1.4rem; margin-top: 1.8rem; }
+@media (min-width: 960px) { .cp-body { grid-template-columns: 1fr 1fr; gap: 2rem;
+  align-items: start; } }
+.cp-mapbox { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden;
+  background: var(--well, #0b1413); border: 1px solid var(--green-line); }
+.cp-map { display: block; width: 100%; height: 100%; }
+.cp-water { fill: rgba(45,232,181,.05); stroke: var(--green-line); stroke-width: 1px;
+  vector-effect: non-scaling-stroke; }
+.cp-river { fill: none; stroke: var(--green-line); stroke-width: 2.5px;
+  vector-effect: non-scaling-stroke; }
+.cp-sea { font-family: var(--font-mono); font-size: 2.3px; letter-spacing: .12em;
+  text-transform: uppercase; fill: var(--muted); opacity: .75; }
+.cp-place circle { fill: var(--muted); opacity: .55; }
+.cp-place text { font-family: var(--font-body); font-size: 2.7px; fill: var(--muted); }
+.cp-place.is-in circle { fill: var(--green); opacity: 1; }
+.cp-place.is-in text { fill: var(--ink); }
+.cp-area { fill: rgba(45,232,181,.12); stroke: var(--green); stroke-width: 2px;
+  vector-effect: non-scaling-stroke; }
+.cp-pin { fill: var(--green); stroke: var(--well, #0b1413); stroke-width: .6; }
+/* The zoom and the re-centring ease; the ring follows the dial as it is
+   dragged (the r transition is a progressive nicety where CSS r animates). */
+html.motion .cp-world, html.motion .cp-mark { transition: transform .5s var(--ease); }
+html.motion .cp-area { transition: r .35s var(--ease), cx .5s var(--ease), cy .5s var(--ease); }
+html.motion .cp-place circle, html.motion .cp-place text { transition: fill .3s, opacity .3s; }
+.cp-mapk { position: absolute; left: .8rem; bottom: .6rem; font-size: .66rem;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.cp-out { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+.cp-fig { display: flex; flex-direction: column; gap: .3rem; padding: 1rem 1.1rem;
+  border-radius: 12px; background: var(--well, #0b1413); border: 1px solid var(--line); }
+.cp-fig-main { grid-column: 1 / -1; border-color: var(--green-line); }
+.cp-k { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted); display: flex; flex-wrap: wrap;
+  gap: .4rem; align-items: center; }
+/* "projection" — on every estimated figure, every time, so neither can be
+   read as one of his results. */
+.cp-k i { font-style: normal; letter-spacing: .06em; color: var(--green);
+  border: 1px solid var(--green-line); border-radius: 999px; padding: .05rem .45rem;
+  font-size: .62rem; }
+.cp-fig b { font-size: 1.45rem; color: var(--ink); font-variant-numeric: tabular-nums;
+  line-height: 1.15; overflow-wrap: anywhere; }
+.cp-fig-main b { font-size: 2.4rem; color: var(--green); }
+.cp-n { font-size: .82rem; color: var(--muted); }
+.cp-cap { grid-column: 1 / -1; margin: 0; font-size: .88rem; color: var(--green); }
+.cp-cap[hidden] { display: none; }
+.cp-small { margin: 1.4rem 0 0; font-size: .8rem; color: var(--muted); max-width: 90ch; }
+.cr .chart { height: 230px; }
+.cp-map.is-wide .cp-place:not(.is-major):not(.is-centre) text { display: none; }
+.cp-place.is-centre text { fill: var(--green); font-weight: 600; }
+/* The two projections sit side by side; people in range takes its own row. */
+.cp-fig-wide { grid-column: 1 / -1; }
+@media (max-width: 519px) { .cp-out { grid-template-columns: minmax(0, 1fr); } }
+/* A phone's map is a third the width of a desktop's: the names grow to stay
+   readable (the marks are counter-scaled, so this is their screen size). */
+@media (max-width: 639px) {
+  .cp-place text { font-size: 4.2px; }
+  .cp-place circle { r: 1.5px; }
+  .cp-sea { font-size: 3.4px; }
+}

@@ -55,7 +55,7 @@ def _b():
 
 # ------------------------------------------------------------------ the copy
 # The bands a visitor picks from. Ranges rather than a number: this is the
-# field that tells Drew whether the enquiry is a $600 re-design or a $2,000
+# field that tells Drew whether the enquiry is a $500 logo or a $2,000
 # social package before he writes the quote, and nobody types a real budget
 # into a box. They bracket his own price list (content.py PRICING: $500 at the
 # bottom, $2,000 at the top) with room above it for a project that combines
@@ -215,7 +215,7 @@ def contact_page():
 </div></section>'''
     return dict(
         title=b.seo_title('Get a quote, Grand Island NY'),
-        desc=f'Get a quote from {b.SITE_NAME} — websites, Meta ads and filming, '
+        desc=f'Get a quote from {b.SITE_NAME} — websites, performance marketing, '
              f'social media, logo design, drone sessions and lead conversion in '
              f'Buffalo, NY.',
         body=body,

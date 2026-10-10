@@ -911,3 +911,98 @@
   strip.addEventListener('pointerleave',()=>{hover=false;run()});
   io.observe(strip);
 })();
+
+
+/* =====================================================================
+   THE FEATURE BOXES — a soft light under the pointer
+
+   Max's boxes, in Drew's colours (Drew, 2026-10-10). 20-pages.css lifts a
+   box on hover and draws a radial glow at --mx/--my; this only tells it
+   where the pointer is. A mouse only: a finger has no hover to follow, and
+   without this file the glow simply sits at the top of the box.
+   ===================================================================== */
+(function(){
+  const mm=window.mm;
+  if(!mm||!mm.fine) return;
+  mm.$$('.inc-card').forEach(c=>c.addEventListener('pointermove',e=>{
+    const r=c.getBoundingClientRect();
+    c.style.setProperty('--mx',(e.clientX-r.left).toFixed(0)+'px');
+    c.style.setProperty('--my',(e.clientY-r.top).toFixed(0)+'px');
+  },{passive:true}));
+})();
+
+
+/* =====================================================================
+   THE CAMPAIGN PREVIEW — /meta-ads
+
+   Drew, 2026-10-11: clients "ask before signing up where we aren't in the
+   MBS screens … 'pull up my Mendoza site and we can look to see what it may
+   be like if we adjust budget or distance'". campaign.py draws the panel at
+   its defaults with the dials disabled; this enables them and recomputes on
+   every move. The arithmetic is campaign.compute() line for line, and the
+   assumptions (model) and the towns (places) come off the panel's own
+   data-campaign, so the figures can only differ from the server's if this
+   function does. It is a tool, not an effect: it runs with reduced motion
+   too, and only the ring's easing is motion (15/20-pages.css, html.motion).
+   ===================================================================== */
+(function(){
+  const box=document.querySelector('[data-campaign]');
+  if(!box) return;
+  let cfg;
+  try{cfg=JSON.parse(box.dataset.campaign)}catch(e){return}
+  const M=cfg.model, P=cfg.places;
+  const q=s=>box.querySelector(s), qa=s=>[...box.querySelectorAll(s)];
+  const inputs=qa('input[type=range],select');
+  const ring=q('.cp-area'), world=q('.cp-world'), pin=q('.cp-pinat'),
+        marks=qa('.cp-mark'), places=qa('.cp-place'), capped=q('[data-capped]');
+  // campaign.zoom(): the ring and half again, 16 to 60 miles each side.
+  const zoom=r=>+(60/Math.min(60,Math.max(16,r*1.45))).toFixed(4);
+
+  const round=n=>{const s=n<10000?100:1000;return Math.round(n/s)*s};
+  const fmt=n=>n.toLocaleString('en-US');
+  const span=(a,b)=>a===b?fmt(a):fmt(a)+'–'+fmt(b);
+
+  const compute=(budget,radius,weeks,c)=>{
+    const spend=budget*7*weeks;
+    let people=0;
+    P.forEach(p=>{if(Math.hypot(p.x-c.x,p.y-c.y)<=radius)people+=p.pop});
+    const cap=people*M.share, r={spend,people};
+    [['lo',M.cpm[1],M.cpl[1]],['hi',M.cpm[0],M.cpl[0]]].forEach(([end,cpm,cpl])=>{
+      const free=spend/cpm*1000/M.frequency, reach=Math.min(free,cap);
+      r['reach_'+end]=reach;
+      r['leads_'+end]=spend/cpl*(free?reach/free:0);
+    });
+    r.capped=cap>0&&r.reach_hi>=cap;
+    return r;
+  };
+
+  const val=name=>{const el=q('[name='+name+']');return el.tagName==='SELECT'?el.value:+el.value};
+  const update=()=>{
+    const c=P.find(p=>p.name===val('centre'))||P[0];
+    const b=val('budget'), rad=val('radius'), w=val('weeks');
+    const r=compute(b,rad,w,c);
+    qa('input[type=range]').forEach(i=>{
+      const o=q('[data-out='+i.name+']');
+      if(o)o.textContent=(i.dataset.unit||'')+i.value+(i.dataset.suffix||'');
+    });
+    const set=(k,s)=>{const el=q('[data-fig='+k+']');if(el&&el.textContent!==s)el.textContent=s};
+    set('spend','$'+fmt(r.spend));
+    set('people',fmt(round(r.people)));
+    set('reach',span(round(r.reach_lo),round(r.reach_hi)));
+    set('leads',span(Math.floor(r.leads_lo),Math.ceil(r.leads_hi)));
+    if(capped)capped.hidden=!r.capped;
+    const k=zoom(rad);
+    if(world)world.style.transform='scale('+k+') translate('+(-c.x)+'px,'+c.y+'px)';
+    marks.forEach(m=>{m.style.transform='scale('+(+(1/k).toFixed(4))+')'});
+    if(ring){ring.setAttribute('r',rad);ring.setAttribute('cx',c.x);ring.setAttribute('cy',-c.y)}
+    if(pin)pin.setAttribute('transform','translate('+c.x+' '+(-c.y)+')');
+    places.forEach(g=>{
+      g.classList.toggle('is-in',Math.hypot(+g.dataset.x-c.x,+g.dataset.y-c.y)<=rad);
+      g.classList.toggle('is-centre',g.dataset.name===c.name);
+    });
+    const map=q('.cp-map'); if(map)map.classList.toggle('is-wide',60/k>30);
+  };
+
+  inputs.forEach(i=>{i.disabled=false;i.addEventListener('input',update);i.addEventListener('change',update)});
+  update();
+})();

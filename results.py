@@ -42,6 +42,13 @@ SOURCES = {
                    what='Leads Center performance'),
     'dash-6': dict(slug='dash-6', file='Screenshot_221.png',
                    what='Daily new leads, Jun 23 onward'),
+    # Drew, 2026-10-11, for the Campaign results section on /meta-ads. The
+    # screenshots did not come through with his message; the headline figure
+    # and its window are from his own words ("Highlight 1,996 incoming leads
+    # over 90 days (July 9 – October 9)"). When the files arrive they go in
+    # the drop folder and get a rendition like the others.
+    'dash-7': dict(slug='dash-7', file='(not received — sent 2026-10-11)',
+                   what='Leads Center, incoming leads, Jul 9 – Oct 9'),
 }
 
 
@@ -118,6 +125,21 @@ DASH5 = [
     fig('d5-leads', 'dash-5', 'Leads Center', '614', '↑ 27.4%',
         'intake leads', count=614),
 ]
+
+# dash-7 — the Campaign results headline on /meta-ads. Incoming leads only:
+# Drew, 2026-10-11, "Ignore converted leads and conversion rates in the
+# screenshot, as those fields haven't been maintained." So no conversion
+# figure from that dashboard is carried here, and none may be added.
+#
+# The daily average is his two numbers divided — 1,996 over the 90 days he
+# names — and is labelled as an average, not read off a chart.
+DASH7 = [
+    fig('d7-leads', 'dash-7', 'Incoming leads · 90 days', '1,996', None,
+        'Jul 9 – Oct 9', count=1996),
+    fig('d7-daily', 'dash-7', 'Leads a day, on average', '22', None,
+        '1,996 over 90 days', count=22),
+]
+assert round(1996 / 90) == 22
 
 # dash-4 — views by content type. A bar row rather than four tiles: the shape
 # (reels dwarf everything else) is the point, and it is the argument for the
@@ -221,7 +243,7 @@ HOME_STATS = [DASH1[0], DASH1[1], DASH3[0], DASH5[0]]
 # Every figure this file knows, for the build's own sake: the verification
 # script asserts each string below appears in the page that prints it, so a
 # figure can never drift between this file and the HTML.
-ALL = DASH1 + DASH2 + DASH3 + DASH5 + [CONTENT_TYPES['total']]
+ALL = DASH1 + DASH2 + DASH3 + DASH5 + DASH7 + [CONTENT_TYPES['total']]
 
 for _f in ALL:
     assert _f['source'] in SOURCES, f'{_f["key"]}: unknown source {_f["source"]}'

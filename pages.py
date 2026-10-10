@@ -19,6 +19,8 @@ which is the temporary local copy of what results.py will own.
 import html
 
 import art
+import campaign
+import results
 import re
 
 from content import (SITE, SERVICES, SEO, PRICING, BY_SLUG, CLIENTS, CASE,
@@ -180,6 +182,43 @@ def chart(caption, points, label):
             f'</svg></div></div>')
 
 
+def campaign_results():
+    """Previous campaign results on /meta-ads (Drew, 2026-10-11: "Highlight
+    1,996 incoming leads over 90 days (July 9 – October 9) … make this section
+    visually engaging with subtle animated statistics or charts").
+
+    The headline counts up on its rolling wheels and the 90 days fill in under
+    it; beside it, his daily-leads chart draws itself. That chart is dash-6,
+    an earlier window than the headline, and says so in its caption — the
+    Jul 9 – Oct 9 daily series is in the screenshots he sent, which did not
+    arrive. When they do, results.py gets that series and the caption changes.
+    Converted leads and conversion rates are left out on his instruction.
+    """
+    lead, daily = results.DASH7
+    s = results.LEADS['series']
+    months = ''.join(f'<span>{m}</span>' for m in ('Jul 9', 'Aug', 'Sep', 'Oct 9'))
+    big = (f'<div class="cr-big panel rv">'
+           f'<span class="stat-label">{lead["label"]}</span>'
+           f'<b class="cr-num stat-num" data-count="{lead["count"]}">{lead["value"]}</b>'
+           f'<span class="cr-when">{lead["note"]} &middot; Meta Leads Center</span>'
+           f'<div class="cr-span" aria-hidden="true"><i></i></div>'
+           f'<div class="cr-months mono" aria-hidden="true">{months}</div>'
+           f'<div class="cr-sub"><b class="mono" data-count="{daily["count"]}">'
+           f'{daily["value"]}</b><span>{daily["label"].lower()} &middot; '
+           f'{daily["note"]}</span></div></div>')
+    graph = chart(f'{results.LEADS["label"]} &middot; {results.LEADS["range"]}',
+                  results.leads_points(),
+                  f'{results.LEADS["label"]}, {results.LEADS["range"]}: between '
+                  f'{min(s)} and {max(s)} a day')
+    note = (f'<p class="fig-cap rv">From Meta&rsquo;s Leads Center, on campaigns '
+            f'Mendoza Marketing manages. The daily chart is an earlier window: '
+            f'{results.LEADS["range"]}, between {min(s)} and {max(s)} new leads a '
+            f'day.</p>')
+    return section(
+        sec_head('Campaign results', 'Real campaigns.<span>Real leads.</span>')
+        + f'<div class="cr">{big}{graph}</div>{note}', cls='cr-sec')
+
+
 # ------------------------------------------------------------ service pages
 def service_page(s):
     """One of the six. Hero, his opening block beside his breakdown, his
@@ -193,14 +232,20 @@ def service_page(s):
 
     out.append(B.page_hero(
         name, s['hero_title'], s['lead'], crumb=name,
+        sky=s.get('hero_sky', False),
         extra=(f'<div class="hero-price mono">{price_text(s["price_key"])}</div>'
                f'<div class="btn-row">'
                f'<a class="btn" href="{quote}">Get a quote {B.ICONS["arrow"]}</a>'
                f'<a class="btn btn-ghost" href="#pricing">See the pricing</a>'
                f'</div>')))
 
+    link = ''
+    if s.get('intro_link'):
+        label, href = s['intro_link']
+        link = (f'<div class="btn-row rv"><a class="btn btn-ghost" '
+                f'href="{B.u(href)}">{label} {B.ICONS["arrow"]}</a></div>')
     out.append(section(
-        f'<div class="split">{prose(s["intro"])}'
+        f'<div class="split"><div>{prose(s["intro"])}{link}</div>'
         f'{bd_panel(s["breakdown_title"], s["breakdown"], s["breakdown_price"], s["price_key"])}'
         f'</div>'))
 
@@ -211,7 +256,17 @@ def service_page(s):
     if slug == 'drones':
         out.append(drone_rail())
 
-    ex = s['extra']
+    if slug == 'meta-ads':
+        out.append(campaign_results())
+        mgmt = (f'Management is {price_text("meta-ads").replace("/", " a ")}'
+                f', on top.')
+        out.append(section(campaign.section(
+            sec_head('Campaign preview', 'Set a budget.<span>See the reach.</span>',
+                     aside='<p class="sec-note">Move the dials to see what a '
+                           'campaign could look like before it starts.</p>'),
+            mgmt), cls='band-alt', sid='preview'))
+
+    ex = s.get('extra')
     if ex:
         inner = [sec_head(ex['eyebrow'], ex['title'])]
         if ex.get('breakdown'):
@@ -294,9 +349,8 @@ def pricing_page():
             + '</div>')
     return dict(
         title=B.seo_title('Pricing for every package'),
-        desc='Every Mendoza Marketing package and what it costs: website design and '
-             're-design, Meta ads and filming, social media, logo design and drone '
-             'sessions.',
+        desc='Every Mendoza Marketing package and what it costs: website design, '
+             'performance marketing, social media, logo design and drone sessions.',
         body='\n'.join([
             B.page_hero('Pricing', 'Every package.<span>Every price.</span>',
                         'What each service costs, up front. Where a job is bigger '

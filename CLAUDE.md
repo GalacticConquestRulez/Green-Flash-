@@ -47,8 +47,7 @@ marketing site (Home, the services, Results, Work, About Drew, Contact/quote)
 | key | package | price |
 |---|---|---|
 | `web-design` | Website design | from **$1,250** |
-| `web-redesign` | Website re-design | **$600** |
-| `meta-ads` | Meta ad setup & filming | **$750** |
+| `meta-ads` | Performance marketing | **$750/month** |
 | `social-emerald` | Social media — Emerald | **$500** |
 | `social-sapphire` | Social media — Sapphire | **$1,000** |
 | `social-diamond` | Social media — Diamond | **$2,000** |
@@ -56,12 +55,20 @@ marketing site (Home, the services, Results, Work, About Drew, Contact/quote)
 | `lead-conversion` | Lead conversion | **Commission or hourly, priced to the need** |
 | `drone-session` | Drone session | **$1,000** |
 
-**Three of these disagree with netoriouslabs.com today** and the README is what
-we built to — ask Drew before launch: the README says re-design **$600** (his
-site says $500) and logo **$500** (his site says $750), and the README's Meta
-line is $750 for *setup and filming* where his site prices *management* at $500
-plus the client's daily ad budget. If the current site is right, change
-`PRICING` in `content.py` and nothing else: no page holds a figure of its own.
+**One of these disagrees with netoriouslabs.com today** and the README is what
+we built to — ask Drew: the README says logo **$500** (his site says $750). If
+the current site is right, change `PRICING` in `content.py` and nothing else:
+no page holds a figure of its own. (Performance marketing was the other; Drew
+settled it 2026-10-11 at $750 a month, the client covering the ad budget.)
+
+**"Meta ads & filming" is now "Performance marketing"** (Drew, 2026-10-11) —
+the page, the nav, the footer, the price row. The slug and URL stay
+`/meta-ads` so links already out there keep working.
+
+**There is no re-design package.** Drew, 2026-10-10: "I've decided to focus
+exclusively on full website builds rather than redesigns." The row, its
+section on /websites and its line on Home were removed together; do not bring
+any of them back without him.
 
 ---
 
@@ -101,7 +108,10 @@ plus the client's daily ad budget. If the current site is right, change
    `html.motion` only, and carries the 2.8s self-reveal bail-out. No-JS and
    `prefers-reduced-motion` must render the page **complete** and identical to
    each other. No counters, scores, XP or checklists — the only numbers that
-   move are Drew's own dashboard figures. The site never starts sound: the three Kelly's
+   move are Drew's own dashboard figures. The one exception is a tool, not an
+   effect: the campaign preview on /meta-ads (`campaign.py`) recomputes its
+   figures when a visitor moves a dial, and its two estimates are labelled
+   "projection" every time they appear. The site never starts sound: the three Kelly's
    reels play muted, and a visitor can turn one reel's sound on with a tap (a "Sound on"
    chip shows it, one reel at a time, off again when it leaves view). Nothing else makes a
    sound.
@@ -166,7 +176,9 @@ build.py                 the generator: u(), img()/pic(), nav_html(),
                          footer_html(), page_hero(), cta(), swipe(),
                          price_card(), layout(), the pages dict, the write
                          loop, sitemap.xml + robots.txt
-content.py               SITE, SERVICES (six), PRICING (nine rows), TODO
+content.py               SITE, SERVICES (six), PRICING (eight rows), TODO
+campaign.py              the /meta-ads campaign preview: dials, towns, the
+                         cost assumptions, compute() (mirrored in site.js)
 site/css/site.css        the tokens, the contrast table, type, buttons, the
                          glass nav, the footer, the reveal contract
 site/js/site.js          the base layer only: nav, active link, reveal
@@ -226,7 +238,7 @@ path and **never** through `u()`: on the preview `BASE_URL` already ends in
 |---|---|
 | `/` | `LocalBusiness` |
 | the six services | `LocalBusiness` + `Service` with an `Offer` per package the page prints, priced from `PRICING`; `og-<slug>.png` |
-| `/pricing` | `LocalBusiness` + `OfferCatalog`, all nine rows |
+| `/pricing` | `LocalBusiness` + `OfferCatalog`, all eight rows |
 | `/work`, `/results` | `LocalBusiness` |
 | `/about` | `LocalBusiness` + `Person` (Drew) |
 | `/contact` | `LocalBusiness` + `ContactPage` |
@@ -307,7 +319,26 @@ publishes none of them.
 - **Kelly's Country Store and Gator Jon's BBQ logos.** Both are clients linked
   from his current site and neither sent a logo file, so neither can appear in
   the /work logo strip yet.
-- **The three price disagreements** listed under Context.
+- **The price disagreement** listed under Context.
+- **The /meta-ads dashboard screenshots** (sent 2026-10-11, not received).
+  Campaign results headlines his 1,996 incoming leads, Jul 9 – Oct 9, from his
+  own message; the daily chart beside it is still dash-6 (Jun 23 – Sep 20)
+  and says so. When the screenshots land, read the Jul 9 – Oct 9 daily series
+  into `results.py` and point the chart at it. Converted leads and conversion
+  rates stay off the site — he says those fields were never kept up.
+- **The Performance Marketing graphic** (sent 2026-10-11, not received):
+  save as `out/img/pkg-meta-ads.webp`; the price card picks it up.
+- **His own cost per lead for the campaign preview.** `campaign.MODEL` holds
+  typical local Meta ranges we chose ($8–14 CPM, $12–30 per lead). His real
+  numbers make the projections his; change MODEL and nothing else.
+- **The Website Design graphic.** Drew sent one 2026-10-10 as the placeholder
+  for the $1,250 package; it did not come through. Save it as
+  `out/img/pkg-web-design.webp` (plus `-800` if large) and rebuild: the price
+  card picks it up by itself (`PRICING['web-design']['image']`), and until
+  then the build lists it as missing and the card is drawn without it.
+- **The three "What You Can Expect" sentences on /websites** (Drew,
+  2026-10-10: "expand the descriptions … customer benefits"). His headings,
+  our sentences — new copy for him to approve, in `content.SERVICES`.
 - **The vector, again — the per-service marks depend on it.** His README asks
   for "the Mendoza logo with the text changed" on each service page. What we
   hold is a 2000×2000 JPEG with CONTENT | WEBSITES | DRONES baked into the

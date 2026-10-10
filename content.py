@@ -77,24 +77,46 @@ TODO = [
 # taking a price as an argument, so a card can never quote a figure this file
 # does not know.
 #
-# NOTE, for Drew: three of these differ from the prices on netoriouslabs.com
-# today — the README says web RE-DESIGN $600 (his site says $500) and LOGO $500
-# (his site says $750), and the README's Meta ad line is $750 for setup AND
-# filming where his site prices management at $500 + the client's daily budget.
-# The README is what we have built to. Flagged in CLAUDE.md.
+# NOTE, for Drew: one of these differs from the prices on netoriouslabs.com
+# today — the README says LOGO $500 (his site says $750). The README is what we
+# have built to. Flagged in CLAUDE.md. (Performance marketing was the second;
+# Drew settled it 2026-10-11 at $750 a month.)
+#
+# There is no re-design package. Drew, 2026-10-10: "I've decided to focus
+# exclusively on full website builds rather than redesigns." The row, its
+# section on /websites and its line on Home all went together.
+#
+# `features` is a package's own list of what is in it, as (title, detail),
+# printed on its price card wherever the card appears. `image` names a
+# rendition in out/img/ shown at the top of that card — only once the file
+# is there, so a missing graphic warns in the build and never ships a broken
+# image (CLAUDE.md rule 10).
+WEB_FEATURES = [
+    # Drew's own list, 2026-10-10, word for word.
+    ('5+ Custom Content Pages', 'Services, About, etc.'),
+    ('Responsive Design', 'Optimized for all devices.'),
+    ('Launch Support', 'Domain setup and DNS management.'),
+    ('SEO Integration', 'Initial SEO setup for search visibility.'),
+]
+
 PRICING = {
     'web-design': dict(
         name='Website design', service='websites',
         qualifier='from', amount='$1,250', note=None,
-        tier='Websites'),
-    'web-redesign': dict(
-        name='Website re-design', service='websites',
-        qualifier='', amount='$600', note=None,
-        tier='Websites'),
+        tier='Websites', features=WEB_FEATURES,
+        # His "Website Design graphic", sent 2026-10-10 as the placeholder for
+        # this package. Not received yet: drop it in as out/img/pkg-web-design.webp
+        image='pkg-web-design'),
+    # Performance marketing (Drew, 2026-10-11: "Update to $750/month"). `per`
+    # is the billing period, printed after the figure wherever it appears
+    # ("$750/month") and carried into the graph as a monthly price.
     'meta-ads': dict(
-        name='Meta ad setup & filming', service='meta-ads',
-        qualifier='', amount='$750', note=None,
-        tier='Meta ads'),
+        name='Performance marketing', service='meta-ads',
+        qualifier='', amount='$750', per='month', note=None,
+        tier='Performance',
+        # His "Performance Marketing graphic", sent 2026-10-11 as the product
+        # image. Not received yet: drop it in as out/img/pkg-meta-ads.webp
+        image='pkg-meta-ads'),
     'social-emerald': dict(
         name='Social media — Emerald', service='social',
         qualifier='', amount='$500', note=None,
@@ -148,8 +170,11 @@ PRICING = {
 #                   "Included In Our Service" — they differ, and they are his)
 #   included        the trio itself: his headings and sub-lines
 #   prices          the PRICING keys whose cards this page shows, in order
-#   extra           the second block some of his pages carry (the web re-design
-#                   service, "Re-define your brand", "Our services in action")
+#   intro_link      (label, path) — a button under the intro, where he asked
+#                   for one ("View Our Work" on /websites)
+#   hero_sky        True puts the slow cloud-and-wind field behind the hero
+#   extra           the second block some of his pages carry ("Re-define your
+#                   brand", "Our services in action")
 #   new_copy        True where NOTHING on the page came from him
 #
 # Everything above is transcribed from his current site
@@ -185,66 +210,55 @@ SERVICES = [
          # His sentence; the figure is interpolated from PRICING so the page can
          # never disagree with the price card beside it (CLAUDE.md rule 6).
          breakdown_price='Price starts at {amount}, to increase based on client needs.',
-         breakdown=[
-             '5+ Custom Content Pages designed for services, about, etc.',
-             'Responsive Design across all devices and displays.',
-             'Launch support + DNS records management.',
-             'SEO integration setup.',
-         ],
+         # The package's own list (Drew, 2026-10-10), so the breakdown beside
+         # the intro and the price card further down say the same four things.
+         breakdown=[f'{t} &ndash; {d}' for t, d in WEB_FEATURES],
+         intro_link=('View our work', '/work'),
+         hero_sky=True,
          included_title='What You Can Expect',
+         # Drew, 2026-10-10: "expand the descriptions slightly to focus on
+         # customer benefits rather than 1 line generic statements". The
+         # headings are his; the sentences under them are NEW COPY, written in
+         # his register, for him to approve.
          included=[
-             ('SEO Setup', 'Increased exposure across the internet.'),
-             ('Optimized Speed', 'Optimized for fast, seamless performance.'),
-             ('Mobile Friendly', 'Designed for seamless mobile experiences.'),
+             ('SEO Setup', 'Your site is built to be found from day one &mdash; '
+              'clean page titles, descriptions and a sitemap search engines can '
+              'read &mdash; so the customers searching for what you do land on '
+              'you, not a competitor.'),
+             ('Optimized Speed', 'Pages that load fast on any connection, so '
+              'visitors stay instead of bouncing, and the traffic your ads and '
+              'posts send actually gets to see what you offer.'),
+             ('Mobile Friendly', 'Most customers meet you on a phone first. Every '
+              'page is designed for a small screen from the start, with menus, '
+              'buttons and forms that are easy to use with one thumb.'),
          ],
          prices=['web-design'],
-         # The second half of his own website-design page.
-         extra=dict(
-             eyebrow='Web re-design',
-             title='Web<span>re-design.</span>',
-             paras=[
-                 'Our website revamp enhances your existing platform without requiring '
-                 'a full rebuild or migration. We refine your current structure, '
-                 'modernize the design, and improve usability while preserving the '
-                 'tools, integrations, and workflows you already rely on.',
-                 'We optimize page speed, improve mobile responsiveness, update layouts, '
-                 'and refine calls-to-action so visitors can navigate effortlessly and '
-                 'take action with confidence.',
-                 'This service also includes content and visual updates to ensure your '
-                 'site aligns with your brand today. From refreshed visuals and '
-                 'typography to clearer messaging, your website will feel current, '
-                 'professional, and built to support growth.',
-             ],
-             breakdown_title='Web Redesign Breakdown',
-             breakdown_price='Price starts at {amount}, to increase based on client needs.',
-             breakdown=[
-                 'Improved page speed and performance optimization.',
-                 'Mobile-friendly and new responsive updates.',
-                 'Refreshed visuals, content, and brand consistency.',
-             ],
-             prices=['web-redesign'],
-         )),
-    dict(slug='meta-ads', name='Meta ads & filming', price_key='meta-ads',
+         extra=None),
+    # Renamed from "Meta ads & filming" (Drew, 2026-10-11: "Rename … to
+    # 'Performance Marketing' throughout the page, … the submenu in the header
+    # & the footer"). The slug, and so the URL, stays /meta-ads: renaming it
+    # would break every link already out there for no gain a visitor can see.
+    dict(slug='meta-ads', name='Performance marketing', price_key='meta-ads',
          one_line='',      # see the note above SERVICES
-         hero_title='Professional<span>ad campaigns.</span>',
-         lead='We will work with you to plan, launch, and manage high-performing ad '
-              'campaigns through Meta Business Suite with the same strategy and '
-              'precision used in premium digital marketing.',
+         hero_title='Performance<span>marketing.</span>',
+         # His two paragraphs, 2026-10-11, word for word: the first under the
+         # headline, the second beside the breakdown.
+         lead='Our professionally managed Meta campaigns combine targeted local '
+              'advertising with high-quality video production to reach potential '
+              'customers. From filming content to launching and managing campaigns, '
+              'we handle the entire process.',
          intro=[
-             'Each campaign is optimized across Facebook and Instagram to ensure '
-             'consistent reach, strong engagement, and clear performance tracking. '
-             'After launch, we provide ongoing management so your ad results remain '
-             'effective long after activation.',
-             'As your business scales, we can refine targeting, creative, budgets, and '
-             'reporting to ensure continued growth and measurable returns.',
+             'Getting views is one thing. Turning them into customers is another. '
+             'Through strategic targeting, engaging ad creatives, and ongoing '
+             'optimization, we focus on generating real engagement, qualified leads, '
+             'and measurable results.',
          ],
-         breakdown_title='Ad Campaign Breakdown',
-         # His line reads "Price starts at $500 to manage, client covers daily
-         # budget." The README prices $750 for SETUP AND FILMING, which is not
-         # the same thing — one of the three disagreements CLAUDE.md flags. The
-         # clause about the client's budget is his and is kept; the figure comes
-         # from PRICING. ASK DREW which of the two this page should describe.
-         breakdown_price='Price starts at {amount}. The client covers the daily ad budget.',
+         breakdown_title='Performance Marketing Breakdown',
+         # His old line was "Price starts at $500 to manage, client covers daily
+         # budget." The figure is now $750 a month (PRICING); the clause about
+         # the client's own ad budget is his and is kept — the campaign preview
+         # on this page says the same thing about the spend it adds up.
+         breakdown_price='{amount} a month. The client covers the daily ad budget.',
          breakdown=[
              'Strategic ad campaign setup through Meta Business Suite.',
              'Creation of custom Ad Creative to use for content.',
@@ -446,10 +460,10 @@ SEO = {
              'built on WordPress with the same quality and creativity found in our '
              'cinematic content.'),
     'meta-ads': dict(
-        head='Meta ads & filming, Grand Island NY',
-        meta='We will work with you to plan, launch and manage high-performing ad '
-             'campaigns through Meta Business Suite, with the filming that feeds '
-             'them.'),
+        head='Performance marketing, Grand Island NY',
+        meta='Professionally managed Meta campaigns that pair targeted local '
+             'advertising with high-quality video, from filming to launch and '
+             'ongoing management.'),
     'social': dict(
         head='Social media management, Buffalo NY',
         meta='We will work with you to plan, create and deliver professional social '
@@ -488,10 +502,11 @@ def price(key):
 
 
 def price_text(key):
-    """'from $1,250' / '$750' / 'Commission or hourly' — the figure as a
+    """'from $1,250' / '$750/month' / 'Commission or hourly' — the figure as a
     sentence, for a card that has no room for the full price block."""
     p = PRICING[key]
-    return f"{p['qualifier']} {p['amount']}".strip()
+    per = f"/{p['per']}" if p.get('per') else ''
+    return f"{p['qualifier']} {p['amount']}{per}".strip()
 
 
 # ------------------------------------------------------------------- the work
