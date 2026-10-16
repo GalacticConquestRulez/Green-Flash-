@@ -429,3 +429,115 @@ html.motion .cp-place circle, html.motion .cp-place text { transition: fill .3s,
   .cp-place circle { r: 1.5px; }
   .cp-sea { font-size: 3.4px; }
 }
+
+/* ------------------------------------------------ the pen behind a hero
+   /logo (build.SKETCH): a mark on its construction grid, drawn on a loop.
+   Faint, on the right where the hero has no words; on a phone it sits behind
+   the words, fainter still. The finished drawing is the static render; the
+   cycle below is html.motion only (CLAUDE.md rule 4). The brightest ground
+   it can put under a word is the canvas plus 14% of the green on the disc,
+   #0b2a24 — --ink 12.4:1, --muted 6.1:1 on it — and on a phone the whole
+   layer is at a third of that. */
+.hero-sketch { position: absolute; z-index: -2; pointer-events: none;
+  top: 50%; right: -12vw; width: min(78vw, 400px); aspect-ratio: 1;
+  transform: translateY(-46%); opacity: .35; }
+@media (min-width: 960px) { .hero-sketch { right: max(2vw, calc(50vw - 640px));
+  width: min(46vw, 600px); opacity: .7; } }
+.hero-sketch svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.sk-grid { fill: none; stroke: rgba(45,232,181,.07); stroke-width: 1; }
+.sk-guides { fill: none; stroke: rgba(45,232,181,.16); stroke-width: 1; }
+.sk-fill { fill: rgba(45,232,181,.14); }
+.sk-ring, .sk-m { fill: none; stroke: var(--green); stroke-linecap: butt;
+  stroke-linejoin: round; stroke-dasharray: 1 1; }
+.sk-ring { stroke-width: 6; opacity: .55; }
+.sk-m { stroke-width: 22; opacity: .5; }
+.sk-handle { fill: var(--bg); stroke: var(--ink); stroke-width: 1.5; opacity: 0; }
+.sk-anchors { fill: var(--bg); stroke: var(--ink); stroke-width: 1.5; opacity: 0; }
+.sk-pen { fill: var(--ink); opacity: 0; }
+.sk-pen .sk-slit { fill: var(--bg); }
+
+html.motion .sk-guides { animation: skGuide 14s linear infinite; }
+html.motion .sk-ring { animation: skRing 14s linear infinite; }
+html.motion .sk-m { animation: skM 14s linear infinite; }
+html.motion .sk-fill { transform-box: fill-box; transform-origin: center;
+  animation: skFill 14s var(--ease) infinite; }
+html.motion .sk-handle { animation: skHandle 14s linear infinite; }
+html.motion .sk-anchors { animation: skAnchors 14s linear infinite; }
+html.motion .sk-pen-ring { animation: skPenRing 14s linear infinite; }
+html.motion .sk-pen-m { animation: skPenM 14s linear infinite; }
+@keyframes skGuide { 0% { opacity: 0 } 6%, 90% { opacity: 1 } 97%, 100% { opacity: 0 } }
+@keyframes skRing { 0%, 8% { stroke-dashoffset: 1; opacity: 0 }
+  8.5% { opacity: .55 } 30%, 90% { stroke-dashoffset: 0; opacity: .55 }
+  97%, 100% { stroke-dashoffset: 0; opacity: 0 } }
+@keyframes skM { 0%, 32% { stroke-dashoffset: 1; opacity: 0 }
+  32.5% { opacity: .5 } 50%, 90% { stroke-dashoffset: 0; opacity: .5 }
+  97%, 100% { stroke-dashoffset: 0; opacity: 0 } }
+@keyframes skFill { 0%, 52% { transform: scale(0); opacity: 0 }
+  64%, 90% { transform: scale(1); opacity: 1 } 97%, 100% { transform: scale(1); opacity: 0 } }
+@keyframes skHandle { 0%, 8% { opacity: 0 } 10%, 28% { opacity: .8 } 31%, 100% { opacity: 0 } }
+@keyframes skAnchors { 0%, 8% { opacity: 0 } 11%, 58% { opacity: .85 } 64%, 100% { opacity: 0 } }
+@keyframes skPenRing { 0%, 7% { opacity: 0 } 8.5%, 29.5% { opacity: .9 } 31%, 100% { opacity: 0 } }
+@keyframes skPenM { 0%, 31.5% { opacity: 0 } 32.5%, 49.5% { opacity: .9 } 51.5%, 100% { opacity: 0 } }
+
+/* The feature icons redraw themselves on hover (Drew, 2026-10-12: "subtle
+   hover animations to the existing icons"): art.feature() gives every stroke
+   pathLength="1", so one dash rule draws any of them from nothing, and the
+   chip lifts and tilts as before. Motion only; a filled dot simply stays. */
+@keyframes icoDraw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+html.motion .inc-card:hover .f-ico svg [pathLength] { stroke-dasharray: 1 1;
+  animation: icoDraw .9s var(--ease) both; }
+html.motion .inc-card:hover .f-ico { box-shadow: 0 0 0 4px rgba(45,232,181,.08),
+  0 10px 24px -10px rgba(45,232,181,.45); border-color: var(--green); }
+html.motion .inc-card .f-ico { transition: transform .35s var(--ease),
+  box-shadow .35s var(--ease), border-color .3s; }
+
+/* ------------------------------------------------ /logo: before & after
+   Two logos on the same light plate (a client's mark is drawn for white),
+   the arrow between them. The plate is --ink, a surface here, never type.
+   Under motion the "after" arrives a beat behind the "before". */
+.ba-list { display: grid; gap: 1.6rem; max-width: 920px; }
+.ba { display: grid; gap: 1rem; align-items: center; }
+@media (min-width: 760px) { .ba { grid-template-columns: 1fr auto 1fr; gap: 1.4rem; } }
+.ba-side { margin: 0; display: grid; gap: .7rem; }
+.ba-k { font-size: .72rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); }
+.ba-after .ba-k { color: var(--green); }
+.ba-plate { aspect-ratio: 1; border-radius: var(--radius); background: var(--ink);
+  border: 1px solid var(--line); display: grid; place-items: center; padding: 9%;
+  overflow: hidden; }
+.ba-after .ba-plate { border-color: var(--green); box-shadow: 0 0 0 4px rgba(45,232,181,.08); }
+.ba-plate img { width: 100%; height: 100%; object-fit: contain; }
+.ba-arrow { justify-self: center; display: grid; place-items: center; width: 52px;
+  height: 52px; border-radius: 50%; color: var(--bg); background: var(--green); }
+.ba-arrow svg { width: 22px; height: 22px; }
+@media (max-width: 759px) { .ba-arrow { transform: rotate(90deg); } }
+.ba-cap { grid-column: 1 / -1; margin: .2rem 0 0; color: var(--muted); }
+.ba-cap b { color: var(--ink); font-weight: 600; }
+html.motion .ba.rv .ba-after { opacity: 0; transform: translateX(14px);
+  transition: opacity .7s var(--ease) .45s, transform .7s var(--ease) .45s;
+  animation: mmSelf 0s 2.8s forwards; }
+html.motion .ba.rv.in .ba-after { opacity: 1; transform: none; }
+
+/* ------------------------------------------------ /logo: build the brand
+   Max's "a logo is the start of a brand", in Drew's colours: the sentence on
+   the left, the website package's own card on the right. */
+.tie { display: grid; gap: 1.6rem; align-items: center; }
+@media (min-width: 960px) { .tie { grid-template-columns: 1fr 1fr; gap: 3rem; } }
+.tie-words .lead { margin: 0 0 1rem; max-width: 46ch; }
+.tie-also { margin: 1.2rem 0 0; color: var(--muted); font-size: .95rem; }
+.tie-also a { color: var(--green); }
+.tie-card { padding: 1.8rem; border-color: var(--green-line);
+  transition: transform .35s var(--ease), border-color .3s, box-shadow .35s; }
+.tie-card:hover { transform: translateY(-5px); border-color: var(--green);
+  box-shadow: 0 30px 60px -30px rgba(0,0,0,.9); }
+.tie-top { display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 1.1rem; }
+.tie-price { color: var(--green); font-size: .9rem; padding-top: .4rem; }
+.tie-card h3 { color: var(--green); font-size: 1.35rem; margin-bottom: .9rem; }
+.tie-card ul { list-style: none; display: grid; gap: .55rem; margin: 0 0 1.5rem;
+  padding: 0; color: var(--muted); font-size: .94rem; }
+.tie-card li { display: flex; gap: .6rem; }
+.tie-card li::before { content: ""; flex: 0 0 auto; width: 7px; height: 7px;
+  margin-top: .55rem; border-radius: 2px; background: var(--green); }
+.tie-card li b { color: var(--ink); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .tie-card:hover { transform: none; } }

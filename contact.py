@@ -157,10 +157,8 @@ def _card(icon, title, value, href=None, cls=''):
 def sidebar():
     """The other ways in — and the one card that is a promise, not a link.
 
-    Email and phone are content.py's, which still carries the values published
-    on netoriouslabs.com today: the address names the old brand and CLAUDE.md
-    asks Drew to confirm it. They are rendered exactly as that file holds them
-    rather than tidied here.
+    Email and phone are content.py's, rendered exactly as that file holds
+    them rather than tidied here.
 
     The social icons are drawn and not linked, the same way footer_html() does
     it, because we have neither URL. Nobody clicks a dead link and the column

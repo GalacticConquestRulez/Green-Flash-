@@ -17,13 +17,15 @@ which is the temporary local copy of what results.py will own.
     /pricing /work /results /about
 """
 import html
+import os
 
 import art
 import campaign
 import results
 import re
 
-from content import (SITE, SERVICES, SEO, PRICING, BY_SLUG, CLIENTS, CASE,
+from content import (LOGO_CASES, WEB_FEATURES, price_range,
+                     SITE, SERVICES, SEO, PRICING, BY_SLUG, CLIENTS, CASE,
                      SITES, REELS, DRONE_CLIPS, ABOUT, BEATS, price, price_text)
 from results import (DASH1, DASH2, DASH3, DASH5, CONTENT_TYPES, LEADS,
                      bar_pct, leads_points)
@@ -118,9 +120,6 @@ def price_row(keys, bullets=None, featured=None, cls=''):
                                  featured=(k == featured)) for k in keys)
     cols = min(len(keys), 3)
     return f'<div class="grid grid-{cols} prices prices-{len(keys)} {cls}">{cards}</div>'
-
-
-TBC = ('<span class="tbc">Tier contents &mdash; to confirm with Drew</span>',)
 
 
 def stat(f):
@@ -219,6 +218,66 @@ def campaign_results():
         + f'<div class="cr">{big}{graph}</div>{note}', cls='cr-sec')
 
 
+def logo_cases():
+    """Before and after, one row per transformation (content.LOGO_CASES).
+
+    A row needs both files on disk; have() lists the missing one at the end of
+    the build (CLAUDE.md rule 10) and the row is left out until it lands. No
+    rows, no section. Both logos sit on the same light plate, because a
+    client's mark is drawn for white and the comparison has to be fair.
+    """
+    B = _b()
+    rows = ''
+    for c in LOGO_CASES:
+        if not (B.have(f'img/{c["before"]}.webp') and B.have(f'img/{c["after"]}.webp')):
+            continue
+        side = lambda slug, k, alt: (
+            f'<figure class="ba-side ba-{k.lower()}"><span class="ba-k mono">{k}</span>'
+            f'<div class="ba-plate">{B.pic(slug, alt, "(min-width:960px) 480px, 90vw")}'
+            f'</div></figure>')
+        rows += (f'<div class="ba rv">'
+                 + side(c['before'], 'Before', f'The old {c["name"]} logo')
+                 + f'<span class="ba-arrow" aria-hidden="true">{B.ICONS["arrow"]}</span>'
+                 + side(c['after'], 'After', f'The new {c["name"]} logo')
+                 + f'<p class="ba-cap"><b>{c["name"]}</b> &middot; {c["what"]}</p></div>')
+    if not rows:
+        return ''
+    return section(sec_head('Before &amp; after', 'Old mark.<span>New brand.</span>',
+                            aside='<p class="sec-note">Logos we have redrawn, '
+                                  'side by side.</p>')
+                   + f'<div class="ba-list">{rows}</div>', sid='before-after')
+
+
+def brand_tie_in():
+    """After the logo, the brand (Drew, 2026-10-12: "Similar to Max's page, add
+    a section encouraging customers to build their brand after getting their
+    logo. Mainly promote Website Design with a button linking to that
+    service"). Max's is a closing strip pairing a logo with a website build;
+    this is the same move, with the website package's own card — its price
+    and its four features read off PRICING, so nothing here can drift from
+    /websites. The sentence on the left is NEW COPY, for Drew to approve."""
+    B = _b()
+    feats = ''.join(f'<li><span><b>{t}</b> &ndash; {d}</span></li>' for t, d in WEB_FEATURES)
+    card = (f'<div class="tie-card panel rv">'
+            f'<div class="tie-top"><span class="ico">{art.icon("websites")}</span>'
+            f'<span class="tie-price mono">{price_text("web-design")}</span></div>'
+            f'<h3>Website design</h3><ul>{feats}</ul>'
+            f'<div class="btn-row"><a class="btn" href="{B.u("/websites")}">'
+            f'Explore website design {B.ICONS["arrow"]}</a></div></div>')
+    also = (f'<p class="tie-also">Also pairs well with '
+            f'<a href="{B.u("/social")}">social media</a> and '
+            f'<a href="{B.u("/meta-ads")}">performance marketing</a>.</p>')
+    words = (f'<div class="tie-words rv"><p class="lead">A great logo needs '
+             f'somewhere to live. Put yours to work on a website built around it '
+             f'&mdash; the same colours, the same polish, designed to turn visitors '
+             f'into customers.</p><p class="sec-note">Starting with a logo? Ask for '
+             f'the website in the same quote and we will plan the two together.</p>'
+             f'{also}</div>')
+    return section(sec_head('Build the brand',
+                            'Your logo is the start.<span>Build the brand around it.</span>')
+                   + f'<div class="tie">{words}{card}</div>', cls='band-alt tie-sec')
+
+
 # ------------------------------------------------------------ service pages
 def service_page(s):
     """One of the six. Hero, his opening block beside his breakdown, his
@@ -230,14 +289,24 @@ def service_page(s):
     quote = B.u(f'/contact?service={slug}')
     out = []
 
+    hero_price = (price_range(s['prices']) if s.get('hero_price') == 'range'
+                  else price_text(s['price_key']))
+    proof = ''
+    if s.get('hero_proof'):
+        # Drew's own results, as text: on a desktop they float in the hero
+        # beside the words, on a phone they sit under the buttons.
+        proof = ('<ul class="hero-proof">'
+                 + ''.join(f'<li class="mono rv rv-d{i + 1}"><i></i>{t}</li>'
+                           for i, t in enumerate(s['hero_proof']))
+                 + '</ul>')
     out.append(B.page_hero(
         name, s['hero_title'], s['lead'], crumb=name,
-        sky=s.get('hero_sky', False),
-        extra=(f'<div class="hero-price mono">{price_text(s["price_key"])}</div>'
+        backdrop=s.get('hero_backdrop'),
+        extra=(f'<div class="hero-price mono">{hero_price}</div>'
                f'<div class="btn-row">'
                f'<a class="btn" href="{quote}">Get a quote {B.ICONS["arrow"]}</a>'
                f'<a class="btn btn-ghost" href="#pricing">See the pricing</a>'
-               f'</div>')))
+               f'</div>{proof}')))
 
     link = ''
     if s.get('intro_link'):
@@ -253,8 +322,16 @@ def service_page(s):
         sec_head('Included', two_tone(s['included_title'])) + inc_cards(s['included']),
         cls='band-alt'))
 
+    if slug == 'social':
+        out.append(kelly_dashboard())
+
     if slug == 'drones':
+        out.append(drone_arsenal())
+        out.append(drone_film())
         out.append(drone_rail())
+
+    if slug == 'lead-conversion':
+        out.append(lead_hub())
 
     if slug == 'meta-ads':
         out.append(campaign_results())
@@ -265,6 +342,9 @@ def service_page(s):
                      aside='<p class="sec-note">Move the dials to see what a '
                            'campaign could look like before it starts.</p>'),
             mgmt), cls='band-alt', sid='preview'))
+
+    if slug == 'logo':
+        out.append(logo_cases())
 
     ex = s.get('extra')
     if ex:
@@ -283,13 +363,17 @@ def service_page(s):
                          f'href="{B.u(href)}">{label}</a></div>')
         out.append(section(''.join(inner), cls='band-alt' if slug == 'social' else ''))
 
-    bullets = {k: TBC for k in s['prices']} if slug == 'social' else None
-    words = ' prices-words' if slug == 'lead-conversion' else ''
-    out.append(section(
-        sec_head('Pricing', 'What it<span>costs.</span>',
-                 aside=f'<a class="btn btn-ghost" href="{B.u("/pricing")}">Every package</a>')
-        + price_row(s['prices'], bullets=bullets, cls=words.strip()),
-        sid='pricing'))
+    if slug == 'lead-conversion':
+        out.append(lead_quote())
+    else:
+        out.append(section(
+            sec_head('Pricing', 'What it<span>costs.</span>',
+                     aside=f'<a class="btn btn-ghost" href="{B.u("/pricing")}">Every package</a>')
+            + price_row(s['prices']),
+            sid='pricing'))
+
+    if slug == 'logo':
+        out.append(brand_tie_in())
 
     out.append(B.cta(
         title=f'Ready to start on {name.lower()}?',
@@ -330,6 +414,207 @@ def drone_rail():
         cls='band-alt')
 
 
+# ------------------------------------------------------- /social: Kelly's
+def kelly_dashboard():
+    """Kelly's Country Store as an analytics dashboard (Drew, 2026-10-15).
+
+    The tiles are dash-2, Kelly's own 28-day Insights, counting up on their
+    wheels like every dashboard figure on the site. The follower-growth chart
+    is drawn only from results.KELLY['growth'] — his numbers from the start
+    through the first year, which he is sending; until then it is absent, not
+    sketched. The two highlights are his own statements, set as words with no
+    invented figures behind them; the package is read off PRICING.
+    """
+    B = _b()
+    k = results.KELLY
+    views, _pay, eng, fol = DASH2
+    tiles = ''.join(stat(f) for f in (views, eng, fol))
+
+    growth = ''
+    if k.get('growth'):
+        pts = k['growth']
+        top = max(n for _, n in pts)
+        step = 300 / (len(pts) - 1)
+        line = [(round(i * step, 1), round(96 - n / top * 88, 1)) for i, (_, n) in enumerate(pts)]
+        growth = chart(f'Followers · {pts[0][0]} – {pts[-1][0]}', line,
+                       f'Kelly’s followers from {pts[0][1]:,} to {pts[-1][1]:,}')
+
+    em = PRICING['social-emerald']
+    per = f'/{em["per"]}' if em.get('per') else ''
+    links = (f'<a class="kd-link" href="{k["instagram"]}" target="_blank" rel="noopener">'
+             f'{B.ICONS["ig"]}<span>Instagram</span></a>'
+             f'<a class="kd-link" href="{k["facebook"]}" target="_blank" rel="noopener">'
+             f'{B.ICONS["fb"]}<span>Facebook</span></a>')
+    high = (
+        '<div class="kd-hl rv rv-d1"><span class="kd-k mono">Reels</span>'
+        '<b class="kd-big mono">100K+</b>'
+        '<p>Multiple reels past 100,000 views, every one filmed on-site at the store.</p></div>'
+        '<div class="kd-hl rv rv-d2"><span class="kd-k mono">Fall Fest</span>'
+        '<b class="kd-big">Biggest turnout</b>'
+        '<p>Their biggest Fall Fest crowd since we started working together.</p></div>'
+        f'<a class="kd-hl kd-pkg rv rv-d3" href="#pricing"><span class="kd-k mono">Their package · {em["tier"]}</span>'
+        f'<b class="kd-big mono">{em["amount"]}{per}</b>'
+        f'<p>Kelly&rsquo;s runs on our {em["tier"]} package &mdash; our most affordable, '
+        f'best-value package.</p><span class="kd-go">See {em["tier"]} {B.ICONS["arrow"]}</span></a>')
+    return section(
+        sec_head('Our services in action', 'Kelly&rsquo;s<span>Country Store.</span>',
+                 aside=f'<div class="kd-links">{links}</div>')
+        + prose(['Below is one of our clients that is currently enrolled in our Viral '
+                 'Content Management services. Each page is actively optimized to '
+                 'leverage trends, platform algorithms, and audience behavior for '
+                 'maximum reach and growth.'])
+        + f'<div class="kd panel rv">'
+          f'<div class="kd-top"><span class="kd-live"><i></i>Kelly&rsquo;s Country Store</span>'
+          f'<span class="kd-src mono">Facebook &amp; Instagram · Insights</span></div>'
+          f'<div class="grid grid-3 stats kd-stats">{tiles}</div>'
+          f'{growth}'
+          f'<div class="kd-hls">{high}</div>'
+          f'<p class="fig-cap">Tiles: Kelly&rsquo;s Country Store · last 28 days, against '
+          f'the 28 before it, read off their own dashboard.</p></div>',
+        cls='band-alt')
+
+
+# ------------------------------------------------------- /drones: arsenal
+# Drew, 2026-10-15: "showcasing the professional drone equipment we use …
+# DJI Neo, DJI Mini 5 Pro". The descriptions and spec chips are NEW COPY,
+# for Drew to confirm. A photo of his own drone at out/img/<slug>.webp takes
+# the drawing's place by itself.
+ARSENAL = [
+    dict(slug='drone-neo', name='DJI Neo', role='The close-up camera', art='neo',
+         text='Palm-sized with full prop guards, the Neo flies safely through '
+              'doorways, down hallways and close to people &mdash; smooth interior '
+              'walkthroughs and follow shots no larger drone can get.',
+         chips=['4K video', 'Full prop guards', 'Indoor &amp; walkthroughs']),
+    dict(slug='drone-mini-5-pro', name='DJI Mini 5 Pro', role='The cinematic camera', art='mini',
+         text='A 1-inch sensor on a gimbal that turns for true vertical: cinematic 4K '
+              'with real detail in shadow and at golden hour, shot native for '
+              'websites, reels and Stories.',
+         chips=['1-inch sensor', '4K HDR', 'True vertical']),
+]
+
+
+def drone_arsenal():
+    B = _b()
+    cards = []
+    for i, d in enumerate(ARSENAL):
+        # Optional, so os.path rather than have(): the drawing is a finished
+        # card, not a gap waiting for a file.
+        if os.path.exists(os.path.join(B.SRC, 'out', 'img', f'{d["slug"]}.webp')):
+            media = B.pic(d['slug'], d['name'], '(min-width:960px) 40vw, 90vw')
+        else:
+            media = getattr(art, d['art'])()
+        chips = ''.join(f'<li class="mono">{c}</li>' for c in d['chips'])
+        cards.append(
+            f'<article class="ars-card panel rv rv-d{i + 1}">'
+            f'<div class="ars-stage">{media}<i class="ars-shadow"></i></div>'
+            f'<div class="ars-body"><span class="eyebrow">{d["role"]}</span>'
+            f'<h3>{d["name"]}</h3><p>{d["text"]}</p><ul class="ars-chips">{chips}</ul></div>'
+            f'</article>')
+    return section(
+        sec_head('Our arsenal', 'The drones<span>we fly.</span>',
+                 aside='<p class="sec-note">Two aircraft, one for the tight spaces '
+                       'and one for the big picture.</p>')
+        + f'<div class="grid grid-2 ars">{"".join(cards)}</div>')
+
+
+# ------------------------------------------------------- /drones: the film
+# Drew, 2026-10-15: "a featured video section showcasing our actual drone
+# footage … in a cinematic video player". A lite embed: the poster and a play
+# button, and YouTube's player only once someone presses it (site.js swaps in
+# the youtube-nocookie iframe). Without a script the button is a plain link
+# to the film on YouTube. The poster is YouTube's own frame, saved once to
+# out/img/drone-film.webp; until it is there the card uses YouTube's URL.
+FILM = dict(id='kVI5MWz1cC8', title='5133 East River Road, Grand Island',
+            sub='Live walkthrough · Isle de Grande')
+
+
+def drone_film():
+    B = _b()
+    f = FILM
+    if os.path.exists(os.path.join(B.SRC, 'out', 'img', 'drone-film.webp')):
+        poster = B.u('/assets/img/drone-film.webp')
+    else:
+        poster = f'https://i.ytimg.com/vi/{f["id"]}/maxresdefault.jpg'
+    return section(
+        sec_head('Our drone work', 'Featured<span>film.</span>',
+                 aside='<p class="sec-note">Our own footage, flown and edited for the '
+                       'listing. Press play.</p>')
+        + f'<figure class="film rv">'
+          f'<a class="film-frame" href="https://www.youtube.com/watch?v={f["id"]}" '
+          f'data-yt="{f["id"]}" target="_blank" rel="noopener" '
+          f'aria-label="Play: {f["title"]}">'
+          f'<img src="{poster}" alt="" loading="lazy" decoding="async">'
+          f'<span class="film-shade"></span>'
+          f'<span class="film-play">{B.ICONS["play"]}</span>'
+          f'<span class="film-meta"><b>{f["title"]}</b>'
+          f'<span class="mono">{f["sub"]}</span></span></a></figure>',
+        cls='band-alt film-sec')
+
+
+# ------------------------------------------------- /lead-conversion: the hub
+# Drew, 2026-10-15: "a small animated section showing leads from multiple
+# platforms being organized into one dashboard through third-party
+# integrations". An illustration, and labelled one: the rows say where a lead
+# came from and where it is, never whose it is, and carry no figures. The
+# sentence beside it is NEW COPY for Drew to approve.
+HUB_SOURCES = [('fb', 'Facebook'), ('ig', 'Instagram'), ('g', 'Google'),
+               ('mail', 'Website form'), ('phone', 'Calls &amp; texts')]
+HUB_ROWS = [('Facebook', 'Lead form', 'New'), ('Website form', 'Quote request', 'Contacted'),
+            ('Instagram', 'Message', 'Qualified'), ('Google', 'Call', 'Booked'),
+            ('Calls &amp; texts', 'Missed call', 'Contacted')]
+G_ICON = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+          'stroke-linecap="round"><path d="M20 12a8 8 0 11-2.4-5.7M20 12h-7"/></svg>')
+
+
+def lead_hub():
+    B = _b()
+    src = ''.join(
+        f'<li class="hub-src rv rv-d{i % 3 + 1}" style="--i:{i}">'
+        f'<span class="hub-ico">{G_ICON if k == "g" else B.ICONS[k]}</span>{n}<i></i></li>'
+        for i, (k, n) in enumerate(HUB_SOURCES))
+    rows = ''.join(
+        f'<li class="hub-row" style="--i:{i}"><span class="hub-dot"></span>'
+        f'<span class="hub-what"><b>{what}</b><span class="mono">{s}</span></span>'
+        f'<span class="hub-st hub-{st.lower()} mono">{st}</span></li>'
+        for i, (s, what, st) in enumerate(HUB_ROWS))
+    return section(
+        sec_head('Lead centralization', 'Every platform.<span>One dashboard.</span>',
+                 aside='<p class="sec-note">Leads from Facebook, Instagram, Google, your '
+                       'website and your phone land in one dashboard through third-party '
+                       'integrations, so every lead is followed up from one place and '
+                       'nothing slips through.</p>')
+        + f'<div class="hub rv"><ul class="hub-srcs">{src}</ul>'
+          f'<div class="hub-flow" aria-hidden="true"><i></i><i></i><i></i></div>'
+          f'<div class="hub-dash panel"><div class="hub-top"><b>All leads</b>'
+          f'<span class="hub-tag mono">Illustration</span></div>'
+          f'<ul class="hub-rows">{rows}</ul></div></div>',
+        cls='band-alt')
+
+
+def lead_quote():
+    """Drew, 2026-10-15: "Focus on requesting a custom quote rather than fixed
+    packages. CTA: Let's Build a Plan for Your Business", with his four lines
+    as what the plan covers."""
+    B = _b()
+    p = PRICING['lead-conversion']
+    tick = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" '
+            'stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>')
+    items = ''.join(f'<li class="rv rv-d{i % 3 + 1}">{tick}<span>{t}</span></li>'
+                    for i, t in enumerate(p['features']))
+    return section(
+        sec_head('Pricing', 'A plan built<span>for your business.</span>',
+                 aside=f'<a class="btn btn-ghost" href="{B.u("/pricing")}">Every package</a>')
+        + f'<div class="lq panel rv"><div class="lq-words">'
+          f'<span class="tier">{p["tier"]}</span>'
+          f'<div class="lq-amount mono">{p["amount"]}</div>'
+          f'<p>No fixed packages. Pricing is based on an hourly rate plus commission on '
+          f'closed deals, set around your campaigns and your goals.</p>'
+          f'<a class="btn" href="{B.u("/contact?service=lead-conversion")}">'
+          f'Let&rsquo;s Build a Plan for Your Business {B.ICONS["arrow"]}</a></div>'
+          f'<ul class="lq-list">{items}</ul></div>',
+        sid='pricing')
+
+
 # ------------------------------------------------------------------ /pricing
 def pricing_page():
     B = _b()
@@ -338,7 +623,7 @@ def pricing_page():
         keys = [k for k, p in PRICING.items() if p['service'] == s['slug']]
         if not keys:
             continue
-        bullets = {k: TBC for k in keys} if s['slug'] == 'social' else None
+        bullets = None
         words = 'prices-words' if s['slug'] == 'lead-conversion' else ''
         about = (f'<a class="btn btn-ghost" href="{B.u("/" + s["slug"])}">'
                  f'About this service</a>')
@@ -371,20 +656,18 @@ def work_page():
     B = _b()
     logos = ''.join(
         f'<div class="logo-card panel rv rv-d{i % 3 + 1}">'
-        f'<div class="logo-shot">{B.pic(c["slug"], c["name"] + " logo", B.CARD_SIZES)}</div>'
+        f'<div class="logo-shot{" is-light" if c.get("light") else ""}{" is-contain" if c.get("contain") else ""}">'
+        f'{B.pic(c["slug"], c["name"] + " logo", B.CARD_SIZES)}</div>'
         f'<h3>{c["name"]}</h3>'
         f'<p class="mono logo-work">{c["work"]}</p>'
-        f'<p class="logo-note">{c["detail"] or "Details to confirm with Drew."}</p>'
-        f'</div>' for i, c in enumerate(CLIENTS))
+        + (f'<p class="logo-note">{c["detail"]}</p>' if c['detail'] else '')
+        + '</div>' for i, c in enumerate(CLIENTS))
 
     renders = ''.join(
         f'<figure class="case-shot rv">{B.pic(slug, alt, "(min-width:960px) 45vw, 100vw")}'
         f'<figcaption>{alt}</figcaption></figure>' for slug, alt in CASE['renders'])
 
-    sites = ''.join(
-        f'<div class="site-card panel rv rv-d{i % 3 + 1}"><h3>{s["name"]}</h3>'
-        f'<p class="mono logo-work">{s["work"]}</p><p>{s["blurb"]}</p></div>'
-        for i, s in enumerate(SITES))
+    sites = site_gallery()
 
     reels = ''.join(reel_card(slug, title, sub) for slug, title, sub in REELS)
 
@@ -407,8 +690,11 @@ def work_page():
                                    f'About logo design</a>')
                     + f'<div class="grid grid-2 case">{renders}</div>',
                     cls='band-alt'),
-            section(sec_head('Websites', 'Built and<span>launched.</span>')
-                    + f'<div class="grid grid-3 sites">{sites}</div>'),
+            section(sec_head('Websites', 'Built and<span>launched.</span>',
+                             aside='<p class="sec-note">Completed '
+                                   f'{PRICING["web-design"]["amount"]} WordPress '
+                                   'websites, live today. Tap one to visit it.</p>')
+                    + sites),
             section(sec_head('Content in action', 'Made for the feed.<span>Filmed for the client.</span>',
                              aside='<p class="sec-note">Kelly&rsquo;s Country Store &mdash; '
                                    'viral content management and Meta ad campaigns.</p>')
@@ -417,6 +703,33 @@ def work_page():
             B.cta(primary=('Get a quote', '/contact'),
                   secondary=('See the results', '/results')),
         ]))
+
+
+def site_gallery():
+    """Drew's completed websites (2026-10-15: "a scrolling gallery showcasing
+    our completed $1,250 WordPress websites … website previews with clickable
+    links"). Each card is a browser window around a screenshot of the live
+    site (tools/shoot-sites.mjs), and opens the site itself in a new tab.
+
+    The server sends one plain row of cards: a native scroll-snap strip on a
+    phone, with no script, and under reduced motion. On a wider screen under
+    html.motion site.js copies the row once (aria-hidden, inert) and the pair
+    drifts left in a loop, pausing whenever a pointer or focus is on it.
+    """
+    B = _b()
+    amount = PRICING['web-design']['amount']
+    cards = []
+    for s in SITES:
+        host = s['url'].split('//', 1)[1].rstrip('/').removeprefix('www.')
+        cards.append(
+            f'<a class="ss" href="{s["url"]}" target="_blank" rel="noopener">'
+            f'<span class="ss-bar" aria-hidden="true"><i></i><i></i><i></i>'
+            f'<span class="mono">{host}</span></span>'
+            f'<span class="ss-img">{B.pic("site-" + s["slug"], s["name"] + " home page", "(min-width:960px) 460px, 82vw")}</span>'
+            f'<span class="ss-cap"><b>{s["name"]}</b>'
+            f'<span class="mono">WordPress · {amount} package</span>{B.ICONS["arrow"]}</span></a>')
+    return (f'<div class="ss-gallery rv" data-marquee>'
+            f'<div class="ss-track">{"".join(cards)}</div></div>')
 
 
 def reel_card(slug, title, sub):

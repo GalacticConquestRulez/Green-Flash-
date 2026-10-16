@@ -243,6 +243,19 @@ HOME_STATS = [DASH1[0], DASH1[1], DASH3[0], DASH5[0]]
 # Every figure this file knows, for the build's own sake: the verification
 # script asserts each string below appears in the page that prints it, so a
 # figure can never drift between this file and the HTML.
+# Kelly's Country Store, for the dashboard on /social (Drew, 2026-10-15).
+# The two links are the ones Kelly's own site (kellyscountrystore.com) carries.
+# `growth` is the follower count from the month we started through the first
+# year — Drew: "I will get you this". Until it lands it is None and the
+# dashboard has no growth chart: an empty slot, never a made-up curve. When it
+# arrives it is [(label, followers), ...], one point a month, read off his
+# Insights; the chart, its axis and its caption follow from it.
+KELLY = dict(
+    facebook='https://www.facebook.com/KellysCountryStore1962/',
+    instagram='https://www.instagram.com/kellyscountrystore/',
+    growth=None,
+)
+
 ALL = DASH1 + DASH2 + DASH3 + DASH5 + DASH7 + [CONTENT_TYPES['total']]
 
 for _f in ALL:

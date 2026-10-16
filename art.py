@@ -16,6 +16,7 @@ weight, no decoration. If a seventh service ever arrives, it is drawn to the
 same rules or it does not go on the grid.
 """
 import html
+import re
 
 # The one set of attributes every icon shares. Written once so a later change
 # to the weight is a change to this line.
@@ -154,7 +155,12 @@ def feature(name):
     KeyError is deliberate, as with icon(): a heading with no drawing stops
     the build rather than leaving one box on a row of three without one.
     """
-    return f'<svg class="f-art" {_F}>{FEATURES[name]}</svg>'
+    # pathLength="1" on every stroke so CSS can redraw any of them with one
+    # dash rule, whatever its real length: the feature boxes' hover (Drew,
+    # 2026-10-12, "subtle hover animations to the existing icons").
+    body = re.sub(r'<(path|circle|rect|line|polyline|polygon|ellipse)\b',
+                  r'<\1 pathLength="1"', FEATURES[name])
+    return f'<svg class="f-art" {_F}>{body}</svg>'
 
 
 # ----------------------------------------------------------- the little quad
@@ -180,6 +186,50 @@ def quad(cls='quad'):
             f'<ellipse cx="10" cy="21" rx="5.5" ry="2"/>'
             f'<ellipse cx="36" cy="21" rx="5.5" ry="2"/>'
             f'<path d="M23 16v2.5"/></svg>')
+
+
+# ------------------------------------------------------------- the arsenal
+# Drew's two drones on /drones (2026-10-15: "Feature both drones with images,
+# subtle animations"). Seen from above, in the site's own line style, because
+# DJI's product photographs are DJI's: the DJI Neo square with its four
+# full prop guards, the Mini 5 Pro long-armed with the gimbal out front. The
+# props are drawn still; under motion they spin (.dr-prop). His own photos
+# replace either drawing by being dropped into out/img (pages.drone_arsenal).
+def _props(at, r):
+    return ''.join(f'<g class="dr-prop" style="--s:{i % 2 * 2 - 1}">'
+                   f'<path d="M{x - r} {y}H{x + r}M{x} {y - r * .18}V{y + r * .18}"/>'
+                   f'<circle cx="{x}" cy="{y}" r="4"/></g>'
+                   for i, (x, y) in enumerate(at))
+
+
+def neo():
+    at = [(64, 64), (176, 64), (64, 176), (176, 176)]
+    guards = ''.join(f'<circle class="dr-guard" cx="{x}" cy="{y}" r="50"/>' for x, y in at)
+    return ('<svg class="drone-art" viewBox="0 0 240 240" fill="none" stroke="currentColor" '
+            'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
+            'role="img" aria-label="DJI Neo, drawn from above">'
+            f'{guards}<path class="dr-frame" d="M94 94 78 78M146 94 162 78M94 146 78 162M146 146 162 162"/>'
+            f'{_props(at, 40)}'
+            '<rect class="dr-body" x="84" y="74" width="72" height="96" rx="24"/>'
+            '<rect class="dr-body" x="102" y="60" width="36" height="20" rx="8"/>'
+            '<circle class="dr-lens" cx="120" cy="70" r="5"/>'
+            '<path d="M106 150h28"/></svg>')
+
+
+def mini():
+    at = [(56, 58), (244, 58), (66, 196), (234, 196)]
+    discs = ''.join(f'<circle class="dr-guard dr-disc" cx="{x}" cy="{y}" r="48"/>' for x, y in at)
+    return ('<svg class="drone-art" viewBox="0 0 300 250" fill="none" stroke="currentColor" '
+            'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
+            'role="img" aria-label="DJI Mini 5 Pro, drawn from above">'
+            f'{discs}'
+            '<path class="dr-frame" d="M132 92 62 62M168 92 238 62M134 158 72 192M166 158 228 192"/>'
+            + ''.join(f'<circle class="dr-body" cx="{x}" cy="{y}" r="10"/>' for x, y in at)
+            + f'{_props(at, 44)}'
+            '<rect class="dr-body" x="122" y="70" width="56" height="122" rx="26"/>'
+            '<path d="M134 176h32M138 184h24"/>'
+            '<rect class="dr-body" x="132" y="40" width="36" height="34" rx="12"/>'
+            '<circle class="dr-lens" cx="150" cy="54" r="9"/></svg>')
 
 
 # ------------------------------------------------------- the service marks

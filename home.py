@@ -106,10 +106,10 @@ HOME_LINES = {
             'delivery.',
     # NEW — his /drone-videography is blank. For Drew to approve.
     'drones': 'Aerial film and stills for listings, businesses and events.',
-    # NEW — his /lead-conversion is blank. His README says the service is
-    # "closing Meta-ad-generated leads". For Drew to approve.
+    # NEW — his README says the service is "closing Meta-ad-generated
+    # leads"; the price words are his, 2026-10-15. For Drew to approve.
     'lead-conversion': 'Closing the leads your Meta campaigns generate. '
-                       'Commission or hourly.',
+                       'Hourly plus commission.',
 }
 
 # The clients whose logo files he sent, in the mockup's order. The strip is
@@ -179,7 +179,8 @@ def _card_price(s):
     rows = [k for k, p in PRICING.items() if p['service'] == s['slug']]
     p = PRICING[s['price_key']]
     if len(rows) > 1 and not p['qualifier']:
-        return f"from {p['amount']}"
+        per = f"/{p['per']}" if p.get('per') else ''
+        return f"from {p['amount']}{per}"
     return price_text(s['price_key'])
 
 

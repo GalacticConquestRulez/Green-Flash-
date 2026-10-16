@@ -26,6 +26,7 @@ collected and printed at the end, so nothing goes quiet.
     PREFIX=/p/test python3 build.py         → site/ under a preview prefix
 """
 import os, html, json, hashlib, struct, datetime
+import art
 
 from content import (SITE, SERVICES, SEO, PRICING, BY_SLUG, TODO,
                      FORM_ENDPOINT, price)
@@ -375,7 +376,7 @@ def footer_html():
 
 # -------------------------------------------------------------- page pieces
 def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, video=None,
-              cls='', media_alt='', extra='', sky=False):
+              cls='', media_alt='', extra='', backdrop=None):
     """The top of a page: an optional photograph or film, a shade, the words.
 
     `title` is passed through as markup so a two-tone headline can be written
@@ -398,9 +399,9 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, video=None,
                  f'{pic(media_slug, media_alt, HERO_SIZES, extra="fetchpriority=\"high\"", lazy=False)}'
                  f'</div>')
     shade = '<div class="hero-shade"></div>' if media else ''
-    if sky and not media:
-        media = SKY
-        cls = (cls + ' has-sky').strip()
+    if backdrop and not media:
+        media = BACKDROPS[backdrop]
+        cls = (cls + f' has-{backdrop}').strip()
     crumbs = (f'<div class="crumbs"><a href="{u("/")}">Home</a><span>/</span>'
               f'<span>{crumb or eyebrow}</span></div>') if crumb is not False else ''
     lead_html = f'<p class="lead">{lead}</p>' if lead else ''
@@ -422,6 +423,102 @@ def page_hero(eyebrow, title, lead, media_slug=None, crumb=None, video=None,
 SKY = ('<div class="hero-sky" aria-hidden="true">'
        '<i class="sky-far"></i><i class="sky-near"></i><i class="sky-wind"></i>'
        '</div>')
+
+
+# The pen behind a hero (Drew, 2026-10-12, /logo: "a subtle animation behind
+# 'Professional Logo Design' … something simple, like a logo being sketched or
+# designed"). A mark on its construction grid: the guides come up, the pen
+# traces the ring with its handle out, sets the monogram down anchor by
+# anchor, the paint fills the disc — then it fades and starts again, every
+# fourteen seconds. The drawing is server HTML and shows FINISHED with no
+# script or with reduced motion (the anchors, the handle and the pens are the
+# only things hidden then); the cycle is CSS under html.motion (20-pages.css),
+# and the two pens ride their paths on SMIL <animateMotion>, which needs no
+# script and is invisible unless html.motion shows them.
+SKETCH = ('<div class="hero-sketch" aria-hidden="true">'
+          '<svg viewBox="0 0 600 600" focusable="false">'
+          '<path class="sk-grid" d="M60 30V570M120 30V570M180 30V570M240 30V570M300 30V570M360 30V570M420 30V570M480 30V570M540 30V570M30 60H570M30 120H570M30 180H570M30 240H570M30 300H570M30 360H570M30 420H570M30 480H570M30 540H570"/>'
+          '<g class="sk-guides"><circle cx="300" cy="300" r="220"/>'
+          '<circle cx="300" cy="300" r="136"/><circle cx="300" cy="300" r="84"/>'
+          '<path d="M300 40V560M40 300H560M90 90L510 510M510 90L90 510"/></g>'
+          '<circle class="sk-fill" cx="300" cy="300" r="166"/>'
+          '<path class="sk-ring" pathLength="1" d="M300 120a180 180 0 1 1-.01 0"/>'
+          '<path class="sk-m" pathLength="1" d="M228 388V214l72 84 72-84v174"/>'
+          '<g class="sk-handle"><path d="M206 120H394"/><circle cx="206" cy="120" r="7"/>'
+          '<circle cx="394" cy="120" r="7"/></g>'
+          '<g class="sk-anchors"><rect x="294" y="114" width="12" height="12"/><rect x="222" y="382" width="12" height="12"/><rect x="222" y="208" width="12" height="12"/><rect x="294" y="292" width="12" height="12"/><rect x="366" y="208" width="12" height="12"/><rect x="366" y="382" width="12" height="12"/></g>'
+          '<g class="sk-pen sk-pen-ring"><g transform="rotate(28)"><path d="M0 0l-9-20 4-15h10l4 15z"/><circle class="sk-slit" cy="-17" r="3"/></g><animateMotion dur="14s" repeatCount="indefinite" '
+          'calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;.08;.30;1" path="M300 120a180 180 0 1 1-.01 0"/></g>'
+          '<g class="sk-pen sk-pen-m"><g transform="rotate(28)"><path d="M0 0l-9-20 4-15h10l4 15z"/><circle class="sk-slit" cy="-17" r="3"/></g><animateMotion dur="14s" repeatCount="indefinite" '
+          'calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;.32;.50;1" path="M228 388V214l72 84 72-84v174"/></g>'
+          '</svg></div>')
+
+# Viral Content Management (Drew, 2026-10-15: "subtle animated social media
+# elements in the background, such as floating icons, Twitter birds, or small
+# bubbles"). Line icons — a heart, a play button, a comment, a small bird, a
+# bell, a share arrow — scattered over the right of the hero; under motion
+# each one rises and fades on its own clock. No-JS and reduced motion show
+# them parked where they are. His two results are not here: they are words,
+# so they live in the hero itself (pages.service_page, `hero_proof`).
+_SOC = {
+    'heart': '<path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/>',
+    'play': '<rect x="3" y="5" width="18" height="14" rx="4"/><path d="M10 9v6l5-3z"/>',
+    'chat': '<path d="M4 6h16v10H9l-5 4z"/>',
+    'bird': '<path d="M3 15c3 2 8 2 11-1 2-2 3-5 3-7l3-1-3-1c-1-1-3-1-4 1-1 1-1 3 0 4-3 0-6-1-8-3 0 3 1 5 3 6-1 1-3 2-5 2z"/>',
+    'bell': '<path d="M6 16V11a6 6 0 0112 0v5l2 2H4z"/><path d="M10 20h4"/>',
+    'share': '<path d="M14 5l6 6-6 6M20 11H9a5 5 0 00-5 5v2"/>',
+}
+_SOC_AT = [  # (icon, left %, top %, size px, delay s)
+    ('heart', 62, 18, 30, 0), ('play', 80, 30, 38, 3), ('chat', 70, 62, 28, 6),
+    ('bird', 88, 70, 34, 1.5), ('bell', 56, 74, 24, 8), ('share', 92, 14, 26, 4.5),
+    ('heart', 76, 84, 22, 10), ('bird', 66, 40, 22, 12), ('chat', 86, 48, 22, 7.5),
+]
+SOCIAL = ('<div class="hero-social" aria-hidden="true">' + ''.join(
+    f'<svg class="so-i so-{n}" style="left:{x}%;top:{y}%;width:{w}px;'
+    f'--d:-{d}s" viewBox="0 0 24 24" focusable="false">{_SOC[n]}</svg>'
+    for n, x, y, w, d in _SOC_AT) + '</div>')
+
+# Professional Drone Sessions (Drew, 2026-10-15: "a subtle mountain landscape
+# or perspective to give the section more depth … subtle animated drones
+# flying around the hero"). Three ridges, far to near, each a little darker
+# and a little greener on its crest, drifting at different speeds; a haze
+# between them; and three of Home's quads flying slow loops over the range.
+# Drawn here in his colours — the Adobe image he linked is the mood, not an
+# asset. Static, the quads hang over the ridges where the loops begin.
+_RIDGES = [
+    ('pk-far', 'M0 330L120 250L210 290L330 180L440 260L560 150L690 240L800 190L930 270L1060 160L1180 240L1300 200L1430 270L1560 210L1680 260L1800 230V600H0Z'),
+    ('pk-mid', 'M0 400L140 320L260 370L380 290L520 380L640 300L780 360L900 280L1040 370L1170 310L1300 380L1440 300L1580 360L1720 320L1800 350V600H0Z'),
+    ('pk-near', 'M0 470L160 410L300 450L460 390L600 460L760 420L900 470L1060 400L1220 460L1380 410L1540 460L1680 430L1800 450V600H0Z'),
+]
+PEAKS = ('<div class="hero-peaks" aria-hidden="true">'
+         + ''.join(f'<svg class="pk {c}" viewBox="0 0 1800 600" preserveAspectRatio="xMidYMax slice" '
+                   f'focusable="false"><path d="{d}"/></svg>' for c, d in _RIDGES)
+         + '<i class="pk-haze"></i>'
+         + ''.join(f'<span class="pk-drone pk-d{i}">{art.quad()}</span>' for i in (1, 2, 3))
+         + '</div>')
+
+# Professional Lead Conversion (Drew, 2026-10-15: "subtle background
+# animations (dollar signs, upward arrows, growing graphs)"). On the right: a
+# bar chart whose bars grow, a line that climbs over them to an arrowhead,
+# and dollar signs and arrows rising past. The finished chart is the static
+# render; the growing is html.motion only.
+_GROW_BARS = [(70, 90), (150, 130), (230, 170), (310, 220), (390, 270), (470, 320)]
+_GROW_FLOAT = [('$', 8, 70, 0), ('↑', 22, 40, 2.5), ('$', 40, 82, 5), ('↑', 58, 22, 1.2),
+               ('$', 74, 56, 7), ('↑', 88, 78, 3.8), ('$', 50, 10, 9)]
+GROWTH = ('<div class="hero-growth" aria-hidden="true">'
+          '<svg viewBox="0 0 560 420" focusable="false">'
+          '<path class="gr-axis" d="M40 380H540M40 380V40"/>'
+          + ''.join(f'<rect class="gr-bar" x="{x}" y="{380 - h}" width="46" height="{h}" '
+                    f'rx="6" style="--i:{i}"/>' for i, (x, h) in enumerate(_GROW_BARS))
+          + '<path class="gr-line" pathLength="1" d="M60 300L150 260L230 270L320 190L400 160L500 70"/>'
+          '<path class="gr-head" d="M478 68L504 66L500 92"/>'
+          '</svg>'
+          + ''.join(f'<b class="gr-f mono" style="left:{x}%;top:{y}%;--d:-{d}s">{t}</b>'
+                    for t, x, y, d in _GROW_FLOAT)
+          + '</div>')
+
+BACKDROPS = {'sky': SKY, 'sketch': SKETCH, 'social': SOCIAL, 'peaks': PEAKS,
+             'growth': GROWTH}
 
 
 def cta(title='Ready to get started?',
@@ -467,7 +564,8 @@ def price_card(key, bullets=(), featured=False, badge=None, cta_label='Get a quo
     per = f'<span class="per">/{p["per"]}</span>' if p.get('per') else ''
     note = f'<small>{p["note"]}</small>' if p['note'] else ''
     if not bullets and p.get('features'):
-        bullets = [f'<span><b>{t}</b> &ndash; {d}</span>' for t, d in p['features']]
+        bullets = [f'<span>{f}</span>' if isinstance(f, str) else
+                   f'<span><b>{f[0]}</b> &ndash; {f[1]}</span>' for f in p['features']]
     b = ''.join(f'<li>{x}</li>' for x in bullets)
     # The package's graphic, only once the file is in out/img — until then
     # have() lists it as missing and the card is drawn without it.

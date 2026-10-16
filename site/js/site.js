@@ -1006,3 +1006,52 @@
   inputs.forEach(i=>{i.disabled=false;i.addEventListener('input',update);i.addEventListener('change',update)});
   update();
 })();
+
+
+/* =====================================================================
+   /drones: THE FEATURED FILM — YouTube only when asked
+   The card is a link to the film on YouTube, so with no script it simply
+   opens it there. With one, a press swaps the poster for the player
+   (youtube-nocookie, autoplaying because the visitor just asked for it).
+   Nothing from YouTube loads until then.
+   ===================================================================== */
+(()=>{
+  const {$$}=window.mm;
+  $$('[data-yt]').forEach(a=>a.addEventListener('click',e=>{
+    if(e.metaKey||e.ctrlKey||e.shiftKey||e.button) return;
+    e.preventDefault();
+    if(a.classList.contains('is-playing')) return;
+    const f=document.createElement('iframe');
+    f.src=`https://www.youtube-nocookie.com/embed/${a.dataset.yt}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+    f.title=a.getAttribute('aria-label')||'Video';
+    f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    f.allowFullscreen=true;
+    f.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
+    a.replaceChildren(f);
+    a.classList.add('is-playing');
+    a.removeAttribute('href');
+    a.setAttribute('role','presentation');
+  }));
+})();
+
+
+/* =====================================================================
+   /work: THE WEBSITE GALLERY drifts on a wide screen
+   The server sends one row of cards, which is a swipe strip on its own. On a
+   screen 720px and up, under motion, the row is copied once (aria-hidden and
+   inert, so a screen reader and the tab key meet each site once) and the two
+   copies slide left as one loop; hovering or focusing it holds it still.
+   ===================================================================== */
+(()=>{
+  const {motion,$$}=window.mm;
+  if(!motion) return;
+  let wide=false; try{wide=matchMedia('(min-width:720px)').matches}catch(e){}
+  if(!wide) return;
+  $$('[data-marquee]').forEach(g=>{
+    const t=g.querySelector('.ss-track'); if(!t) return;
+    [...t.children].forEach(c=>{const k=c.cloneNode(true);
+      k.setAttribute('aria-hidden','true');k.setAttribute('tabindex','-1');k.inert=true;
+      t.appendChild(k)});
+    g.classList.add('is-marquee');
+  });
+})();

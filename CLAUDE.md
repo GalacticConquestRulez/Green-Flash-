@@ -47,21 +47,24 @@ marketing site (Home, the services, Results, Work, About Drew, Contact/quote)
 | key | package | price |
 |---|---|---|
 | `web-design` | Website design | from **$1,250** |
-| `meta-ads` | Performance marketing | **$750/month** |
-| `social-emerald` | Social media — Emerald | **$500** |
-| `social-sapphire` | Social media — Sapphire | **$1,000** |
-| `social-diamond` | Social media — Diamond | **$2,000** |
-| `logo` | Logo design | **$500** |
-| `lead-conversion` | Lead conversion | **Commission or hourly, priced to the need** |
+| `meta-ads` | Performance Marketing | **$750/month** |
+| `social-emerald` | Social media — Emerald | **$1,000/month** |
+| `social-sapphire` | Social media — Sapphire | **$1,500/month** |
+| `social-diamond` | Social media — Diamond | **$2,000/month** |
+| `logo` | Logo design | from **$500** |
+| `lead-conversion` | Lead conversion | **Hourly + commission, a custom quote** |
 | `drone-session` | Drone session | **$1,000** |
 
-**One of these disagrees with netoriouslabs.com today** and the README is what
-we built to — ask Drew: the README says logo **$500** (his site says $750). If
-the current site is right, change `PRICING` in `content.py` and nothing else:
-no page holds a figure of its own. (Performance marketing was the other; Drew
-settled it 2026-10-11 at $750 a month, the client covering the ad budget.)
+The README and netoriouslabs.com used to disagree on two of these; Drew has
+settled both himself — performance marketing at $750 a month, the client
+covering the ad budget (2026-10-11), and logo design from $500, "pricing
+varies by project needs" (2026-10-12). The social tiers and what is in each
+came from him 2026-10-15; the /social hero quotes the range they make
+(`price_range()`, $1,000–$2,000/month — his note said $500, the owner chose
+the range the rows actually make). A price changes in `PRICING` in
+`content.py` and nowhere else: no page holds a figure of its own.
 
-**"Meta ads & filming" is now "Performance marketing"** (Drew, 2026-10-11) —
+**"Meta ads & filming" is now "Performance Marketing"** (Drew, 2026-10-11) —
 the page, the nav, the footer, the price row. The slug and URL stay
 `/meta-ads` so links already out there keep working.
 
@@ -187,6 +190,8 @@ process.sh               logos, client logos, photos → webp sets  (media build
 make-clips.sh            the hero film, the drone rail, Kelly's reels (media builder)
 tools/make-og.py         the mark cut out of assets/logo.png → the favicon set
                          and the 1200x630 share cards, into out/img/
+tools/shoot-sites.mjs    the /work website previews: screenshots of the
+                         live sites → out/img/site-<slug>.webp
 tools/make-lockup.py     the nav lockup (mark, MENDOZA over MARKETING) cut
                          out of assets/logo.png → out/img/lockup.webp
 assets/                  the originals Drew sent            (gitignored)
@@ -302,24 +307,44 @@ publishes none of them.
   `out/img/lockup.webp` is exactly that, cut from his own artwork — his
   lettering, tracking and colours, rearranged, nothing set in a font. The
   footer keeps his stacked lockup. Do not rebuild either in Space Grotesk.
-- **The social-media tier contents.** Emerald $500 / Sapphire $1,000 / Diamond
-  $2,000 are priced, but what is *in* each tier is not written down anywhere we
-  hold. `/social` and `/pricing` cannot be finished without it.
+- **Kelly's follower growth** (Drew, 2026-10-15: "I will get you this") — the
+  count from the month they started through the first year, into
+  `results.KELLY['growth']` as `[(label, followers), …]`. The /social
+  dashboard draws the chart by itself once it is there; until then it has none.
+- **New copy from 2026-10-15 for Drew to approve:** the three Included
+  sentences on /social, the two arsenal cards on /drones (`pages.ARSENAL`,
+  descriptions and spec chips), and the lead-centralization sentence on
+  /lead-conversion (`pages.lead_hub`).
+- **Photos of his own DJI Neo and Mini 5 Pro, if he wants them.** The arsenal
+  draws both in line art; `out/img/drone-neo.webp` / `drone-mini-5-pro.webp`
+  replace the drawings by being there.
 - **Copy approval for Drones and Lead conversion.** Both pages are blank on his
   current site. Whatever we write for them is new, is in his register, and goes
   to him before launch.
 - **The Formspree endpoint id** for the quote form. Until it is set the form
   falls back to the visitor's own mail app, which works but is not what he
   wants.
-- **Email and phone.** `content.py` carries the ones published on
-  netoriouslabs.com today (drew@netoriouslabs.com, 716-860-5991) — the email
-  still names the old brand, so confirm whether a mendozamarketing.* address
-  replaces it. (Instagram and Facebook arrived 2026-10-03 and are live in
+- **The phone.** `content.py` carries the one published on netoriouslabs.com
+  (716-860-5991); confirm it. The email is settled: drew@mendozamarketing.com
+  (the owner, 2026-10-15), set once in `content.SITE['email']`. (Instagram and Facebook arrived 2026-10-03 and are live in
   `content.SITE['socials']`, which also fills `sameAs`.)
-- **Kelly's Country Store and Gator Jon's BBQ logos.** Both are clients linked
-  from his current site and neither sent a logo file, so neither can appear in
-  the /work logo strip yet.
-- **The price disagreement** listed under Context.
+- **The /work logo gallery is his list** (2026-10-15): Buffalo Holistic, Zen
+  Zone, Isle de Grande and Mendoza Marketing. Adam's Detailing and Britt
+  Fitness are off it — he did not design those marks. Both still appear in
+  Home's Trusted By strip (clients, not design work); confirm with him.
+- **The /work website gallery** is his six $1,250 WordPress builds
+  (`content.SITES`). The previews are screenshots of the live sites:
+  `node tools/shoot-sites.mjs [slug]` re-shoots them when a site changes.
+- **The old Isle de Grande logo** (sent 2026-10-12, not received) — the
+  "before" for the before-and-after section on /logo. Save it as
+  `out/img/isle-de-grande-before.webp`; the section switches itself on when
+  both files of a case in `content.LOGO_CASES` exist, and more cases are more
+  rows there.
+- **The Logo design product graphic** (sent 2026-10-12, not received): save
+  as `out/img/pkg-logo.webp`.
+- **New copy on /logo for Drew to approve:** the three Included sentences
+  under his headings, and the "Build the brand" paragraph
+  (`pages.brand_tie_in()`).
 - **The /meta-ads dashboard screenshots** (sent 2026-10-11, not received).
   Campaign results headlines his 1,996 incoming leads, Jul 9 – Oct 9, from his
   own message; the daily chart beside it is still dash-6 (Jun 23 – Sep 20)
