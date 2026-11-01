@@ -47,7 +47,7 @@ SOURCES = {
     # and its window are from his own words ("Highlight 1,996 incoming leads
     # over 90 days (July 9 – October 9)"). When the files arrive they go in
     # the drop folder and get a rendition like the others.
-    'dash-7': dict(slug='dash-7', file='(not received — sent 2026-10-11)',
+    'dash-7': dict(slug='dash-7', file='(screenshot of the total, sent 2026-11-01)',
                    what='Leads Center, incoming leads, Jul 9 – Oct 9'),
 }
 
@@ -71,7 +71,7 @@ def fig(key, source, label, value, delta=None, note=None,
 # the screenshot, so the site does not name it either.
 DASH1 = [
     fig('d1-views', 'dash-1', 'Views · 28 days', '344,880', '↑ 11×',
-        'one client page', count=344880),
+        'compared with the previous 28 days', count=344880),
     # "Approximate earnings" on his dashboard is Meta paying the PAGE for its
     # posts — not what the client took in. Drew, 2026-10-03: "$40 can make it
     # look like Mendoza Marketing only generated $40 total for them". So the
@@ -80,24 +80,24 @@ DASH1 = [
         'paid by Meta for the posts alone, not client sales', count=42.15,
         prefix='$', decimals=2),
     fig('d1-engagement', 'dash-1', 'Engagement · 28 days', '14,164', '↑ 646%',
-        'same page', count=14164),
+        'likes, comments and shares', count=14164),
     fig('d1-followers', 'dash-1', 'Net followers · 28 days', '511', '↑ 30×',
-        'same page', count=511),
+        'new followers, after unfollows', count=511),
 ]
 
 # dash-2 — Kelly's Country Store, 28 days. The one client the screenshot names
 # itself, and the client whose reels are on the Home page.
 DASH2 = [
     fig('d2-views', 'dash-2', 'Views · 28 days', '413,311', '↑ 211%',
-        "Kelly's Country Store", count=413311),
+        'compared with the previous 28 days', count=413311),
     fig('d2-earnings', 'dash-2', 'Content payouts · 28 days', '$104.56', '↑ 621%',
         "Kelly's Country Store", count=104.56, prefix='$', decimals=2),
     # NOTE the engagement rise here is 61%, not dash-1's 646%. Two different
     # pages; the numbers are not interchangeable.
     fig('d2-engagement', 'dash-2', 'Engagement · 28 days', '20,983', '↑ 61%',
-        "Kelly's Country Store", count=20983),
+        'likes, comments and shares', count=20983),
     fig('d2-followers', 'dash-2', 'Net followers · 28 days', '1,380', '↑ 190%',
-        "Kelly's Country Store", count=1380),
+        'new followers, after unfollows', count=1380),
 ]
 
 # dash-3 — Instagram Insights, all content, 90 days.
@@ -111,7 +111,7 @@ DASH3 = [
     fig('d3-views', 'dash-3', 'Views · 90 days', '569,027', '+904 followers',
         '87.6% new audience', count=569027),
     fig('d3-followers', 'dash-3', 'Net followers · 90 days', '+904', None,
-        'same period', count=904, prefix='+'),
+        'new followers, after unfollows', count=904, prefix='+'),
     dict(fig('d3-interactions', 'dash-3', 'Interactions · 90 days', '22.8K',
              None, 'same period', count=22.8, suffix='K', decimals=1),
          partial=True),      # cropped — see the note above; never a headline
@@ -120,10 +120,12 @@ DASH3 = [
 ]
 
 # dash-5 — Leads Center. The Meta leads the ad campaigns brought in, which is
-# the number the lead-conversion service is about.
+# the number the lead-conversion service is about. His newer screenshot, sent
+# 2026-11-01: 1996 intake leads, up 9.8%, Jul 9 – Oct 9 (the older 614 / 27.4%
+# was an earlier window, and two lead totals on one site read as a mistake).
 DASH5 = [
-    fig('d5-leads', 'dash-5', 'Leads Center', '614', '↑ 27.4%',
-        'intake leads', count=614),
+    fig('d5-leads', 'dash-7', 'Intake leads · 90 days', '1,996', '↑ 9.8%',
+        'Jul 9 – Oct 9', count=1996),
 ]
 
 # dash-7 — the Campaign results headline on /meta-ads. Incoming leads only:
@@ -134,7 +136,7 @@ DASH5 = [
 # The daily average is his two numbers divided — 1,996 over the 90 days he
 # names — and is labelled as an average, not read off a chart.
 DASH7 = [
-    fig('d7-leads', 'dash-7', 'Incoming leads · 90 days', '1,996', None,
+    fig('d7-leads', 'dash-7', 'Incoming leads · 90 days', '1,996', '↑ 9.8%',
         'Jul 9 – Oct 9', count=1996),
     fig('d7-daily', 'dash-7', 'Leads a day, on average', '22', None,
         '1,996 over 90 days', count=22),
@@ -202,8 +204,8 @@ def bar_pct(value, rows=None):
 # The last date label on his chart is Sep 11; the line runs nine days past it,
 # so the series is Jun 23 → Sep 20 — ninety days, the same window as dash-3.
 #
-# The total of this series is NOT dash-5's 614: the Leads Center counts intake
-# leads and this chart counts every new lead. Two figures, two labels, never
+# The total of this series is NOT the 1,996: that is intake leads over a later
+# window, this chart counts every new lead. Two figures, two labels, never
 # added together.
 LEADS = dict(
     source='dash-6',
@@ -238,7 +240,7 @@ def leads_points(w=300.0, h=100.0, pad=6.0, series=None):
 # The four tiles the Home page shows, in the mockup's order: the reach, the
 # money, the ninety-day view, the leads. The other figures above are for
 # /results, which shows all six dashboards in full.
-HOME_STATS = [DASH1[0], DASH1[1], DASH3[0], DASH5[0]]
+HOME_STATS = [DASH1[0], DASH2[3], DASH3[0], DASH5[0]]
 
 # Every figure this file knows, for the build's own sake: the verification
 # script asserts each string below appears in the page that prints it, so a

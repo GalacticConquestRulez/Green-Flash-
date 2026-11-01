@@ -147,7 +147,7 @@ html.motion .sky-wind{animation:skyWind 26s linear infinite}
 .price li b { color: var(--ink); font-weight: 600; }
 /* A package with its own graphic is laid out wider, the graphic on top. */
 .prices-1:has(.has-art) { max-width: 520px; }
-.price-art { margin: -1.6rem -1.6rem 1.4rem; aspect-ratio: 16 / 10; overflow: hidden;
+.price-art { margin: -1.6rem -1.6rem 1.4rem; aspect-ratio: 16 / 9; overflow: hidden;
   border-bottom: 1px solid var(--line); background: var(--well, #0b1413); }
 .price-art img { width: 100%; height: 100%; object-fit: cover; }
 /* "Commission or hourly" is a sentence, not a figure, and does not want the

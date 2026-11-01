@@ -199,6 +199,7 @@ def campaign_results():
     big = (f'<div class="cr-big panel rv">'
            f'<span class="stat-label">{lead["label"]}</span>'
            f'<b class="cr-num stat-num" data-count="{lead["count"]}">{lead["value"]}</b>'
+           f'<em class="stat-delta">{lead["delta"]}</em>'
            f'<span class="cr-when">{lead["note"]} &middot; Meta Leads Center</span>'
            f'<div class="cr-span" aria-hidden="true"><i></i></div>'
            f'<div class="cr-months mono" aria-hidden="true">{months}</div>'
@@ -677,11 +678,12 @@ def work_page():
              'work, the Isle de Grande logo, and reels running on client pages '
              'around Buffalo, NY.',
         body='\n'.join([
-            B.page_hero('Work', 'The marks.<span>The films.</span>',
-                        'A selection of what Drew has built &mdash; the logos, the '
-                        'websites and the content. There is more of it than fits on '
-                        'one page: ask him what he has done in your line of business.',
-                        crumb='Work'),
+            B.page_hero('Work', 'What we<span>built.</span>',
+                        'The logos, the websites and the content, made for real '
+                        'businesses. There is more of it than fits on one page: '
+                        'ask Drew what he has done in your line of business.',
+                        crumb='Work', backdrop='sketch'),
+            work_switch('work'),
             section(sec_head('Brands', 'Logo and<span>brand work.</span>')
                     + f'<div class="grid grid-4 logos">{logos}</div>'),
             section(sec_head(CASE['work'],
@@ -703,6 +705,21 @@ def work_page():
             B.cta(primary=('Get a quote', '/contact'),
                   secondary=('See the results', '/results')),
         ]))
+
+
+def work_switch(active):
+    """The one sentence that tells /work and /results apart (Drew, 2026-11-01:
+    "difficult / confusing to follow when explaining it to a client"): Work is
+    what we made, Client Results is what it did. Each page links to the other."""
+    B = _b()
+    items = [('work', '/work', 'Work', 'What we made: logos, websites, films.'),
+             ('results', '/results', 'Client Results',
+              'What it did: views, followers, leads.')]
+    cards = ''.join(
+        f'<a class="wr-card{" is-on" if key == active else ""}" href="{B.u(href)}"'
+        + (' aria-current="page"' if key == active else '')
+        + f'><b>{name}</b><span>{line}</span></a>' for key, href, name, line in items)
+    return f'<div class="wrap wr-switch rv">{cards}</div>'
 
 
 def site_gallery():
@@ -760,29 +777,30 @@ def results_page():
                      ('Followers', followers, f'{followers}%')]
     return dict(
         title=B.seo_title('Client results and dashboards'),
-        desc='The client dashboards in full: 344,880 views in 28 days, 569,027 over '
-             '90, and 614 leads through the Meta Leads Center.',
+        desc='The client dashboards in full: 413,311 views in 28 days, 569,027 over '
+             '90, and 1,996 leads through the Meta Leads Center.',
         body='\n'.join([
-            B.page_hero('Results', 'Real dashboards.<span>Real numbers.</span>',
+            B.page_hero('Client Results', 'Real dashboards.<span>Real numbers.</span>',
                         'Every figure on this page is read off a client\u2019s own '
                         'dashboard. Nothing is modelled, projected or rounded up.',
-                        crumb='Results'),
+                        crumb='Client Results', backdrop='growth'),
+            work_switch('results'),
             section(
-                sec_head('28 days', 'One page,<span>four weeks.</span>')
-                + stats_row(DASH1,
-                            'A client page under Mendoza Marketing management · '
-                            'last 28 days, against the 28 before it. The screenshot '
-                            'does not name the page, so neither does this one.')),
+                sec_head('Kelly&rsquo;s Country Store', 'A store page,<span>four weeks of growth.</span>')
+                + stats_row([DASH2[0], DASH2[2], DASH2[3]],
+                            'Kelly&rsquo;s Country Store · last 28 days, compared with '
+                            'the 28 before. Viral Content Management and Performance '
+                            'Marketing.', cls='grid-3')),
             section(
-                sec_head('Kelly&rsquo;s Country Store', 'The same month,<span>a busier page.</span>')
-                + stats_row(DASH2,
-                            'Kelly&rsquo;s Country Store · last 28 days, against the '
-                            '28 before it. Viral content management and Meta ads.'),
+                sec_head('Local business client', 'Another page,<span>a breakout month.</span>')
+                + stats_row([DASH1[0], DASH1[2], DASH1[3]],
+                            'A local business client · last 28 days, compared with '
+                            'the 28 before.', cls='grid-3'),
                 cls='band-alt'),
             section(
-                sec_head('90 days', 'A quarter of<span>the same work.</span>')
+                sec_head('90 days on Instagram', 'Most of the views,<span>from new people.</span>')
                 + stats_row(DASH3[:2],
-                            f'The same client page · last 90 days. {split["value"]} '
+                            f'Instagram Insights · last 90 days. {split["value"]} '
                             'of the people who watched were not following the page '
                             'when they did.', cls='grid-2')
                 + f'<div class="grid grid-2 figures">'
@@ -799,15 +817,15 @@ def results_page():
                         'Daily new leads over ninety days, from about twelve a day '
                         'to a peak of thirty-seven')
                 + '</div>'
-                + '<p class="fig-cap rv">Meta Leads Center · intake leads over the '
-                  'reporting window, up 27.4% on the window before it. The daily '
-                  'chart counts every new lead, which is not the same number.</p>',
+                + f'<p class="fig-cap rv">Meta Leads Center · intake leads, Jul 9 – Oct 9, '
+                  f'up 9.8% on the period before. The daily chart is an earlier '
+                  f'window, {LEADS["range"]}.</p>',
                 cls='band-alt'),
             B.cta(title='Want numbers like these?',
                   text='This is what a page looks like after a few months of content '
                        'and campaigns. Tell Drew where yours is now.',
                   primary=('Get a quote', '/contact'),
-                  secondary=('See the pricing', '/pricing')),
+                  secondary=('See the work', '/work')),
         ]))
 
 

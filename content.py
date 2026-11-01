@@ -144,8 +144,7 @@ PRICING = {
         name='Website design', service='websites',
         qualifier='from', amount='$1,250', note=None,
         tier='Websites', features=WEB_FEATURES,
-        # His "Website Design graphic", sent 2026-10-10 as the placeholder for
-        # this package. Not received yet: drop it in as out/img/pkg-web-design.webp
+        # His "Website Design graphic", received 2026-11-01.
         image='pkg-web-design'),
     # Performance marketing (Drew, 2026-10-11: "Update to $750/month"). `per`
     # is the billing period, printed after the figure wherever it appears

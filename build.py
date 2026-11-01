@@ -247,7 +247,7 @@ SERVICE_MENU = [(u('/' + s['slug']), s['name'], '') for s in SERVICES]
 NAV = [
     ('Services', None, SERVICE_MENU),
     ('Work', '/work', None),
-    ('Results', '/results', None),
+    ('Client Results', '/results', None),
     ('About', '/about', None),
     ('Pricing', '/pricing', None),
     ('Contact', '/contact', None),
@@ -334,7 +334,7 @@ def socials_html():
 
 
 # The pages that are not services, for the footer's Explore column.
-EXPLORE = [('Work', '/work'), ('Results', '/results'), ('About Drew', '/about'),
+EXPLORE = [('Work', '/work'), ('Client Results', '/results'), ('About Drew', '/about'),
            ('Pricing', '/pricing'), ('Contact', '/contact')]
 
 GF = 'https://greenflashusa.com'

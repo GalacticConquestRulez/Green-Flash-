@@ -330,8 +330,8 @@ publishes none of them.
   `content.SITE['socials']`, which also fills `sameAs`.)
 - **The /work logo gallery is his list** (2026-10-15): Buffalo Holistic, Zen
   Zone, Isle de Grande and Mendoza Marketing. Adam's Detailing and Britt
-  Fitness are off it — he did not design those marks. Both still appear in
-  Home's Trusted By strip (clients, not design work); confirm with him.
+  Fitness are off it, and off Home's Trusted By strip — he did not design those
+  marks and they "shouldn't be included in our portfolio".
 - **The /work website gallery** is his six $1,250 WordPress builds
   (`content.SITES`). The previews are screenshots of the live sites:
   `node tools/shoot-sites.mjs [slug]` re-shoots them when a site changes.
@@ -345,22 +345,22 @@ publishes none of them.
 - **New copy on /logo for Drew to approve:** the three Included sentences
   under his headings, and the "Build the brand" paragraph
   (`pages.brand_tie_in()`).
-- **The /meta-ads dashboard screenshots** (sent 2026-10-11, not received).
-  Campaign results headlines his 1,996 incoming leads, Jul 9 – Oct 9, from his
-  own message; the daily chart beside it is still dash-6 (Jun 23 – Sep 20)
-  and says so. When the screenshots land, read the Jul 9 – Oct 9 daily series
-  into `results.py` and point the chart at it. Converted leads and conversion
+- **The Jul 9 – Oct 9 daily leads chart.** His 2026-11-01 screenshot gives the
+  total only (1,996 intake leads, up 9.8%, now on /meta-ads, /results and Home);
+  the daily chart beside it is still dash-6 (Jun 23 – Sep 20) and says so. When
+  the daily series lands, read it into `results.py` and point the chart at it. Converted leads and conversion
   rates stay off the site — he says those fields were never kept up.
 - **The Performance Marketing graphic** (sent 2026-10-11, not received):
   save as `out/img/pkg-meta-ads.webp`; the price card picks it up.
 - **His own cost per lead for the campaign preview.** `campaign.MODEL` holds
   typical local Meta ranges we chose ($8–14 CPM, $12–30 per lead). His real
   numbers make the projections his; change MODEL and nothing else.
-- **The Website Design graphic.** Drew sent one 2026-10-10 as the placeholder
-  for the $1,250 package; it did not come through. Save it as
-  `out/img/pkg-web-design.webp` (plus `-800` if large) and rebuild: the price
-  card picks it up by itself (`PRICING['web-design']['image']`), and until
-  then the build lists it as missing and the card is drawn without it.
+- **The unnamed client on /results.** dash-1's page is "A local business
+  client" until Drew says who it is. The payout tiles are off /results and Home
+  (2026-11-01); the figures stay in `results.py`.
+- **The other package graphics.** Website Design arrived 2026-11-01 (original
+  in `assets/packages/`, gitignored; `out/img/pkg-web-design.webp` plus `-800`).
+  Social, drones and lead conversion would need an `image=` on their row.
 - **The three "What You Can Expect" sentences on /websites** (Drew,
   2026-10-10: "expand the descriptions … customer benefits"). His headings,
   our sentences — new copy for him to approve, in `content.SERVICES`.

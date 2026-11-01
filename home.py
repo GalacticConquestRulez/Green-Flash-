@@ -134,8 +134,6 @@ HOME_LINES = {
 CLIENTS = [
     ('client-buffalo-holistic', 'Buffalo Holistic Center'),
     ('client-zen-zone', 'Zen Zone Property Maintenance'),
-    ('client-britt-fitness', 'Britt Fitness'),
-    ('client-adams-detailing', "Adam's Detailing & Coatings"),
     ('isle-de-grande-profile', 'Isle de Grande'),
 ]
 # The one chip that is left in colour while the rest are monochrome, so the

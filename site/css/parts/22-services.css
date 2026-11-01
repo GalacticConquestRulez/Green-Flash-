@@ -333,3 +333,20 @@ html.motion .hub-row { animation: hubIn 11s var(--ease) infinite;
 /* The logo plates: a mark drawn for white sits on a light plate. */
 .logo-shot.is-light { background: var(--ink); }
 .logo-shot.is-light img, .logo-shot.is-contain img { object-fit: contain; padding: 12%; }
+
+/* /work and /results say which is which, and link to each other. */
+.wr-switch { display: grid; grid-template-columns: repeat(2, 1fr); gap: .8rem; margin-top: 1.5rem; }
+.wr-card { display: flex; flex-direction: column; gap: .25rem; padding: 1rem 1.2rem; border: 1px solid var(--line);
+  border-radius: 12px; color: var(--muted); text-decoration: none; transition: border-color .2s; }
+.wr-card b { color: var(--ink); font-family: var(--font-display, inherit); }
+.wr-card span { font-size: .9rem; }
+.wr-card:hover { border-color: var(--green-line); }
+.wr-card.is-on { border-color: var(--green-line); background: var(--panel, transparent); }
+.wr-card.is-on b { color: var(--green); }
+@media (max-width: 559px) { .wr-switch { grid-template-columns: 1fr; } }
+/* A row of three (or two) tiles fills the row, rather than stopping at the
+   base .stats column count. */
+@media (min-width: 760px) {
+  .stats.grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .stats.grid-2 { grid-template-columns: repeat(2, 1fr); }
+}
